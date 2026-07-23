@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CheckBF</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        body {
+            min-height: 100vh;
+            background-color: #1a1a1a;
+            background-image: url('assets/background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #c900c9;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            font-size: 4rem;
+            -webkit-text-stroke: 1px #000;
+        }
+        .avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 2px solid #555;
+            object-fit: cover;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+        .grid {
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
+            min-height: 600px;
+        }
+        .oval {
+            position: absolute;
+            border-radius: 50%;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            cursor: pointer;
+        }
+        .oval:hover {
+            background: #33334a;
+        }
+        .oval h2 {
+            font-size: 1.1rem;
+            color: #8cf;
+            margin-bottom: 4px;
+            -webkit-text-stroke: 0.5px #000;
+        }
+        .oval p {
+            font-size: 0.8rem;
+            color: #999;
+            line-height: 1.3;
+        }
+        .o1 { width: 220px; height: 120px; top: 0; left: 5%; }
+        .o2 { width: 200px; height: 100px; top: 15%; right: 8%; }
+        .o3 { width: 240px; height: 130px; top: 40%; left: 0; }
+        .o4 { width: 200px; height: 100px; top: 45%; right: 5%; }
+        .o5 { width: 220px; height: 120px; bottom: 0; left: 20%; }
+        svg.arrows {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+    <svg class="arrows" id="arrows"></svg>
+    <img class="avatar" id="avatar" src="https://tr.rbxcdn.com/30DAY-AvatarHeadshot-1507DAB190B8A3C9CEA7A26EE1A69D31-Png/420/420/AvatarHeadshot/Png/noFilter" alt="Avatar">
+    <h1>CheckBF</h1>
+    <div class="grid">
+        <div class="oval o1" onclick="location.href='fruit.html'">
+            <h2>Фрукты</h2>
+            <p>Какие пробудил, стадии пробуждения</p>
+        </div>
+        <div class="oval o2">
+            <h2>Мечи</h2>
+            <p>Какие собрал, уровень мастерства</p>
+        </div>
+        <div class="oval o3">
+            <h2>Стили боя</h2>
+            <p>Какие прокачал, стадии</p>
+        </div>
+        <div class="oval o4">
+            <h2>Оружие</h2>
+            <p>Мушкеты, пистолеты, арбалеты</p>
+        </div>
+        <div class="oval o5">
+            <h2>Аксессуары</h2>
+            <p>Шляпы, броня, ожерелья, кольца</p>
+        </div>
+    </div>
+    <script>
+        function drawArrows() {
+            var svg = document.getElementById('arrows');
+            var avatar = document.getElementById('avatar');
+            var avRect = avatar.getBoundingClientRect();
+            var cx = avRect.left + avRect.width / 2;
+            var cy = avRect.top + avRect.height / 2;
+            var ovals = document.querySelectorAll('.oval');
+            var lines = '';
+            var defs = '<defs><marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#fff"/></marker></defs>';
+            ovals.forEach(function(o) {
+                var r = o.getBoundingClientRect();
+                var ox = r.left + r.width / 2;
+                var oy = r.top + r.height / 2;
+                var dx = cx - ox;
+                var dy = cy - oy;
+                var len = Math.sqrt(dx * dx + dy * dy);
+                if (len === 0) return;
+                var ux = dx / len;
+                var uy = dy / len;
+                var sx = cx - ux * 78;
+                var sy = cy - uy * 78;
+                var a = r.width / 2 + 2;
+                var b = r.height / 2 + 2;
+                var s = 1 / Math.sqrt((dx * dx) / (a * a) + (dy * dy) / (b * b));
+                var ex = ox + s * dx;
+                var ey = oy + s * dy;
+                lines += '<line x1="' + sx + '" y1="' + sy + '" x2="' + ex + '" y2="' + ey + '" stroke="#fff" stroke-width="1.5" marker-end="url(#ah)" opacity="0.6"/>';
+            });
+            svg.innerHTML = defs + lines;
+        }
+        drawArrows();
+        window.addEventListener('resize', drawArrows);
+    </script>
+</body>
+</html>

@@ -1,0 +1,829 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фрукты — CheckBF</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            height: 100vh;
+            background-color: #1a1a1a;
+            background-image: url('assets/background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #c900c9;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+        }
+        .back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1rem;
+            border: 1px solid #555;
+            border-radius: 16px;
+            padding: 6px 16px;
+            background: #2a2a3a;
+            z-index: 20;
+        }
+        .back:hover {
+            background: #33334a;
+        }
+        .sidebar {
+            width: 180px;
+            background: rgba(30,30,40,0.85);
+            border-right: 1px solid #444;
+            display: flex;
+            flex-direction: column;
+            padding: 60px 0 20px 0;
+            flex-shrink: 0;
+        }
+        .sidebar h2 {
+            font-size: 1rem;
+            color: #fff;
+            -webkit-text-stroke: 0.5px #000;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .sidebar button {
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 0.85rem;
+            padding: 10px 20px;
+            text-align: left;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+        .sidebar button:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+        }
+        .sidebar button.active {
+            color: #8cf;
+            border-left-color: #8cf;
+            background: rgba(100,180,255,0.08);
+        }
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 40px;
+            overflow: hidden;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin: 0 0 12px 0;
+            color: #fff;
+            -webkit-text-stroke: 1px #000;
+            text-align: center;
+        }
+        .search {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 12px auto;
+            padding: 8px 16px;
+            border: 1px solid #555;
+            border-radius: 20px;
+            background: #2a2a3a;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .search::placeholder {
+            color: #777;
+        }
+        .search:focus {
+            border-color: #8cf;
+        }
+        .list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 12px;
+            width: 100%;
+            padding: 0 10px;
+            overflow-y: auto;
+            flex: 1;
+            align-content: start;
+        }
+        .item {
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 0;
+            display: flex;
+            align-items: stretch;
+            width: 100%;
+            min-height: 48px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .item:hover {
+            background: #33334a;
+        }
+        .item h3 {
+            font-size: 0.85rem;
+            -webkit-text-stroke: 0.5px #000;
+            margin: 0;
+            line-height: 1.3;
+        }
+        .item[data-rarity="common"] h3 { color: #fff; }
+        .item[data-rarity="uncommon"] h3 { color: #4caf50; }
+        .item[data-rarity="rare"] h3 { color: #42a5f5; }
+        .item[data-rarity="legendary"] h3 { color: #f48fb1; }
+        .item[data-rarity="mythical"] h3 { color: #ef5350; }
+        .item img {
+            width: 30px;
+            height: 30px;
+            margin: auto 0 auto 10px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+        .item p {
+            font-size: 0.7rem;
+            color: #aaa;
+            margin: 2px 0 0 0;
+            line-height: 1.2;
+        }
+        .item .info {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            padding: 6px 10px;
+            justify-content: center;
+            min-width: 0;
+        }
+        .item .eat-icon {
+            font-size: 1rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            user-select: none;
+            width: 32px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.05);
+            color: #888;
+        }
+        .item .eat-icon:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .item .eat-icon.eaten {
+            background: #2e7d32;
+            color: #fff;
+        }
+        .item .eat-icon.eaten {
+            color: #4caf50;
+        }
+        .item .eat-icon:not(.eaten) {
+            color: #666;
+        }
+        .item .fav-icon {
+            font-size: 1rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            user-select: none;
+            width: 32px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.05);
+            color: #888;
+        }
+        .item .fav-icon:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .item .fav-icon.faved {
+            background: #e6a800;
+            color: #fff;
+        }
+        .item .perm-icon {
+            font-size: 0.8rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            user-select: none;
+            width: 32px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.05);
+            color: #888;
+            font-weight: bold;
+        }
+        .item .perm-icon:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .item .perm-icon.permed {
+            background: #7b1fa2;
+            color: #fff;
+        }
+        .item .fav-icon.faved {
+            color: #ffc107;
+        }
+        .item .fav-icon:not(.faved) {
+            color: #555;
+        }
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 30;
+            align-items: center;
+            justify-content: center;
+        }
+        .popup-overlay.active {
+            display: flex;
+        }
+        .popup {
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 14px;
+            padding: 30px 40px;
+            min-width: 280px;
+        }
+        .popup h2 {
+            font-size: 1.4rem;
+            color: #8cf;
+            -webkit-text-stroke: 0.5px #000;
+            margin-bottom: 16px;
+        }
+        .popup .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .popup .label {
+            color: #999;
+            font-size: 0.9rem;
+        }
+        .popup .value {
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        .popup .controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .popup .ctrl-btn {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #555;
+            background: #2a2a3a;
+            color: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .popup .ctrl-btn:hover {
+            background: #33334a;
+        }
+        .popup .close {
+            margin-top: 18px;
+            background: none;
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 10px;
+            padding: 6px 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .popup .close:hover {
+            background: #33334a;
+        }
+    </style>
+</head>
+<body>
+    <a class="back" href="index.html">&larr; Назад</a>
+    <div class="sidebar">
+        <h2>Редкость</h2>
+        <button class="active" data-filter="all">Все</button>
+        <button data-filter="favourite">★ Избранное</button>
+        <button data-filter="common">Обычные</button>
+        <button data-filter="uncommon">Необычные</button>
+        <button data-filter="rare">Редкие</button>
+        <button data-filter="legendary">Легендарные</button>
+        <button data-filter="mythical">Мифические</button>
+    </div>
+    <div class="main">
+        <h1>Фрукты</h1>
+        <input class="search" type="text" placeholder="Поиск по названию..." id="searchInput" oninput="filterBySearch()">
+        <div class="list">
+            <!-- Обычные -->
+            <div class="item" data-name="Ракета (Rocket)" data-mastery="0/600" data-awakening="0/5" data-rarity="common" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/RocketB.webp" alt="Rocket">
+                <div class="info"><h3>Ракета (Rocket)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Спин (Spin)" data-mastery="0/600" data-awakening="0/5" data-rarity="common" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/SpinB.webp" alt="Spin">
+                <div class="info"><h3>Спин (Spin)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Клинок (Blade)" data-mastery="0/600" data-awakening="0/5" data-rarity="common" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/BladeB.webp" alt="Blade">
+                <div class="info"><h3>Клинок (Blade)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Пружина (Spring)" data-mastery="0/600" data-awakening="0/5" data-rarity="common" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/SpringB.webp" alt="Spring">
+                <div class="info"><h3>Пружина (Spring)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Бомба (Bomb)" data-mastery="0/600" data-awakening="0/5" data-rarity="common" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/BombB.webp" alt="Bomb">
+                <div class="info"><h3>Бомба (Bomb)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Дым (Smoke)" data-mastery="0/600" data-awakening="0/5" data-rarity="common" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/SmokeB.webp" alt="Smoke">
+                <div class="info"><h3>Дым (Smoke)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Шип (Spike)" data-mastery="0/600" data-awakening="0/5" data-rarity="common" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/SpikeB.webp" alt="Spike">
+                <div class="info"><h3>Шип (Spike)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <!-- Необычные -->
+            <div class="item" data-name="Пламя (Flame)" data-type="awakening" data-mastery="600/600" data-awakening="5/5" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/FlameB.webp" alt="Flame">
+                <div class="info"><h3>Пламя (Flame)</h3><p>600/600 | 5/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Лёд (Ice)" data-type="awakening" data-mastery="340/600" data-awakening="3/5" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/IceB.webp" alt="Ice">
+                <div class="info"><h3>Лёд (Ice)</h3><p>340/600 | 3/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Песок (Sand)" data-type="awakening" data-mastery="0/600" data-awakening="0/5" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/SandB.webp" alt="Sand">
+                <div class="info"><h3>Песок (Sand)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Темнота (Dark)" data-type="awakening" data-mastery="480/600" data-awakening="4/5" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/DarkB.webp" alt="Dark">
+                <div class="info"><h3>Темнота (Dark)</h3><p>480/600 | 4/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Орёл (Eagle)" data-type="prokachka" data-mastery="0/600" data-awakening="0/5" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/EagleB.webp" alt="Eagle">
+                <div class="info"><h3>Орёл (Eagle)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Алмаз (Diamond)" data-mastery="0/600" data-awakening="0/5" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/DiamondB.webp" alt="Diamond">
+                <div class="info"><h3>Алмаз (Diamond)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <!-- Редкие -->
+            <div class="item" data-name="Свет (Light)" data-type="awakening" data-mastery="120/600" data-awakening="2/5" data-rarity="rare" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/LightB.webp" alt="Light">
+                <div class="info"><h3>Свет (Light)</h3><p>120/600 | 2/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Резина (Rubber)" data-mastery="600/600" data-awakening="5/5" data-rarity="rare" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/RubberB.webp" alt="Rubber">
+                <div class="info"><h3>Резина (Rubber)</h3><p>600/600 | 5/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Призрак (Ghost)" data-mastery="0/600" data-awakening="0/5" data-rarity="rare" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/GhostB.webp" alt="Ghost">
+                <div class="info"><h3>Призрак (Ghost)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Магма (Magma)" data-type="awakening" data-mastery="0/600" data-awakening="0/5" data-rarity="rare" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/MagmaB.webp" alt="Magma">
+                <div class="info"><h3>Магма (Magma)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <!-- Легендарные -->
+            <div class="item" data-name="Землетрясение (Quake)" data-type="awakening" data-mastery="0/600" data-awakening="0/5" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/QuakeB.webp" alt="Quake">
+                <div class="info"><h3>Землетрясение (Quake)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Будда (Buddha)" data-type="awakening" data-mastery="0/600" data-awakening="0/5" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/BuddhaB.webp" alt="Buddha">
+                <div class="info"><h3>Будда (Buddha)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Любовь (Love)" data-mastery="0/600" data-awakening="0/5" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/LoveB.webp" alt="Love">
+                <div class="info"><h3>Любовь (Love)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Создание (Creation)" data-mastery="0/600" data-awakening="0/5" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/CreationB.webp" alt="Creation">
+                <div class="info"><h3>Создание (Creation)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Паук (Spider)" data-type="awakening" data-mastery="0/600" data-awakening="0/5" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/SpiderB.webp" alt="Spider">
+                <div class="info"><h3>Паук (Spider)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Звук (Sound)" data-mastery="0/600" data-awakening="0/5" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/SoundB.webp" alt="Sound">
+                <div class="info"><h3>Звук (Sound)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Феникс (Phoenix)" data-type="awakening" data-mastery="50/600" data-awakening="0/5" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/PhoenixB.webp" alt="Phoenix">
+                <div class="info"><h3>Феникс (Phoenix)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Портал (Portal)" data-mastery="0/600" data-awakening="0/5" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/PortalB.webp" alt="Portal">
+                <div class="info"><h3>Портал (Portal)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Молния (Lightning)" data-type="prokachka" data-mastery="0/600" data-awakening="0/5" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/LightningB.webp" alt="Lightning">
+                <div class="info"><h3>Молния (Lightning)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Боль (Pain)" data-type="prokachka" data-mastery="0/600" data-awakening="0/5" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/PainB.webp" alt="Pain">
+                <div class="info"><h3>Боль (Pain)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Метель (Blizzard)" data-mastery="0/600" data-awakening="0/5" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/BlizzardB.webp" alt="Blizzard">
+                <div class="info"><h3>Метель (Blizzard)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <!-- Мифические -->
+            <div class="item" data-name="Гравитация (Gravity)" data-type="prokachka" data-mastery="90/600" data-awakening="1/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/GravityB.webp" alt="Gravity">
+                <div class="info"><h3>Гравитация (Gravity)</h3><p>90/600 | 1/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Мамонт (Mammoth)" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/MammothB.webp" alt="Mammoth">
+                <div class="info"><h3>Мамонт (Mammoth)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Ти-Рекс (T-Rex)" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/TRexB.webp" alt="T-Rex">
+                <div class="info"><h3>Ти-Рекс (T-Rex)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Тесто (Dough)" data-type="awakening" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/DoughB.webp" alt="Dough">
+                <div class="info"><h3>Тесто (Dough)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Тень (Shadow)" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/ShadowB.webp" alt="Shadow">
+                <div class="info"><h3>Тень (Shadow)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Яд (Venom)" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/VenomB.webp" alt="Venom">
+                <div class="info"><h3>Яд (Venom)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Контроль (Control)" data-type="prokachka" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/ControlB.webp" alt="Control">
+                <div class="info"><h3>Контроль (Control)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Газ (Gas)" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/GasB.webp" alt="Gas">
+                <div class="info"><h3>Газ (Gas)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Дух (Spirit)" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/SpiritB.webp" alt="Spirit">
+                <div class="info"><h3>Дух (Spirit)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Тигр (Tiger)" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/TigerB.webp" alt="Tiger">
+                <div class="info"><h3>Тигр (Tiger)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Йети (Yeti)" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/YetiFruitB.webp" alt="Yeti">
+                <div class="info"><h3>Йети (Yeti)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Кицунэ (Kitsune)" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/KitsuneB.webp" alt="Kitsune">
+                <div class="info"><h3>Кицунэ (Kitsune)</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Восточный Дракон (Dragon East)" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/DragonEastA.webp" alt="Dragon East">
+                <div class="info"><h3>Восточный Дракон</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+            <div class="item" data-name="Западный Дракон (Dragon West)" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+                <img src="assets/fruits/DragonWestA.webp" alt="Dragon West">
+                <div class="info"><h3>Западный Дракон</h3><p>0/600 | 0/5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
+            </div>
+        </div>
+    </div>
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup">
+            <h2 id="popupName"></h2>
+            <div class="row">
+                <span class="label">Мастерство:</span>
+                <div class="controls">
+                    <button class="ctrl-btn" onmousedown="startChange('mastery',-10)" onmouseup="stopChange()" onmouseleave="stopChange()">−</button>
+                    <span class="value" id="popupMastery"></span>
+                    <button class="ctrl-btn" onmousedown="startChange('mastery',10)" onmouseup="stopChange()" onmouseleave="stopChange()">+</button>
+                </div>
+            </div>
+            <div class="row" id="popupAwakeningRow">
+                <span class="label" id="popupAwakeningLabel">Пробуждение:</span>
+                <div class="controls">
+                    <button class="ctrl-btn" onmousedown="startChange('awakening',-1)" onmouseup="stopChange()" onmouseleave="stopChange()">−</button>
+                    <span class="value" id="popupAwakening"></span>
+                    <button class="ctrl-btn" onmousedown="startChange('awakening',1)" onmouseup="stopChange()" onmouseleave="stopChange()">+</button>
+                </div>
+            </div>
+            <button class="close" onclick="document.getElementById('popupOverlay').classList.remove('active')">Закрыть</button>
+        </div>
+    </div>
+    <script>
+        var currentItem = null;
+        var holdTimer = null;
+        var holdInterval = null;
+
+        function toggleEaten(e, el) {
+            e.stopPropagation();
+            var item = el.closest('.item');
+            var val = item.dataset.eaten === 'true' ? 'false' : 'true';
+            item.dataset.eaten = val;
+            el.textContent = val === 'true' ? '✓' : '⊘';
+            el.classList.toggle('eaten', val === 'true');
+            saveData();
+        }
+        function toggleFav(e, el) {
+            e.stopPropagation();
+            var item = el.closest('.item');
+            var val = item.dataset.fav === 'true' ? 'false' : 'true';
+            item.dataset.fav = val;
+            el.textContent = val === 'true' ? '★' : '☆';
+            el.classList.toggle('faved', val === 'true');
+            saveData();
+        }
+        function togglePerm(e, el) {
+            e.stopPropagation();
+            var item = el.closest('.item');
+            var val = item.dataset.perm === 'true' ? 'false' : 'true';
+            item.dataset.perm = val;
+            el.classList.toggle('permed', val === 'true');
+            saveData();
+        }
+
+        function saveData() {
+            var data = {};
+            document.querySelectorAll('.item').forEach(function(item) {
+                data[item.dataset.name] = { mastery: item.dataset.mastery, awakening: item.dataset.awakening, eaten: item.dataset.eaten, fav: item.dataset.fav, perm: item.dataset.perm };
+            });
+            localStorage.setItem('checkbf_fruits', JSON.stringify(data));
+        }
+
+        function updateItemText(item) {
+            var p = item.querySelector('p');
+            var ma = item.dataset.mastery;
+            var aw = item.dataset.awakening;
+            p.textContent = ma + ' | ' + aw;
+        }
+
+        function loadData() {
+            var raw = localStorage.getItem('checkbf_fruits');
+            if (!raw) return;
+            var data = JSON.parse(raw);
+            document.querySelectorAll('.item').forEach(function(item) {
+                var saved = data[item.dataset.name];
+                if (saved) {
+                    item.dataset.mastery = saved.mastery;
+                    item.dataset.awakening = saved.awakening;
+                    if (saved.eaten) {
+                        item.dataset.eaten = saved.eaten;
+                        var eatEl = item.querySelector('.eat-icon');
+                        if (eatEl) {
+                            eatEl.textContent = saved.eaten === 'true' ? '✓' : '⊘';
+                            eatEl.classList.toggle('eaten', saved.eaten === 'true');
+                        }
+                    }
+                    if (saved.fav) {
+                        item.dataset.fav = saved.fav;
+                        var favEl = item.querySelector('.fav-icon');
+                        if (favEl) {
+                            favEl.textContent = saved.fav === 'true' ? '★' : '☆';
+                            favEl.classList.toggle('faved', saved.fav === 'true');
+                        }
+                    }
+                    if (saved.perm) {
+                        item.dataset.perm = saved.perm;
+                        var permEl = item.querySelector('.perm-icon');
+                        if (permEl) {
+                            permEl.classList.toggle('permed', saved.perm === 'true');
+                        }
+                    }
+                    updateItemText(item);
+                }
+            });
+        }
+
+        loadData();
+
+        function filterBySearch() {
+            var q = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.item').forEach(function(item) {
+                var name = item.dataset.name.toLowerCase();
+                item.style.display = name.indexOf(q) !== -1 ? '' : 'none';
+            });
+        }
+
+        document.querySelectorAll('.item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                currentItem = item;
+                document.getElementById('popupName').textContent = item.dataset.name;
+                document.getElementById('popupMastery').textContent = item.dataset.mastery;
+                var awRow = document.getElementById('popupAwakeningRow');
+                var awLabel = document.getElementById('popupAwakeningLabel');
+                if (item.dataset.type === 'awakening') {
+                    awRow.style.display = '';
+                    awLabel.textContent = 'Пробуждение:';
+                    document.getElementById('popupAwakening').textContent = item.dataset.awakening;
+                } else if (item.dataset.type === 'prokachka') {
+                    awRow.style.display = '';
+                    awLabel.textContent = 'Прокачка:';
+                    document.getElementById('popupAwakening').textContent = item.dataset.awakening;
+                } else {
+                    awRow.style.display = 'none';
+                }
+                document.getElementById('popupOverlay').classList.add('active');
+            });
+        });
+        function changeMastery(step) {
+            var el = document.getElementById('popupMastery');
+            var parts = el.textContent.split('/');
+            var val = Math.max(0, Math.min(600, parseInt(parts[0]) + step));
+            el.textContent = val + '/600';
+            if (currentItem) {
+                currentItem.dataset.mastery = val + '/600';
+                updateItemText(currentItem);
+                saveData();
+            }
+        }
+        function changeAwakening(step) {
+            var el = document.getElementById('popupAwakening');
+            var parts = el.textContent.split('/');
+            var val = Math.max(0, Math.min(5, parseInt(parts[0]) + step));
+            el.textContent = val + '/5';
+            if (currentItem) {
+                currentItem.dataset.awakening = val + '/5';
+                updateItemText(currentItem);
+                saveData();
+            }
+        }
+        function startChange(type, step) {
+            if (type === 'mastery') changeMastery(step);
+            else changeAwakening(step);
+            holdTimer = setTimeout(function() {
+                holdInterval = setInterval(function() {
+                    if (type === 'mastery') changeMastery(step);
+                    else changeAwakening(step);
+                }, 50);
+            }, 400);
+        }
+        function stopChange() {
+            clearTimeout(holdTimer);
+            clearInterval(holdInterval);
+        }
+        document.getElementById('popupOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
+        });
+        document.querySelectorAll('.sidebar button').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.sidebar button').forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                var filter = btn.dataset.filter;
+                document.querySelectorAll('.item').forEach(function(item) {
+                    var show = false;
+                    if (filter === 'all') show = true;
+                    else if (filter === 'favourite') show = item.dataset.fav === 'true';
+                    else show = item.dataset.rarity === filter;
+                    item.style.display = show ? '' : 'none';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
