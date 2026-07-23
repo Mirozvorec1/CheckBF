@@ -844,9 +844,9 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <div class="item" data-name="Землетрясение (Quake)" data-type="awakening" data-mastery="0/600" data-awakening="0/4" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Дрожь (Quake)" data-type="awakening" data-mastery="0/600" data-awakening="0/4" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/QuakeB.webp" alt="Quake">
-                <div class="info"><h3>Землетрясение (Quake)</h3><p>0/600 | 0/4</p></div>
+                <div class="info"><h3>Дрожь (Quake)</h3><p>0/600 | 0/4</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
@@ -921,9 +921,9 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <div class="item" data-name="Гравитация (Gravity)" data-type="prokachka" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Гравитация (Gravity)" data-type="prokachka" data-mastery="0/600" data-awakening="0/4" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/GravityB.webp" alt="Gravity">
-                <div class="info"><h3>Гравитация (Gravity)</h3><p>0/600 | 0/5</p></div>
+                <div class="info"><h3>Гравитация (Gravity)</h3><p>0/600 | 0/4</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
@@ -1131,7 +1131,9 @@
                 var saved = data[item.dataset.name];
                 if (saved) {
                     item.dataset.mastery = saved.mastery;
-                    item.dataset.awakening = saved.awakening;
+                    var savedAw = saved.awakening.split('/');
+                    var htmlMax = item.dataset.awakening.split('/')[1] || '5';
+                    item.dataset.awakening = (savedAw[0] || '0') + '/' + htmlMax;
                     if (saved.eaten) {
                         item.dataset.eaten = saved.eaten;
                         var eatEl = item.querySelector('.eat-icon');
