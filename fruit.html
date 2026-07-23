@@ -695,7 +695,7 @@
                     <svg viewBox="0 0 16 16" fill="none">
                         <path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
-                    Сортировка
+                    <span id="sortLabel">По редкости</span>
                 </button>
                 <div class="sort-dropdown" id="sortDropdown">
                     <button data-sort="default" class="active" onclick="setSort('default', this)">
@@ -774,16 +774,16 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <div class="item" data-name="Пламя (Flame)" data-type="awakening" data-mastery="600/600" data-awakening="5/5" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Пламя (Flame)" data-type="awakening" data-mastery="0/600" data-awakening="0/5" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/FlameB.webp" alt="Flame">
-                <div class="info"><h3>Пламя (Flame)</h3><p>600/600 | 5/5</p></div>
+                <div class="info"><h3>Пламя (Flame)</h3><p>0/600 | 0/5</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <div class="item" data-name="Лёд (Ice)" data-type="awakening" data-mastery="340/600" data-awakening="3/5" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Лёд (Ice)" data-type="awakening" data-mastery="0/600" data-awakening="0/5" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/IceB.webp" alt="Ice">
-                <div class="info"><h3>Лёд (Ice)</h3><p>340/600 | 3/5</p></div>
+                <div class="info"><h3>Лёд (Ice)</h3><p>0/600 | 0/5</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
@@ -795,16 +795,16 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <div class="item" data-name="Темнота (Dark)" data-type="awakening" data-mastery="480/600" data-awakening="4/5" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Темнота (Dark)" data-type="awakening" data-mastery="0/600" data-awakening="0/5" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/DarkB.webp" alt="Dark">
-                <div class="info"><h3>Темнота (Dark)</h3><p>480/600 | 4/5</p></div>
+                <div class="info"><h3>Темнота (Dark)</h3><p>0/600 | 0/5</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <div class="item" data-name="Орёл (Eagle)" data-type="prokachka" data-mastery="0/600" data-awakening="0/5" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Орёл (Eagle)" data-type="prokachka" data-mastery="0/600" data-awakening="0/3" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/EagleB.webp" alt="Eagle">
-                <div class="info"><h3>Орёл (Eagle)</h3><p>0/600 | 0/5</p></div>
+                <div class="info"><h3>Орёл (Eagle)</h3><p>0/600 | 0/3</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
@@ -816,16 +816,16 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <div class="item" data-name="Свет (Light)" data-type="awakening" data-mastery="120/600" data-awakening="2/5" data-rarity="rare" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Свет (Light)" data-type="awakening" data-mastery="0/600" data-awakening="0/5" data-rarity="rare" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/LightB.webp" alt="Light">
-                <div class="info"><h3>Свет (Light)</h3><p>120/600 | 2/5</p></div>
+                <div class="info"><h3>Свет (Light)</h3><p>0/600 | 0/5</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <div class="item" data-name="Резина (Rubber)" data-mastery="600/600" data-awakening="5/5" data-rarity="rare" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Резина (Rubber)" data-mastery="0/600" data-awakening="0/5" data-rarity="rare" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/RubberB.webp" alt="Rubber">
-                <div class="info"><h3>Резина (Rubber)</h3><p>600/600 | 5/5</p></div>
+                <div class="info"><h3>Резина (Rubber)</h3><p>0/600 | 0/5</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
@@ -844,9 +844,9 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <div class="item" data-name="Землетрясение (Quake)" data-type="awakening" data-mastery="0/600" data-awakening="0/5" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Землетрясение (Quake)" data-type="awakening" data-mastery="0/600" data-awakening="0/4" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/QuakeB.webp" alt="Quake">
-                <div class="info"><h3>Землетрясение (Quake)</h3><p>0/600 | 0/5</p></div>
+                <div class="info"><h3>Землетрясение (Quake)</h3><p>0/600 | 0/4</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
@@ -886,9 +886,9 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <div class="item" data-name="Феникс (Phoenix)" data-type="awakening" data-mastery="50/600" data-awakening="0/5" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Феникс (Phoenix)" data-type="awakening" data-mastery="0/600" data-awakening="0/6" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/PhoenixB.webp" alt="Phoenix">
-                <div class="info"><h3>Феникс (Phoenix)</h3><p>0/600 | 0/5</p></div>
+                <div class="info"><h3>Феникс (Phoenix)</h3><p>0/600 | 0/6</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
@@ -900,16 +900,16 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <div class="item" data-name="Молния (Lightning)" data-type="prokachka" data-mastery="0/600" data-awakening="0/5" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Молния (Lightning)" data-type="prokachka" data-mastery="0/600" data-awakening="0/4" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/LightningB.webp" alt="Lightning">
-                <div class="info"><h3>Молния (Lightning)</h3><p>0/600 | 0/5</p></div>
+                <div class="info"><h3>Молния (Lightning)</h3><p>0/600 | 0/4</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <div class="item" data-name="Боль (Pain)" data-type="prokachka" data-mastery="0/600" data-awakening="0/5" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Боль (Pain)" data-type="prokachka" data-mastery="0/600" data-awakening="0/4" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/PainB.webp" alt="Pain">
-                <div class="info"><h3>Боль (Pain)</h3><p>0/600 | 0/5</p></div>
+                <div class="info"><h3>Боль (Pain)</h3><p>0/600 | 0/4</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
@@ -921,9 +921,9 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <div class="item" data-name="Гравитация (Gravity)" data-type="prokachka" data-mastery="90/600" data-awakening="1/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Гравитация (Gravity)" data-type="prokachka" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/GravityB.webp" alt="Gravity">
-                <div class="info"><h3>Гравитация (Gravity)</h3><p>90/600 | 1/5</p></div>
+                <div class="info"><h3>Гравитация (Gravity)</h3><p>0/600 | 0/5</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
@@ -942,9 +942,9 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <div class="item" data-name="Тесто (Dough)" data-type="awakening" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Тесто (Dough)" data-type="awakening" data-mastery="0/600" data-awakening="0/6" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/DoughB.webp" alt="Dough">
-                <div class="info"><h3>Тесто (Dough)</h3><p>0/600 | 0/5</p></div>
+                <div class="info"><h3>Тесто (Dough)</h3><p>0/600 | 0/6</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
@@ -963,9 +963,9 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <div class="item" data-name="Контроль (Control)" data-type="prokachka" data-mastery="0/600" data-awakening="0/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Контроль (Control)" data-type="prokachka" data-mastery="0/600" data-awakening="0/3" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/ControlB.webp" alt="Control">
-                <div class="info"><h3>Контроль (Control)</h3><p>0/600 | 0/5</p></div>
+                <div class="info"><h3>Контроль (Control)</h3><p>0/600 | 0/3</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
@@ -1038,11 +1038,6 @@
             <div class="row" id="popupAwakeningRow">
                 <span class="label" id="popupAwakeningLabel">Пробуждение:</span>
                 <div class="popup-bar" id="popupAwakeningBar" onclick="setAwakening(event)">
-                    <span class="seg" data-val="1"></span>
-                    <span class="seg" data-val="2"></span>
-                    <span class="seg" data-val="3"></span>
-                    <span class="seg" data-val="4"></span>
-                    <span class="seg" data-val="5"></span>
                 </div>
             </div>
             <button class="close" onclick="document.getElementById('popupOverlay').classList.remove('active')">Закрыть</button>
@@ -1090,7 +1085,7 @@
 
         function updateItemText(item) {
             var p = item.querySelector('p');
-            p.textContent = item.dataset.mastery;
+            p.textContent = item.dataset.mastery + ' | ' + item.dataset.awakening;
             renderProgressBar(item);
             var mastery = parseInt(item.dataset.mastery.split('/')[0]) || 0;
             item.classList.toggle('max-mastery', mastery >= 600);
@@ -1098,17 +1093,23 @@
 
         function renderProgressBar(item) {
             if (!item.dataset.type) return;
-            var aw = parseInt(item.dataset.awakening.split('/')[0]) || 0;
+            var parts = item.dataset.awakening.split('/');
+            var aw = parseInt(parts[0]) || 0;
+            var max = parseInt(parts[1]) || 5;
             var bar = item.querySelector('.progress-bar');
             if (!bar) {
                 bar = document.createElement('div');
                 bar.className = 'progress-bar';
-                for (var i = 0; i < 5; i++) {
+                item.querySelector('.info').appendChild(bar);
+            }
+            var existing = bar.querySelectorAll('.seg').length;
+            if (existing !== max) {
+                bar.innerHTML = '';
+                for (var i = 0; i < max; i++) {
                     var seg = document.createElement('span');
                     seg.className = 'seg';
                     bar.appendChild(seg);
                 }
-                item.querySelector('.info').appendChild(bar);
             }
             var segs = bar.querySelectorAll('.seg');
             for (var i = 0; i < segs.length; i++) {
@@ -1175,8 +1176,19 @@
             });
         }
 
-        function renderPopupBar(val) {
-            var segs = document.getElementById('popupAwakeningBar').querySelectorAll('.seg');
+        function renderPopupBar(val, max) {
+            var bar = document.getElementById('popupAwakeningBar');
+            var existing = bar.querySelectorAll('.seg').length;
+            if (existing !== max) {
+                bar.innerHTML = '';
+                for (var i = 0; i < max; i++) {
+                    var s = document.createElement('span');
+                    s.className = 'seg';
+                    s.dataset.val = i + 1;
+                    bar.appendChild(s);
+                }
+            }
+            var segs = bar.querySelectorAll('.seg');
             for (var i = 0; i < segs.length; i++) {
                 segs[i].classList.toggle('filled', i < val);
             }
@@ -1191,16 +1203,17 @@
                 document.getElementById('popupIcon').src = img ? img.src : '';
                 var awRow = document.getElementById('popupAwakeningRow');
                 var awLabel = document.getElementById('popupAwakeningLabel');
+                var parts = item.dataset.awakening.split('/');
+                var awVal = parseInt(parts[0]) || 0;
+                var awMax = parseInt(parts[1]) || 5;
                 if (item.dataset.type === 'awakening') {
                     awRow.style.display = '';
                     awLabel.textContent = 'Пробуждение:';
-                    var val = parseInt(item.dataset.awakening.split('/')[0]) || 0;
-                    renderPopupBar(val);
+                    renderPopupBar(awVal, awMax);
                 } else if (item.dataset.type === 'prokachka') {
                     awRow.style.display = '';
                     awLabel.textContent = 'Прокачка:';
-                    var val = parseInt(item.dataset.awakening.split('/')[0]) || 0;
-                    renderPopupBar(val);
+                    renderPopupBar(awVal, awMax);
                 } else {
                     awRow.style.display = 'none';
                 }
@@ -1212,11 +1225,13 @@
             var seg = e.target.closest('.seg');
             if (!seg || !currentItem) return;
             var val = parseInt(seg.dataset.val);
-            var current = parseInt(currentItem.dataset.awakening.split('/')[0]) || 0;
+            var parts = currentItem.dataset.awakening.split('/');
+            var current = parseInt(parts[0]) || 0;
+            var max = parseInt(parts[1]) || 5;
             if (val === current) val = val - 1;
-            val = Math.max(0, Math.min(5, val));
-            currentItem.dataset.awakening = val + '/5';
-            renderPopupBar(val);
+            val = Math.max(0, Math.min(max, val));
+            currentItem.dataset.awakening = val + '/' + max;
+            renderPopupBar(val, max);
             renderProgressBar(currentItem);
             updateItemText(currentItem);
             saveData();
@@ -1316,6 +1331,8 @@
             document.querySelectorAll('#sortDropdown button').forEach(function(b) { b.classList.remove('active'); });
             btn.classList.add('active');
             document.getElementById('sortDropdown').classList.remove('open');
+            var labels = { default: 'По редкости', name: 'По алфавиту', mastery: 'По мастерству' };
+            document.getElementById('sortLabel').textContent = labels[type] || 'По редкости';
             applySort();
             localStorage.setItem('checkbf_sort', type);
         }
@@ -1358,11 +1375,13 @@
         });
 
         (function() {
+            var labels = { default: 'По редкости', name: 'По алфавиту', mastery: 'По мастерству' };
             var saved = localStorage.getItem('checkbf_sort');
             if (saved) {
                 var btn = document.querySelector('#sortDropdown button[data-sort="' + saved + '"]');
                 if (btn) setSort(saved, btn);
             }
+            document.getElementById('sortLabel').textContent = labels[currentSort] || 'По редкости';
         })();
 
         function createParticles() {
@@ -1404,7 +1423,6 @@
         (function() {
             var saved = localStorage.getItem('checkbf_bg');
             if (saved) toggleBg(saved); else toggleBg('gradient');
-        })();
         })();
     </script>
 </body>
