@@ -13,13 +13,20 @@
         body {
             height: 100vh;
             background-color: #1a1a1a;
+            color: #c900c9;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
             background-image: url('assets/background.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            color: #c900c9;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            display: flex;
+            filter: blur(4px);
+            z-index: -1;
         }
         .back {
             position: fixed;
@@ -87,9 +94,8 @@
             text-align: center;
         }
         .search {
-            width: 100%;
+            flex: 1;
             max-width: 400px;
-            margin: 0 auto 12px auto;
             padding: 8px 16px;
             border: 1px solid #555;
             border-radius: 20px;
@@ -104,6 +110,73 @@
         .search:focus {
             border-color: #8cf;
         }
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .layout-wrap {
+            position: relative;
+        }
+        .layout-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid #555;
+            border-radius: 10px;
+            background: #2a2a3a;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            padding: 0;
+        }
+        .layout-btn:hover {
+            background: #33334a;
+        }
+        .layout-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 25;
+            min-width: 160px;
+        }
+        .layout-dropdown.open {
+            display: block;
+        }
+        .layout-dropdown button {
+            width: 100%;
+            padding: 10px 16px;
+            border: none;
+            background: none;
+            color: #ccc;
+            font-size: 0.85rem;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .layout-dropdown button:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+        .layout-dropdown button.active {
+            color: #8cf;
+        }
+        .layout-dropdown .icon {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
         .list {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -113,6 +186,62 @@
             overflow-y: auto;
             flex: 1;
             align-content: start;
+        }
+        .list.layout-1col {
+            grid-template-columns: 1fr;
+        }
+        .list.layout-squares {
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+        }
+        .list.layout-squares .item {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 90px;
+            padding: 10px 4px 8px;
+            gap: 4px;
+            position: relative;
+        }
+        .list.layout-squares .item img {
+            width: 40px;
+            height: 40px;
+            margin: 0;
+        }
+        .list.layout-squares .item .info {
+            padding: 0 2px;
+            align-items: center;
+            text-align: center;
+        }
+        .list.layout-squares .item h3 {
+            font-size: 0.65rem;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+        }
+        .list.layout-squares .item p {
+            display: none;
+        }
+        .list.layout-squares .item .eat-icon {
+            display: none;
+        }
+        .list.layout-squares .item .perm-icon {
+            display: none;
+        }
+        .list.layout-squares .item .fav-icon {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: auto;
+            height: auto;
+            font-size: 0.65rem;
+            background: none;
+            padding: 0;
+        }
+        .list.layout-squares .item .fav-icon:hover {
+            background: none;
         }
         .item {
             background: #2a2a3a;
@@ -329,7 +458,52 @@
     </div>
     <div class="main">
         <h1>Фрукты</h1>
-        <input class="search" type="text" placeholder="Поиск по названию..." id="searchInput" oninput="filterBySearch()">
+        <div class="toolbar">
+            <input class="search" type="text" placeholder="Поиск по названию..." id="searchInput" oninput="filterBySearch()">
+            <div class="layout-wrap">
+                <button class="layout-btn" id="layoutBtn" onclick="toggleLayoutDropdown()">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <rect x="0" y="0" width="7" height="7" rx="1.5" fill="currentColor"/>
+                        <rect x="9" y="0" width="7" height="7" rx="1.5" fill="currentColor"/>
+                        <rect x="0" y="9" width="7" height="7" rx="1.5" fill="currentColor"/>
+                        <rect x="9" y="9" width="7" height="7" rx="1.5" fill="currentColor"/>
+                    </svg>
+                </button>
+                <div class="layout-dropdown" id="layoutDropdown">
+                    <button data-layout="2col" class="active" onclick="setLayout('2col', this)">
+                        <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <rect x="0" y="1" width="6.5" height="6" rx="1" fill="currentColor"/>
+                            <rect x="9.5" y="1" width="6.5" height="6" rx="1" fill="currentColor"/>
+                            <rect x="0" y="9" width="6.5" height="6" rx="1" fill="currentColor"/>
+                            <rect x="9.5" y="9" width="6.5" height="6" rx="1" fill="currentColor"/>
+                        </svg>
+                        Два столбца
+                    </button>
+                    <button data-layout="1col" onclick="setLayout('1col', this)">
+                        <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <rect x="2.5" y="1" width="11" height="4" rx="1" fill="currentColor"/>
+                            <rect x="2.5" y="6.5" width="11" height="4" rx="1" fill="currentColor"/>
+                            <rect x="2.5" y="12" width="11" height="3" rx="1" fill="currentColor"/>
+                        </svg>
+                        Один столбец
+                    </button>
+                    <button data-layout="squares" onclick="setLayout('squares', this)">
+                        <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <rect x="0" y="0" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+                            <rect x="5.75" y="0" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+                            <rect x="11.5" y="0" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+                            <rect x="0" y="5.75" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+                            <rect x="5.75" y="5.75" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+                            <rect x="11.5" y="5.75" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+                            <rect x="0" y="11.5" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+                            <rect x="5.75" y="11.5" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+                            <rect x="11.5" y="11.5" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+                        </svg>
+                        Сетка
+                    </button>
+                </div>
+            </div>
+        </div>
         <div class="list">
             <!-- Обычные -->
             <div class="item" data-name="Ракета (Rocket)" data-mastery="0/600" data-awakening="0/5" data-rarity="common" data-eaten="false" data-fav="false" data-perm="false">
@@ -698,7 +872,8 @@
             var p = item.querySelector('p');
             var ma = item.dataset.mastery;
             var aw = item.dataset.awakening;
-            p.textContent = ma + ' | ' + aw;
+            var t = item.dataset.type;
+            p.textContent = t ? ma + ' | ' + aw : ma;
         }
 
         function loadData() {
@@ -739,6 +914,32 @@
         }
 
         loadData();
+
+        function toggleLayoutDropdown() {
+            document.getElementById('layoutDropdown').classList.toggle('open');
+        }
+        function setLayout(type, btn) {
+            var list = document.querySelector('.list');
+            list.classList.remove('layout-1col', 'layout-squares');
+            if (type === '1col') list.classList.add('layout-1col');
+            else if (type === 'squares') list.classList.add('layout-squares');
+            document.querySelectorAll('#layoutDropdown button').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            document.getElementById('layoutDropdown').classList.remove('open');
+            localStorage.setItem('checkbf_layout', type);
+        }
+        (function() {
+            var saved = localStorage.getItem('checkbf_layout');
+            if (saved) {
+                var btn = document.querySelector('#layoutDropdown button[data-layout="' + saved + '"]');
+                if (btn) setLayout(saved, btn);
+            }
+        })();
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.layout-wrap')) {
+                document.getElementById('layoutDropdown').classList.remove('open');
+            }
+        });
 
         function filterBySearch() {
             var q = document.getElementById('searchInput').value.toLowerCase();
