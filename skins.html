@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Скины — CheckBF</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            min-height: 100vh;
+            background-color: #1a1a1a;
+            color: #c900c9;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            isolation: isolate;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('assets/background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: blur(4px);
+            z-index: -1;
+        }
+        body.no-bg::before {
+            background-image: none;
+        }
+        body.gradient-bg::before {
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d1b4e 30%, #1a0a2e 60%, #0a0a0a 100%);
+            filter: none;
+        }
+        body.gradient-bg {
+            background-color: transparent;
+        }
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+            display: none;
+        }
+        body.gradient-bg .particles {
+            display: block;
+        }
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle ease-in-out infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.1; transform: translateY(0); }
+            50% { opacity: 0.8; transform: translateY(-20px); }
+        }
+        .bg-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 6px;
+            z-index: 20;
+        }
+        .bg-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 2px solid #555;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .bg-btn:hover {
+            border-color: #8cf;
+        }
+        .bg-btn.active {
+            border-color: #8cf;
+            box-shadow: 0 0 6px rgba(100,180,255,0.4);
+        }
+        .bg-btn.bg-image {
+            background: url('assets/background.jpg') center/cover;
+        }
+        .bg-btn.bg-dark {
+            background: #1a1a1a;
+        }
+        .back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1rem;
+            border: 1px solid #555;
+            border-radius: 16px;
+            padding: 6px 16px;
+            background: #2a2a3a;
+            z-index: 20;
+        }
+        .back:hover {
+            background: #33334a;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            padding: 30px 0 20px 0;
+            color: #fff;
+            -webkit-text-stroke: 1px #000;
+            text-align: center;
+        }
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search {
+            width: 100%;
+            max-width: 400px;
+            padding: 8px 16px;
+            border: 1px solid #555;
+            border-radius: 20px;
+            background: #2a2a3a;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .search::placeholder {
+            color: #777;
+        }
+        .search:focus {
+            border-color: #8cf;
+        }
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+            padding: 0 40px 40px 40px;
+        }
+        .cat-card {
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 12px;
+            padding: 20px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .cat-card:hover {
+            background: #33334a;
+            transform: translateY(-3px);
+            border-color: #8cf;
+        }
+        .cat-card.completed {
+            border-color: #ffc107;
+            box-shadow: 0 0 8px rgba(255,193,7,0.3);
+        }
+        .cat-card .icon {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .cat-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0;
+            color: #fff;
+        }
+        .cat-card .count {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 4px;
+        }
+        .subcategories {
+            display: none;
+            padding: 0 40px 40px 40px;
+        }
+        .subcategories.active {
+            display: block;
+        }
+        .sub-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .sub-back {
+            color: #fff;
+            cursor: pointer;
+            font-size: 1rem;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            padding: 8px 16px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .sub-back:hover {
+            background: #33334a;
+            border-color: #8cf;
+        }
+        .search-results {
+            display: none;
+            padding: 0 40px 40px 40px;
+        }
+        .search-results.active {
+            display: block;
+        }
+        .search-results h2 {
+            font-size: 1.3rem;
+            color: #fff;
+            margin: 0 0 12px 0;
+        }
+        .search-results .cat-label {
+            font-size: 0.75rem;
+            color: #8cf;
+            margin-bottom: 4px;
+        }
+        .sub-header h2 {
+            font-size: 1.5rem;
+            margin: 0;
+            color: #fff;
+            -webkit-text-stroke: 0.5px #000;
+        }
+        .sub-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .skin-item {
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .skin-item:hover {
+            background: #33334a;
+            transform: translateY(-2px);
+        }
+        .skin-item.owned {
+            border-color: #4caf50;
+            box-shadow: 0 0 8px rgba(76,175,80,0.3);
+        }
+        .skin-item img {
+            width: 70px;
+            height: 70px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            object-fit: cover;
+        }
+        .skin-item h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 0 0 6px 0;
+            color: #fff;
+        }
+        .own-btn {
+            width: 100%;
+            padding: 6px 0;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.05);
+            color: #888;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .own-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .own-btn.owned {
+            background: #2e7d32;
+            border-color: #4caf50;
+            color: #fff;
+        }
+        .btn-row {
+            display: flex;
+            gap: 4px;
+            width: 100%;
+        }
+        .btn-row .own-btn {
+            flex: 1;
+        }
+        .btn-row .recipe-btn {
+            flex: 1;
+        }
+        .recipe-btn {
+            padding: 6px 0;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.05);
+            color: #888;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .recipe-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .recipe-btn.has-recipe {
+            background: #1565c0;
+            border-color: #42a5f5;
+            color: #fff;
+        }
+        .own-btn.disabled {
+            background: #333;
+            border-color: #444;
+            color: #666;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .double-img {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+        .double-img img {
+            width: 48px;
+            height: 48px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-toggle">
+        <div class="bg-btn bg-image" id="btnBgImage" onclick="toggleBg('image')" title="С фоном"></div>
+        <div class="bg-btn bg-dark" id="btnBgDark" onclick="toggleBg('dark')" title="Без фона"></div>
+        <div class="bg-btn bg-gradient" id="btnBgGradient" onclick="toggleBg('gradient')" title="Градиент"></div>
+    </div>
+    <div class="particles" id="particles"></div>
+    <a class="back" href="index.html">&larr; Назад</a>
+    <h1>Скины</h1>
+    <div class="toolbar">
+        <input class="search" id="searchInput" type="text" placeholder="Поиск скина..." oninput="filterBySearch()">
+    </div>
+
+    <div class="categories" id="categoriesView"></div>
+
+    <div class="subcategories" id="subView">
+        <div class="sub-header">
+            <button class="sub-back" onclick="backToCategories()">&larr; К категориям</button>
+            <h2 id="subTitle"></h2>
+        </div>
+        <div class="sub-list" id="subList"></div>
+    </div>
+
+    <div class="search-results" id="searchResults">
+        <h2>Результаты поиска</h2>
+        <div class="sub-list" id="searchList"></div>
+    </div>
+
+    <script>
+        var categories = {
+            aura: { name: "Аура", skins: [
+                { name: "Апельсиновая Сода", img: "assets/skins/Aura_Orange_Soda_Icon.webp" },
+                { name: "Яркий Жёлтый", img: "assets/skins/Aura_Bright_Yellow_Icon.webp" },
+                { name: "Солнечный Жёлтый", img: "assets/skins/Aura_Yellow_Sunshine_Icon.webp" },
+                { name: "Слаймовый Зелёный", img: "assets/skins/Aura_Slimy_Green_Icon.webp" },
+                { name: "Зелёная Ящерица", img: "assets/skins/Aura_Green_Lizard_Icon.webp" },
+                { name: "Синие Джинсы", img: "assets/skins/Aura_Blue_Jeans_Icon.webp" },
+                { name: "Пухлый Фиолетовый", img: "assets/skins/Aura_Plump_Purple_Icon.webp" },
+                { name: "Огненная Роза", img: "assets/skins/Aura_Fiery_Rose_Icon.webp" },
+                { name: "Волна Тепла", img: "assets/skins/Aura_Heat_Wave_Icon.webp" },
+                { name: "Абсолютный Ноль", img: "assets/skins/Aura_Absolute_Zero_Icon.webp" },
+                { name: "Снежный Белый", img: "assets/skins/Aura_Snow_White_Icon.webp" },
+                { name: "Чистый Красный", img: "assets/skins/Aura_Pure_Red_Icon.webp" },
+                { name: "Зимнее Небо", img: "assets/skins/Aura_Winter_Sky_Icon.webp" },
+                { name: "Аквамариновый", img: "assets/skins/Aura_Aquamarine_Icon.webp" },
+                { name: "Лёгкий Розовый", img: "assets/skins/Aura_Light_Pink_Icon.webp" },
+                { name: "Радужный Спаситель", img: "assets/skins/Aura_Rainbow_Saviour_Icon.webp" },
+                { name: "Кицунэ", img: "assets/skins/Aura_Kitsune_Icon.webp" },
+                { name: "Дракон", img: "assets/skins/Aura_Dragon_Icon.webp" },
+                { name: "Они", img: "assets/skins/Aura_Oni_Icon.webp" },
+                { name: "Небесный", img: "assets/skins/Aura_Celestial_Icon.webp" },
+                { name: "Хакер", img: "assets/ItemPlaceHolder.webp" }
+            ]},
+            dragon: { name: "Дракон", double: true, skins: [
+                { name: "Оранжевый", img1: "assets/skins/dragon/Dragon_29_Orange.webp", img2: "assets/skins/dragon/Dragon_29_Orange2.webp" },
+                { name: "Жёлтый", img1: "assets/skins/dragon/Dragon_29_Yellow.webp", img2: "assets/skins/dragon/Dragon_29_Yellow2.webp" },
+                { name: "Синий", img1: "assets/skins/dragon/Dragon_29_Blue.webp", img2: "assets/skins/dragon/Dragon_29_Blue2.webp" },
+                { name: "Красный", img1: "assets/skins/dragon/Dragon_29_Red.webp", img2: "assets/skins/dragon/Dragon_29_Red2.webp" },
+                { name: "Фиолетовый", img1: "assets/skins/dragon/Dragon_29_Purple.webp", img2: "assets/skins/dragon/Dragon_29_Purple2.webp" },
+                { name: "Чёрный", img1: "assets/skins/dragon/Dragon_29_Black.webp", img2: "assets/skins/dragon/Dragon_29_Black2.webp" },
+                { name: "Замороженный", img1: "assets/skins/dragon/Dragon_29_Frostbite.webp", img2: "assets/skins/dragon/Dragon_29_Frostbite2.webp" },
+                { name: "Изумрудный", img1: "assets/skins/dragon/Dragon_29_Emerald.webp", img2: "assets/skins/dragon/Dragon_29_Emerald2.webp" },
+                { name: "Затмение", img1: "assets/skins/dragon/Dragon_29_Eclipse.webp", img2: "assets/skins/dragon/Dragon_29_Eclipse2.webp" },
+                { name: "Тление", img1: "assets/skins/dragon/Ember_Dragon_Fruit_29.webp", img2: "assets/skins/dragon/Ember_Dragon_Fruit_292.webp" },
+                { name: "Лиловая Ночь", img1: "assets/skins/dragon/Dragon_29_Violet_Night.webp", img2: "assets/skins/dragon/Dragon_29_Violet_Night2.webp" },
+                { name: "Небесный Феникс", img1: "assets/skins/dragon/Dragon_29_Phoenix_Sky.webp", img2: "assets/skins/dragon/Dragon_29_Phoenix_Sky2.webp" },
+                { name: "Кровавая Луна", img1: "assets/skins/dragon/Dragon_29_Blood_Moon.webp", img2: "assets/skins/dragon/Dragon_29_Blood_Moon2.webp" }
+            ]},
+            kitsune: { name: "Кицунэ", skins: [
+                { name: "Багряный (Эмпирей)", img: "assets/skins/Empyrean_Fruit.webp" },
+                { name: "Галактический (Эмпирей)", img: "assets/skins/Empyrean_Fruit_29.webp" }
+            ]},
+            pain: { name: "Боль", skins: [
+                { name: "Мучение", img: "assets/skins/Torment_Fruit.webp" },
+                { name: "Разочарование", img: "assets/skins/Frustration_Fruit.webp" },
+                { name: "Печаль", img: "assets/skins/Sadness_Fruit.webp" },
+                { name: "Небесный", img: "assets/skins/Celestial_Fruit.webp" },
+                { name: "Супер Дух", img: "assets/skins/Super_Spirit_Pain_Fruit.webp" }
+            ]},
+            lightning: { name: "Молния", skins: [
+                { name: "Зелёный", img: "assets/skins/Green_Lightning_Fruit.webp" },
+                { name: "Жёлтый", img: "assets/skins/Yellow_Lightning_Fruit.webp" },
+                { name: "Фиолетовый", img: "assets/skins/Purple_Lightning_Fruit.webp" },
+                { name: "Красный", img: "assets/skins/Red_Lightning_Fruit.webp" },
+                { name: "Белый", img: "assets/ItemPlaceHolder.webp" }
+            ]},
+            portal: { name: "Портал", skins: [
+                { name: "Божественный", img: "assets/skins/PortalDivineB.webp" }
+            ]},
+            diamond: { name: "Алмаз", skins: [
+                { name: "Изумруд", img: "assets/skins/Emerald_Diamond_Fruit.webp" },
+                { name: "Розовый Кварц", img: "assets/skins/Rose_Quartz_Diamond_Fruit.webp" },
+                { name: "Топаз", img: "assets/skins/Topaz_Diamond_Fruit.webp" },
+                { name: "Рубин", img: "assets/skins/Ruby_Diamond_Fruit.webp" }
+            ]},
+            eagle: { name: "Орёл", skins: [
+                { name: "Бархат", img: "assets/skins/EagleVelvetB.webp" },
+                { name: "Сокол", img: "assets/skins/EagleFalconB.webp" },
+                { name: "Золотой Мох", img: "assets/skins/EagleGoldenMossB.webp" },
+                { name: "Синее Небо", img: "assets/skins/EagleBlueSkyB.webp" },
+                { name: "Оранжевый Крем", img: "assets/skins/EagleOrangeCreamsicleB.webp" },
+                { name: "Ледник", img: "assets/skins/EagleGlacierB.webp" },
+                { name: "Реквием", img: "assets/skins/EagleRequiemB.webp" },
+                { name: "Матрица", img: "assets/skins/EagleMatrixB.webp" },
+                { name: "Попугай", img: "assets/skins/EagleParrotB.webp" }
+            ]},
+            bomb: { name: "Бомба", skins: [
+                { name: "Ядерная", img: "assets/skins/Nuclear_Bomb_Fruit.webp" },
+                { name: "Термитная", img: "assets/skins/Thermite_Bomb_Fruit.webp" },
+                { name: "Лазурная", img: "assets/skins/Azura_Bomb_Fruit.webp" },
+                { name: "Праздничная", img: "assets/skins/Celebration_Bomb_Fruit.webp" }
+            ]},
+            tiger: { name: "Тигр", skins: [
+                { name: "Оборотень", img: "assets/skins/Werewolf_Fruit.webp" }
+            ]},
+            yeti: { name: "Йети", skins: [
+                { name: "Бес", img: "assets/skins/Fiend_Fruit.webp" }
+            ]},
+            darkblade: { name: "Тёмный Клинок", skins: [
+                { name: "Убийца Богов", img: "assets/skins/Title_Slayer_of_God.webp" }
+            ]}
+        };
+
+        var owned = {};
+        var currentCat = '';
+
+        function loadData() {
+            var raw = localStorage.getItem('checkbf_skins');
+            if (raw) owned = JSON.parse(raw);
+        }
+
+        function saveData() {
+            localStorage.setItem('checkbf_skins', JSON.stringify(owned));
+        }
+
+        var catIcons = {
+            aura: "assets/skins/Aura_Rainbow_Saviour_Icon.webp",
+            dragon: "assets/fruits/DragonEastA.webp",
+            kitsune: "assets/fruits/KitsuneB.webp",
+            pain: "assets/fruits/PainB.webp",
+            lightning: "assets/fruits/LightningB.webp",
+            portal: "assets/fruits/PortalB.webp",
+            diamond: "assets/fruits/DiamondB.webp",
+            eagle: "assets/fruits/EagleB.webp",
+            bomb: "assets/fruits/BombB.webp",
+            tiger: "assets/fruits/TigerB.webp",
+            yeti: "assets/fruits/YetiFruitB.webp",
+            darkblade: "assets/swords/Dark_Blade.webp"
+        };
+
+        function renderCategories() {
+            var container = document.getElementById('categoriesView');
+            container.innerHTML = '';
+            var keys = Object.keys(categories);
+            keys.sort(function(a, b) {
+                return categories[b].skins.length - categories[a].skins.length;
+            });
+            keys.forEach(function(key) {
+                var cat = categories[key];
+                var total = cat.skins.filter(function(s) { return disabledSkins.indexOf(s.name) === -1; }).length;
+                var ownedCount = cat.skins.filter(function(s) { return disabledSkins.indexOf(s.name) === -1 && owned[s.name]; }).length;
+                var isComplete = total > 0 && ownedCount === total;
+                var div = document.createElement('div');
+                div.className = 'cat-card' + (isComplete ? ' completed' : '');
+                div.onclick = function() { openCategory(key); };
+                div.innerHTML = '<img class="icon" src="' + catIcons[key] + '" alt="' + cat.name + '">' +
+                    '<h3>' + cat.name + '</h3>' +
+                    '<span class="count">' + ownedCount + '/' + total + '</span>';
+                container.appendChild(div);
+            });
+        }
+
+        function openCategory(key) {
+            currentCat = key;
+            document.getElementById('categoriesView').style.display = 'none';
+            document.getElementById('subView').classList.add('active');
+            document.getElementById('subTitle').textContent = categories[key].name;
+            renderSubSkins();
+        }
+
+        function backToCategories() {
+            currentCat = '';
+            document.getElementById('categoriesView').style.display = '';
+            document.getElementById('subView').classList.remove('active');
+            document.getElementById('searchResults').classList.remove('active');
+            document.getElementById('searchInput').value = '';
+            renderCategories();
+        }
+
+        var hasRecipeSkins = ["Апельсиновая Сода", "Яркий Жёлтый", "Солнечный Жёлтый", "Слаймовый Зелёный", "Зелёная Ящерица", "Синие Джинсы", "Пухлый Фиолетовый", "Огненная Роза", "Волна Тепла", "Абсолютный Ноль", "Снежный Белый", "Чистый Красный", "Зимнее Небо", "Кицунэ", "Дракон", "Хакер", "Бархат", "Сокол", "Золотой Мох", "Синее Небо", "Оранжевый Крем", "Оранжевый", "Жёлтый", "Синий", "Красный", "Фиолетовый", "Чёрный", "Замороженный", "Изумрудный"];
+        var disabledSkins = ["Хакер", "Белый", "Лиловая Ночь", "Небесный Феникс", "Кровавая Луна"];
+
+        function renderSubSkins() {
+            var list = document.getElementById('subList');
+            list.innerHTML = '';
+            var skins = categories[currentCat].skins;
+            var isDouble = categories[currentCat].double;
+            skins.forEach(function(skin) {
+                var isOwned = owned[skin.name] === true;
+                var hasRecipe = hasRecipeSkins.indexOf(skin.name) !== -1;
+                var recipeOwned = owned[skin.name + '_recipe'] === true;
+                var isDisabled = disabledSkins.indexOf(skin.name) !== -1;
+                var div = document.createElement('div');
+                div.className = 'skin-item' + (isOwned ? ' owned' : '');
+                div.dataset.name = skin.name;
+                var imgHtml = '';
+                if (isDouble && skin.img1) {
+                    imgHtml = '<div class="double-img"><img src="' + skin.img1 + '" alt="' + skin.name + '" onerror="this.style.display=\'none\'"><img src="' + skin.img2 + '" alt="' + skin.name + '" onerror="this.style.display=\'none\'"></div>';
+                } else {
+                    imgHtml = '<img src="' + skin.img + '" alt="' + skin.name + '" onerror="this.style.display=\'none\'">';
+                }
+                var btns = '';
+                if (isDisabled) {
+                    btns = '<button class="own-btn disabled" disabled>Недоступен</button>';
+                } else if (hasRecipe) {
+                    btns = '<div class="btn-row">' +
+                        '<button class="recipe-btn' + (recipeOwned ? ' has-recipe' : '') + '" onclick="toggleRecipe(event, \'' + skin.name + '\')">' + (recipeOwned ? '✓ Рецепт' : 'Рецепт') + '</button>' +
+                        '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + skin.name + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>' +
+                        '</div>';
+                } else {
+                    btns = '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + skin.name + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
+                }
+                div.innerHTML = imgHtml + '<h3>' + skin.name + '</h3>' + btns;
+                list.appendChild(div);
+            });
+        }
+
+        function toggleOwn(e, name) {
+            e.stopPropagation();
+            owned[name] = !owned[name];
+            saveData();
+            if (currentCat) renderSubSkins();
+        }
+
+        function toggleRecipe(e, name) {
+            e.stopPropagation();
+            owned[name + '_recipe'] = !owned[name + '_recipe'];
+            saveData();
+            if (currentCat) renderSubSkins();
+        }
+
+        function filterBySearch() {
+            var q = document.getElementById('searchInput').value.toLowerCase();
+            var searchResults = document.getElementById('searchResults');
+            var searchList = document.getElementById('searchList');
+            var categoriesView = document.getElementById('categoriesView');
+            var subView = document.getElementById('subView');
+
+            if (!q) {
+                searchResults.classList.remove('active');
+                if (currentCat) {
+                    subView.classList.add('active');
+                    categoriesView.style.display = 'none';
+                } else {
+                    categoriesView.style.display = '';
+                }
+                return;
+            }
+
+            categoriesView.style.display = 'none';
+            subView.classList.remove('active');
+            searchResults.classList.add('active');
+            searchList.innerHTML = '';
+
+            Object.keys(categories).forEach(function(key) {
+                var cat = categories[key];
+                var isDouble = cat.double;
+                cat.skins.forEach(function(skin) {
+                    if (skin.name.toLowerCase().indexOf(q) === -1) return;
+                    var isOwned = owned[skin.name] === true;
+                    var hasRecipe = hasRecipeSkins.indexOf(skin.name) !== -1;
+                    var recipeOwned = owned[skin.name + '_recipe'] === true;
+                    var isDisabled = disabledSkins.indexOf(skin.name) !== -1;
+                    var div = document.createElement('div');
+                    div.className = 'skin-item' + (isOwned ? ' owned' : '');
+                    div.dataset.name = skin.name;
+                    var imgHtml = '';
+                    if (isDouble && skin.img1) {
+                        imgHtml = '<div class="double-img"><img src="' + skin.img1 + '" alt="' + skin.name + '" onerror="this.style.display=\'none\'"><img src="' + skin.img2 + '" alt="' + skin.name + '" onerror="this.style.display=\'none\'"></div>';
+                    } else {
+                        imgHtml = '<img src="' + skin.img + '" alt="' + skin.name + '" onerror="this.style.display=\'none\'">';
+                    }
+                    var btns = '';
+                    if (isDisabled) {
+                        btns = '<button class="own-btn disabled" disabled>Недоступен</button>';
+                    } else if (hasRecipe) {
+                        btns = '<div class="btn-row">' +
+                            '<button class="recipe-btn' + (recipeOwned ? ' has-recipe' : '') + '" onclick="toggleRecipe(event, \'' + skin.name + '\')">' + (recipeOwned ? '✓ Рецепт' : 'Рецепт') + '</button>' +
+                            '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + skin.name + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>' +
+                            '</div>';
+                    } else {
+                        btns = '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + skin.name + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
+                    }
+                    div.innerHTML = '<span class="cat-label">' + cat.name + '</span>' + imgHtml + '<h3>' + skin.name + '</h3>' + btns;
+                    searchList.appendChild(div);
+                });
+            });
+        }
+
+        loadData();
+        renderCategories();
+
+        function createParticles() {
+            var container = document.getElementById('particles');
+            container.innerHTML = '';
+            for (var i = 0; i < 60; i++) {
+                var p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.animationDuration = (Math.random() * 4 + 3) + 's';
+                p.style.animationDelay = (Math.random() * 3) + 's';
+                var size = Math.random() * 3 + 1;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                container.appendChild(p);
+            }
+        }
+
+        function toggleBg(mode) {
+            document.body.classList.remove('no-bg', 'gradient-bg');
+            document.getElementById('btnBgImage').classList.remove('active');
+            document.getElementById('btnBgDark').classList.remove('active');
+            document.getElementById('btnBgGradient').classList.remove('active');
+            if (mode === 'dark') {
+                document.body.classList.add('no-bg');
+                document.getElementById('btnBgDark').classList.add('active');
+            } else if (mode === 'gradient') {
+                document.body.classList.add('gradient-bg');
+                document.getElementById('btnBgGradient').classList.add('active');
+            } else {
+                document.getElementById('btnBgImage').classList.add('active');
+            }
+            localStorage.setItem('checkbf_bg', mode);
+        }
+
+        createParticles();
+
+        (function() {
+            var saved = localStorage.getItem('checkbf_bg');
+            if (saved) toggleBg(saved); else toggleBg('gradient');
+        })();
+    </script>
+</body>
+</html>

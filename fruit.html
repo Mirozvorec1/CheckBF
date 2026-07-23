@@ -16,6 +16,7 @@
             color: #c900c9;
             font-family: 'Segoe UI', Arial, sans-serif;
             display: flex;
+            isolation: isolate;
         }
         body::before {
             content: '';
@@ -27,6 +28,71 @@
             background-repeat: no-repeat;
             filter: blur(4px);
             z-index: -1;
+        }
+        body.no-bg::before {
+            background-image: none;
+        }
+        body.gradient-bg::before {
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d1b4e 30%, #1a0a2e 60%, #0a0a0a 100%);
+            filter: none;
+        }
+        body.gradient-bg {
+            background-color: transparent;
+        }
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+            display: none;
+        }
+        body.gradient-bg .particles {
+            display: block;
+        }
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle ease-in-out infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.1; transform: translateY(0); }
+            50% { opacity: 0.8; transform: translateY(-20px); }
+        }
+        .bg-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 6px;
+            z-index: 20;
+        }
+        .bg-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 2px solid #555;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .bg-btn:hover {
+            border-color: #8cf;
+        }
+        .bg-btn.active {
+            border-color: #8cf;
+            box-shadow: 0 0 6px rgba(100,180,255,0.4);
+        }
+        .bg-btn.bg-image {
+            background: url('assets/background.jpg') center/cover;
+        }
+        .bg-btn.bg-dark {
+            background: #1a1a1a;
         }
         .back {
             position: fixed;
@@ -192,21 +258,21 @@
         }
         .list.layout-squares {
             grid-template-columns: repeat(8, 1fr);
-            gap: 8px;
+            gap: 10px;
         }
         .list.layout-squares .item {
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 90px;
-            padding: 10px 4px 8px;
-            gap: 4px;
+            justify-content: flex-start;
+            min-height: 110px;
+            padding: 10px 4px 28px;
+            gap: 0;
             position: relative;
         }
         .list.layout-squares .item img {
-            width: 40px;
-            height: 40px;
-            margin: 0;
+            width: 36px;
+            height: 36px;
+            margin: 0 0 4px 0;
         }
         .list.layout-squares .item .info {
             padding: 0 2px;
@@ -214,34 +280,38 @@
             text-align: center;
         }
         .list.layout-squares .item h3 {
-            font-size: 0.65rem;
-            line-height: 1.2;
+            font-size: 0.7rem;
+            font-weight: 600;
+            line-height: 1.15;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             max-width: 100%;
+            color: #eee;
         }
         .list.layout-squares .item p {
-            display: none;
+            font-size: 0.6rem;
+            margin-top: 1px;
+            color: #bbb;
+        }
+        .list.layout-squares .item .eat-icon,
+        .list.layout-squares .item .fav-icon,
+        .list.layout-squares .item .perm-icon {
+            position: absolute;
+            bottom: 4px;
+            width: 30%;
+            height: 24px;
+            font-size: 0.7rem;
+            border-radius: 5px;
         }
         .list.layout-squares .item .eat-icon {
-            display: none;
-        }
-        .list.layout-squares .item .perm-icon {
-            display: none;
+            left: 3%;
         }
         .list.layout-squares .item .fav-icon {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            width: auto;
-            height: auto;
-            font-size: 0.65rem;
-            background: none;
-            padding: 0;
+            left: 35%;
         }
-        .list.layout-squares .item .fav-icon:hover {
-            background: none;
+        .list.layout-squares .item .perm-icon {
+            right: 3%;
         }
         .item {
             background: #2a2a3a;
@@ -254,21 +324,28 @@
             min-height: 48px;
             cursor: pointer;
             overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .item.max-mastery {
+            border-color: #ffc107;
+            box-shadow: 0 0 8px rgba(255,193,7,0.3);
         }
         .item:hover {
             background: #33334a;
         }
         .item h3 {
-            font-size: 0.85rem;
-            -webkit-text-stroke: 0.5px #000;
+            font-size: 0.9rem;
+            font-weight: 600;
             margin: 0;
             line-height: 1.3;
+            padding: 2px 8px;
+            border-radius: 4px;
         }
-        .item[data-rarity="common"] h3 { color: #fff; }
-        .item[data-rarity="uncommon"] h3 { color: #4caf50; }
-        .item[data-rarity="rare"] h3 { color: #42a5f5; }
-        .item[data-rarity="legendary"] h3 { color: #f48fb1; }
-        .item[data-rarity="mythical"] h3 { color: #ef5350; }
+        .item[data-rarity="common"] h3 { color: #fff; background: rgba(255,255,255,0.15); }
+        .item[data-rarity="uncommon"] h3 { color: #fff; background: rgba(76,175,80,0.35); }
+        .item[data-rarity="rare"] h3 { color: #fff; background: rgba(66,165,245,0.35); }
+        .item[data-rarity="legendary"] h3 { color: #fff; background: rgba(244,143,177,0.35); }
+        .item[data-rarity="mythical"] h3 { color: #fff; background: rgba(239,83,80,0.35); }
         .item img {
             width: 30px;
             height: 30px;
@@ -277,10 +354,38 @@
             flex-shrink: 0;
         }
         .item p {
-            font-size: 0.7rem;
-            color: #aaa;
+            font-size: 0.75rem;
+            color: #bbb;
             margin: 2px 0 0 0;
             line-height: 1.2;
+        }
+        .progress-bar {
+            display: flex;
+            gap: 1px;
+            margin-top: 3px;
+            padding: 1px;
+            border: 1px solid #555;
+            border-radius: 3px;
+            background: #1a1a1a;
+            width: fit-content;
+        }
+        .progress-bar .seg {
+            width: 10px;
+            height: 6px;
+            border-radius: 1px;
+            background: #c62828;
+        }
+        .progress-bar .seg.filled {
+            background: #43a047;
+        }
+        .list.layout-squares .progress-bar {
+            gap: 1px;
+            margin-top: 2px;
+            padding: 1px;
+        }
+        .list.layout-squares .progress-bar .seg {
+            width: 8px;
+            height: 5px;
         }
         .item .info {
             display: flex;
@@ -392,7 +497,19 @@
             font-size: 1.4rem;
             color: #8cf;
             -webkit-text-stroke: 0.5px #000;
+            margin: 0;
+        }
+        .popup-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             margin-bottom: 16px;
+        }
+        .popup-header img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            flex-shrink: 0;
         }
         .popup .row {
             display: flex;
@@ -406,6 +523,25 @@
         .popup .value {
             color: #fff;
             font-size: 0.9rem;
+            cursor: pointer;
+            border-bottom: 1px dashed #666;
+            padding: 0 4px;
+            min-width: 40px;
+            text-align: center;
+        }
+        .popup .value:hover {
+            border-bottom-color: #aaa;
+        }
+        .popup .value-input {
+            color: #fff;
+            font-size: 0.9rem;
+            background: #1a1a1a;
+            border: 1px solid #4caf50;
+            border-radius: 4px;
+            padding: 0 4px;
+            width: 50px;
+            text-align: center;
+            outline: none;
         }
         .popup .controls {
             display: flex;
@@ -429,6 +565,28 @@
         .popup .ctrl-btn:hover {
             background: #33334a;
         }
+        .popup-bar {
+            display: flex;
+            gap: 3px;
+            padding: 4px 6px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background: #1a1a1a;
+            cursor: pointer;
+        }
+        .popup-bar .seg {
+            width: 28px;
+            height: 14px;
+            border-radius: 3px;
+            background: #c62828;
+            transition: background 0.15s;
+        }
+        .popup-bar .seg.filled {
+            background: #43a047;
+        }
+        .popup-bar .seg:hover {
+            opacity: 0.8;
+        }
         .popup .close {
             margin-top: 18px;
             background: none;
@@ -442,9 +600,81 @@
         .popup .close:hover {
             background: #33334a;
         }
+        .sort-wrap {
+            position: relative;
+        }
+        .sort-btn {
+            height: 36px;
+            padding: 0 14px;
+            border: 1px solid #555;
+            border-radius: 10px;
+            background: #2a2a3a;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .sort-btn:hover {
+            background: #33334a;
+            color: #fff;
+        }
+        .sort-btn svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+        .sort-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 25;
+            min-width: 180px;
+        }
+        .sort-dropdown.open {
+            display: block;
+        }
+        .sort-dropdown button {
+            width: 100%;
+            padding: 10px 16px;
+            border: none;
+            background: none;
+            color: #ccc;
+            font-size: 0.85rem;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sort-dropdown button:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+        .sort-dropdown button.active {
+            color: #8cf;
+        }
+        .sort-dropdown .icon {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
+    <div class="bg-toggle">
+        <div class="bg-btn bg-image" id="btnBgImage" onclick="toggleBg('image')" title="С фоном"></div>
+        <div class="bg-btn bg-dark" id="btnBgDark" onclick="toggleBg('dark')" title="Без фона"></div>
+        <div class="bg-btn bg-gradient" id="btnBgGradient" onclick="toggleBg('gradient')" title="Градиент"></div>
+    </div>
+    <div class="particles" id="particles"></div>
     <a class="back" href="index.html">&larr; Назад</a>
     <div class="sidebar">
         <h2>Редкость</h2>
@@ -460,52 +690,41 @@
         <h1>Фрукты</h1>
         <div class="toolbar">
             <input class="search" type="text" placeholder="Поиск по названию..." id="searchInput" oninput="filterBySearch()">
-            <div class="layout-wrap">
-                <button class="layout-btn" id="layoutBtn" onclick="toggleLayoutDropdown()">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <rect x="0" y="0" width="7" height="7" rx="1.5" fill="currentColor"/>
-                        <rect x="9" y="0" width="7" height="7" rx="1.5" fill="currentColor"/>
-                        <rect x="0" y="9" width="7" height="7" rx="1.5" fill="currentColor"/>
-                        <rect x="9" y="9" width="7" height="7" rx="1.5" fill="currentColor"/>
+            <div class="sort-wrap">
+                <button class="sort-btn" id="sortBtn" onclick="toggleSortDropdown()">
+                    <svg viewBox="0 0 16 16" fill="none">
+                        <path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
+                    Сортировка
                 </button>
-                <div class="layout-dropdown" id="layoutDropdown">
-                    <button data-layout="2col" class="active" onclick="setLayout('2col', this)">
-                        <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <rect x="0" y="1" width="6.5" height="6" rx="1" fill="currentColor"/>
-                            <rect x="9.5" y="1" width="6.5" height="6" rx="1" fill="currentColor"/>
-                            <rect x="0" y="9" width="6.5" height="6" rx="1" fill="currentColor"/>
-                            <rect x="9.5" y="9" width="6.5" height="6" rx="1" fill="currentColor"/>
+                <div class="sort-dropdown" id="sortDropdown">
+                    <button data-sort="default" class="active" onclick="setSort('default', this)">
+                        <svg class="icon" viewBox="0 0 16 16" fill="none">
+                            <rect x="1" y="2" width="14" height="3" rx="1" fill="currentColor" opacity="0.3"/>
+                            <rect x="1" y="6.5" width="14" height="3" rx="1" fill="currentColor" opacity="0.3"/>
+                            <rect x="1" y="11" width="14" height="3" rx="1" fill="currentColor" opacity="0.3"/>
                         </svg>
-                        Два столбца
+                        По редкости
                     </button>
-                    <button data-layout="1col" onclick="setLayout('1col', this)">
-                        <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <rect x="2.5" y="1" width="11" height="4" rx="1" fill="currentColor"/>
-                            <rect x="2.5" y="6.5" width="11" height="4" rx="1" fill="currentColor"/>
-                            <rect x="2.5" y="12" width="11" height="3" rx="1" fill="currentColor"/>
+                    <button data-sort="name" onclick="setSort('name', this)">
+                        <svg class="icon" viewBox="0 0 16 16" fill="none">
+                            <text x="1" y="12" font-size="11" font-weight="700" fill="currentColor">A</text>
+                            <text x="8" y="12" font-size="11" font-weight="700" fill="currentColor">Z</text>
                         </svg>
-                        Один столбец
+                        По алфавиту
                     </button>
-                    <button data-layout="squares" onclick="setLayout('squares', this)">
-                        <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                            <rect x="0" y="0" width="4.5" height="4.5" rx="1" fill="currentColor"/>
-                            <rect x="5.75" y="0" width="4.5" height="4.5" rx="1" fill="currentColor"/>
-                            <rect x="11.5" y="0" width="4.5" height="4.5" rx="1" fill="currentColor"/>
-                            <rect x="0" y="5.75" width="4.5" height="4.5" rx="1" fill="currentColor"/>
-                            <rect x="5.75" y="5.75" width="4.5" height="4.5" rx="1" fill="currentColor"/>
-                            <rect x="11.5" y="5.75" width="4.5" height="4.5" rx="1" fill="currentColor"/>
-                            <rect x="0" y="11.5" width="4.5" height="4.5" rx="1" fill="currentColor"/>
-                            <rect x="5.75" y="11.5" width="4.5" height="4.5" rx="1" fill="currentColor"/>
-                            <rect x="11.5" y="11.5" width="4.5" height="4.5" rx="1" fill="currentColor"/>
+                    <button data-sort="mastery" onclick="setSort('mastery', this)">
+                        <svg class="icon" viewBox="0 0 16 16" fill="none">
+                            <rect x="1" y="10" width="3" height="5" rx="0.5" fill="currentColor" opacity="0.4"/>
+                            <rect x="5.5" y="6" width="3" height="9" rx="0.5" fill="currentColor" opacity="0.6"/>
+                            <rect x="10" y="2" width="3" height="13" rx="0.5" fill="currentColor"/>
                         </svg>
-                        Сетка
+                        По мастерству
                     </button>
                 </div>
             </div>
         </div>
         <div class="list">
-            <!-- Обычные -->
             <div class="item" data-name="Ракета (Rocket)" data-mastery="0/600" data-awakening="0/5" data-rarity="common" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/RocketB.webp" alt="Rocket">
                 <div class="info"><h3>Ракета (Rocket)</h3><p>0/600 | 0/5</p></div>
@@ -555,7 +774,6 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <!-- Необычные -->
             <div class="item" data-name="Пламя (Flame)" data-type="awakening" data-mastery="600/600" data-awakening="5/5" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/FlameB.webp" alt="Flame">
                 <div class="info"><h3>Пламя (Flame)</h3><p>600/600 | 5/5</p></div>
@@ -598,7 +816,6 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <!-- Редкие -->
             <div class="item" data-name="Свет (Light)" data-type="awakening" data-mastery="120/600" data-awakening="2/5" data-rarity="rare" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/LightB.webp" alt="Light">
                 <div class="info"><h3>Свет (Light)</h3><p>120/600 | 2/5</p></div>
@@ -627,7 +844,6 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <!-- Легендарные -->
             <div class="item" data-name="Землетрясение (Quake)" data-type="awakening" data-mastery="0/600" data-awakening="0/5" data-rarity="legendary" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/QuakeB.webp" alt="Quake">
                 <div class="info"><h3>Землетрясение (Quake)</h3><p>0/600 | 0/5</p></div>
@@ -705,7 +921,6 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">П</span>
             </div>
-            <!-- Мифические -->
             <div class="item" data-name="Гравитация (Gravity)" data-type="prokachka" data-mastery="90/600" data-awakening="1/5" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
                 <img src="assets/fruits/GravityB.webp" alt="Gravity">
                 <div class="info"><h3>Гравитация (Gravity)</h3><p>90/600 | 1/5</p></div>
@@ -808,7 +1023,10 @@
     </div>
     <div class="popup-overlay" id="popupOverlay">
         <div class="popup">
-            <h2 id="popupName"></h2>
+            <div class="popup-header">
+                <img id="popupIcon" src="" alt="">
+                <h2 id="popupName"></h2>
+            </div>
             <div class="row">
                 <span class="label">Мастерство:</span>
                 <div class="controls">
@@ -819,10 +1037,12 @@
             </div>
             <div class="row" id="popupAwakeningRow">
                 <span class="label" id="popupAwakeningLabel">Пробуждение:</span>
-                <div class="controls">
-                    <button class="ctrl-btn" onmousedown="startChange('awakening',-1)" onmouseup="stopChange()" onmouseleave="stopChange()">−</button>
-                    <span class="value" id="popupAwakening"></span>
-                    <button class="ctrl-btn" onmousedown="startChange('awakening',1)" onmouseup="stopChange()" onmouseleave="stopChange()">+</button>
+                <div class="popup-bar" id="popupAwakeningBar" onclick="setAwakening(event)">
+                    <span class="seg" data-val="1"></span>
+                    <span class="seg" data-val="2"></span>
+                    <span class="seg" data-val="3"></span>
+                    <span class="seg" data-val="4"></span>
+                    <span class="seg" data-val="5"></span>
                 </div>
             </div>
             <button class="close" onclick="document.getElementById('popupOverlay').classList.remove('active')">Закрыть</button>
@@ -870,10 +1090,36 @@
 
         function updateItemText(item) {
             var p = item.querySelector('p');
-            var ma = item.dataset.mastery;
-            var aw = item.dataset.awakening;
-            var t = item.dataset.type;
-            p.textContent = t ? ma + ' | ' + aw : ma;
+            p.textContent = item.dataset.mastery;
+            renderProgressBar(item);
+            var mastery = parseInt(item.dataset.mastery.split('/')[0]) || 0;
+            item.classList.toggle('max-mastery', mastery >= 600);
+        }
+
+        function renderProgressBar(item) {
+            if (!item.dataset.type) return;
+            var aw = parseInt(item.dataset.awakening.split('/')[0]) || 0;
+            var bar = item.querySelector('.progress-bar');
+            if (!bar) {
+                bar = document.createElement('div');
+                bar.className = 'progress-bar';
+                for (var i = 0; i < 5; i++) {
+                    var seg = document.createElement('span');
+                    seg.className = 'seg';
+                    bar.appendChild(seg);
+                }
+                item.querySelector('.info').appendChild(bar);
+            }
+            var segs = bar.querySelectorAll('.seg');
+            for (var i = 0; i < segs.length; i++) {
+                segs[i].classList.toggle('filled', i < aw);
+            }
+        }
+
+        function initProgressBars() {
+            document.querySelectorAll('.item').forEach(function(item) {
+                renderProgressBar(item);
+            });
         }
 
         function loadData() {
@@ -914,32 +1160,12 @@
         }
 
         loadData();
+        initProgressBars();
 
         function toggleLayoutDropdown() {
             document.getElementById('layoutDropdown').classList.toggle('open');
         }
-        function setLayout(type, btn) {
-            var list = document.querySelector('.list');
-            list.classList.remove('layout-1col', 'layout-squares');
-            if (type === '1col') list.classList.add('layout-1col');
-            else if (type === 'squares') list.classList.add('layout-squares');
-            document.querySelectorAll('#layoutDropdown button').forEach(function(b) { b.classList.remove('active'); });
-            btn.classList.add('active');
-            document.getElementById('layoutDropdown').classList.remove('open');
-            localStorage.setItem('checkbf_layout', type);
-        }
-        (function() {
-            var saved = localStorage.getItem('checkbf_layout');
-            if (saved) {
-                var btn = document.querySelector('#layoutDropdown button[data-layout="' + saved + '"]');
-                if (btn) setLayout(saved, btn);
-            }
-        })();
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.layout-wrap')) {
-                document.getElementById('layoutDropdown').classList.remove('open');
-            }
-        });
+        document.querySelector('.list').classList.add('layout-squares');
 
         function filterBySearch() {
             var q = document.getElementById('searchInput').value.toLowerCase();
@@ -949,27 +1175,92 @@
             });
         }
 
+        function renderPopupBar(val) {
+            var segs = document.getElementById('popupAwakeningBar').querySelectorAll('.seg');
+            for (var i = 0; i < segs.length; i++) {
+                segs[i].classList.toggle('filled', i < val);
+            }
+        }
+
         document.querySelectorAll('.item').forEach(function(item) {
             item.addEventListener('click', function() {
                 currentItem = item;
                 document.getElementById('popupName').textContent = item.dataset.name;
                 document.getElementById('popupMastery').textContent = item.dataset.mastery;
+                var img = item.querySelector('img');
+                document.getElementById('popupIcon').src = img ? img.src : '';
                 var awRow = document.getElementById('popupAwakeningRow');
                 var awLabel = document.getElementById('popupAwakeningLabel');
                 if (item.dataset.type === 'awakening') {
                     awRow.style.display = '';
                     awLabel.textContent = 'Пробуждение:';
-                    document.getElementById('popupAwakening').textContent = item.dataset.awakening;
+                    var val = parseInt(item.dataset.awakening.split('/')[0]) || 0;
+                    renderPopupBar(val);
                 } else if (item.dataset.type === 'prokachka') {
                     awRow.style.display = '';
                     awLabel.textContent = 'Прокачка:';
-                    document.getElementById('popupAwakening').textContent = item.dataset.awakening;
+                    var val = parseInt(item.dataset.awakening.split('/')[0]) || 0;
+                    renderPopupBar(val);
                 } else {
                     awRow.style.display = 'none';
                 }
                 document.getElementById('popupOverlay').classList.add('active');
             });
         });
+
+        function setAwakening(e) {
+            var seg = e.target.closest('.seg');
+            if (!seg || !currentItem) return;
+            var val = parseInt(seg.dataset.val);
+            var current = parseInt(currentItem.dataset.awakening.split('/')[0]) || 0;
+            if (val === current) val = val - 1;
+            val = Math.max(0, Math.min(5, val));
+            currentItem.dataset.awakening = val + '/5';
+            renderPopupBar(val);
+            renderProgressBar(currentItem);
+            updateItemText(currentItem);
+            saveData();
+        }
+
+        function enableMasteryEdit() {
+            var el = document.getElementById('popupMastery');
+            if (el.tagName === 'INPUT') return;
+            var current = parseInt(el.textContent.split('/')[0]) || 0;
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'value-input';
+            input.value = current;
+            input.maxLength = 3;
+            el.parentNode.replaceChild(input, el);
+            input.focus();
+            input.select();
+            function finishEdit() {
+                var val = parseInt(input.value) || 0;
+                val = Math.max(0, Math.min(600, val));
+                var span = document.createElement('span');
+                span.className = 'value';
+                span.id = 'popupMastery';
+                span.textContent = val + '/600';
+                span.onclick = enableMasteryEdit;
+                input.parentNode.replaceChild(span, input);
+                if (currentItem) {
+                    currentItem.dataset.mastery = val + '/600';
+                    updateItemText(currentItem);
+                    saveData();
+                }
+            }
+            input.addEventListener('blur', finishEdit);
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') input.blur();
+                if (e.key === 'Escape') { input.value = current; input.blur(); }
+            });
+            input.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (parseInt(this.value) > 600) this.value = '600';
+            });
+        }
+        document.getElementById('popupMastery').onclick = enableMasteryEdit;
+
         function changeMastery(step) {
             var el = document.getElementById('popupMastery');
             var parts = el.textContent.split('/');
@@ -981,24 +1272,11 @@
                 saveData();
             }
         }
-        function changeAwakening(step) {
-            var el = document.getElementById('popupAwakening');
-            var parts = el.textContent.split('/');
-            var val = Math.max(0, Math.min(5, parseInt(parts[0]) + step));
-            el.textContent = val + '/5';
-            if (currentItem) {
-                currentItem.dataset.awakening = val + '/5';
-                updateItemText(currentItem);
-                saveData();
-            }
-        }
         function startChange(type, step) {
             if (type === 'mastery') changeMastery(step);
-            else changeAwakening(step);
             holdTimer = setTimeout(function() {
                 holdInterval = setInterval(function() {
                     if (type === 'mastery') changeMastery(step);
-                    else changeAwakening(step);
                 }, 50);
             }, 400);
         }
@@ -1025,6 +1303,109 @@
                 });
             });
         });
+
+        var currentSort = 'default';
+        var rarityOrder = { common: 0, uncommon: 1, rare: 2, legendary: 3, mythical: 4 };
+
+        function toggleSortDropdown() {
+            document.getElementById('sortDropdown').classList.toggle('open');
+        }
+
+        function setSort(type, btn) {
+            currentSort = type;
+            document.querySelectorAll('#sortDropdown button').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            document.getElementById('sortDropdown').classList.remove('open');
+            applySort();
+            localStorage.setItem('checkbf_sort', type);
+        }
+
+        var originalOrder = {};
+        document.querySelectorAll('.item').forEach(function(item, i) {
+            originalOrder[item.dataset.name] = i;
+        });
+
+        function applySort() {
+            var list = document.querySelector('.list');
+            var items = Array.from(list.querySelectorAll('.item'));
+
+            if (currentSort === 'default') {
+                items.sort(function(a, b) {
+                    var ra = rarityOrder[a.dataset.rarity] || 0;
+                    var rb = rarityOrder[b.dataset.rarity] || 0;
+                    if (ra !== rb) return ra - rb;
+                    return (originalOrder[a.dataset.name] || 0) - (originalOrder[b.dataset.name] || 0);
+                });
+            } else if (currentSort === 'name') {
+                items.sort(function(a, b) {
+                    return a.dataset.name.localeCompare(b.dataset.name);
+                });
+            } else if (currentSort === 'mastery') {
+                items.sort(function(a, b) {
+                    var ma = parseInt(a.dataset.mastery.split('/')[0]) || 0;
+                    var mb = parseInt(b.dataset.mastery.split('/')[0]) || 0;
+                    return mb - ma;
+                });
+            }
+
+            items.forEach(function(item) { list.appendChild(item); });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.sort-wrap')) {
+                document.getElementById('sortDropdown').classList.remove('open');
+            }
+        });
+
+        (function() {
+            var saved = localStorage.getItem('checkbf_sort');
+            if (saved) {
+                var btn = document.querySelector('#sortDropdown button[data-sort="' + saved + '"]');
+                if (btn) setSort(saved, btn);
+            }
+        })();
+
+        function createParticles() {
+            var container = document.getElementById('particles');
+            container.innerHTML = '';
+            for (var i = 0; i < 60; i++) {
+                var p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.animationDuration = (Math.random() * 4 + 3) + 's';
+                p.style.animationDelay = (Math.random() * 3) + 's';
+                var size = Math.random() * 3 + 1;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                container.appendChild(p);
+            }
+        }
+
+        function toggleBg(mode) {
+            document.body.classList.remove('no-bg', 'gradient-bg');
+            document.getElementById('btnBgImage').classList.remove('active');
+            document.getElementById('btnBgDark').classList.remove('active');
+            document.getElementById('btnBgGradient').classList.remove('active');
+            if (mode === 'dark') {
+                document.body.classList.add('no-bg');
+                document.getElementById('btnBgDark').classList.add('active');
+            } else if (mode === 'gradient') {
+                document.body.classList.add('gradient-bg');
+                document.getElementById('btnBgGradient').classList.add('active');
+            } else {
+                document.getElementById('btnBgImage').classList.add('active');
+            }
+            localStorage.setItem('checkbf_bg', mode);
+        }
+
+        createParticles();
+
+        (function() {
+            var saved = localStorage.getItem('checkbf_bg');
+            if (saved) toggleBg(saved); else toggleBg('gradient');
+        })();
+        })();
     </script>
 </body>
 </html>

@@ -24,6 +24,71 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            transition: background 0.3s;
+        }
+        body.no-bg {
+            background-image: none;
+        }
+        body.gradient-bg {
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d1b4e 30%, #1a0a2e 60%, #0a0a0a 100%);
+        }
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+            display: none;
+        }
+        body.gradient-bg .particles {
+            display: block;
+        }
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle ease-in-out infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.1; transform: translateY(0); }
+            50% { opacity: 0.8; transform: translateY(-20px); }
+        }
+        .bg-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 6px;
+            z-index: 20;
+        }
+        .bg-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 2px solid #555;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .bg-btn:hover {
+            border-color: #8cf;
+        }
+        .bg-btn.active {
+            border-color: #8cf;
+            box-shadow: 0 0 6px rgba(100,180,255,0.4);
+        }
+        .bg-btn.bg-image {
+            background: url('assets/background.jpg') center/cover;
+        }
+        .bg-btn.bg-dark {
+            background: #1a1a1a;
+        }
+        .bg-btn.bg-gradient {
+            background: linear-gradient(135deg, #1a1a1a 0%, #4a1a6b 50%, #1a1a1a 100%);
         }
         h1 {
             font-size: 4rem;
@@ -57,28 +122,38 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 20px;
             cursor: pointer;
         }
         .oval:hover {
             background: #33334a;
         }
+        .oval.dim {
+            background: #1f1f2a;
+            border-color: #3a3a4a;
+            opacity: 0.5;
+        }
+        .oval.dim:hover {
+            background: #252535;
+            opacity: 0.7;
+        }
         .oval h2 {
             font-size: 1.1rem;
             color: #8cf;
-            margin-bottom: 4px;
+            margin: 0;
             -webkit-text-stroke: 0.5px #000;
+            letter-spacing: 0.5px;
         }
         .oval p {
             font-size: 0.8rem;
             color: #999;
             line-height: 1.3;
         }
-        .o1 { width: 220px; height: 120px; top: 0; left: 5%; }
-        .o2 { width: 200px; height: 100px; top: 15%; right: 8%; }
-        .o3 { width: 240px; height: 130px; top: 40%; left: 0; }
-        .o4 { width: 200px; height: 100px; top: 45%; right: 5%; }
-        .o5 { width: 220px; height: 120px; bottom: 0; left: 20%; }
+        .o1 { width: 220px; height: 120px; top: 2%; left: 3%; }
+        .o6 { width: 180px; height: 100px; top: 2%; left: 28%; }
+        .o2 { width: 200px; height: 100px; top: 2%; right: 3%; }
+        .o3 { width: 240px; height: 130px; top: 42%; left: 3%; }
+        .o4 { width: 200px; height: 100px; top: 42%; right: 3%; }
+        .o5 { width: 220px; height: 120px; bottom: 5%; left: 35%; }
         svg.arrows {
             position: fixed;
             top: 0;
@@ -91,29 +166,33 @@
     </style>
 </head>
 <body>
+    <div class="bg-toggle">
+        <div class="bg-btn bg-image active" id="btnBgImage" onclick="toggleBg('image')" title="С фоном"></div>
+        <div class="bg-btn bg-dark" id="btnBgDark" onclick="toggleBg('dark')" title="Без фона"></div>
+        <div class="bg-btn bg-gradient" id="btnBgGradient" onclick="toggleBg('gradient')" title="Градиент"></div>
+    </div>
+    <div class="particles" id="particles"></div>
     <svg class="arrows" id="arrows"></svg>
     <img class="avatar" id="avatar" src="https://tr.rbxcdn.com/30DAY-AvatarHeadshot-1507DAB190B8A3C9CEA7A26EE1A69D31-Png/420/420/AvatarHeadshot/Png/noFilter" alt="Avatar">
     <h1>CheckBF</h1>
     <div class="grid">
         <div class="oval o1" onclick="location.href='fruit.html'">
             <h2>Фрукты</h2>
-            <p>Какие пробудил, стадии пробуждения</p>
         </div>
-        <div class="oval o2">
+        <div class="oval o2 dim">
             <h2>Мечи</h2>
-            <p>Какие собрал, уровень мастерства</p>
         </div>
-        <div class="oval o3">
+        <div class="oval o3" onclick="location.href='fightingstyles.html'">
             <h2>Стили боя</h2>
-            <p>Какие прокачал, стадии</p>
         </div>
-        <div class="oval o4">
+        <div class="oval o4 dim">
             <h2>Оружие</h2>
-            <p>Мушкеты, пистолеты, арбалеты</p>
         </div>
-        <div class="oval o5">
+        <div class="oval o5 dim">
             <h2>Аксессуары</h2>
-            <p>Шляпы, броня, ожерелья, кольца</p>
+        </div>
+        <div class="oval o6" onclick="location.href='skins.html'">
+            <h2>Скины</h2>
         </div>
     </div>
     <script>
@@ -123,32 +202,86 @@
             var avRect = avatar.getBoundingClientRect();
             var cx = avRect.left + avRect.width / 2;
             var cy = avRect.top + avRect.height / 2;
-            var ovals = document.querySelectorAll('.oval');
+
+            var o1 = document.querySelector('.o1');
+            var o2 = document.querySelector('.o2');
+            var o3 = document.querySelector('.o3');
+            var o4 = document.querySelector('.o4');
+            var o5 = document.querySelector('.o5');
+            var o6 = document.querySelector('.o6');
+            var r1 = o1.getBoundingClientRect();
+            var r2 = o2.getBoundingClientRect();
+            var r3 = o3.getBoundingClientRect();
+            var r4 = o4.getBoundingClientRect();
+            var r5 = o5.getBoundingClientRect();
+            var r6 = o6.getBoundingClientRect();
+
             var lines = '';
             var defs = '<defs><marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#fff"/></marker></defs>';
-            ovals.forEach(function(o) {
-                var r = o.getBoundingClientRect();
-                var ox = r.left + r.width / 2;
-                var oy = r.top + r.height / 2;
-                var dx = cx - ox;
-                var dy = cy - oy;
+
+            function arrowFromTo(x1, y1, x2, y2, el1, el2, width, opacity) {
+                var dx = x2 - x1;
+                var dy = y2 - y1;
                 var len = Math.sqrt(dx * dx + dy * dy);
                 if (len === 0) return;
                 var ux = dx / len;
                 var uy = dy / len;
-                var sx = cx - ux * 78;
-                var sy = cy - uy * 78;
-                var a = r.width / 2 + 2;
-                var b = r.height / 2 + 2;
-                var s = 1 / Math.sqrt((dx * dx) / (a * a) + (dy * dy) / (b * b));
-                var ex = ox + s * dx;
-                var ey = oy + s * dy;
-                lines += '<line x1="' + sx + '" y1="' + sy + '" x2="' + ex + '" y2="' + ey + '" stroke="#fff" stroke-width="1.5" marker-end="url(#ah)" opacity="0.6"/>';
+                var sx = x1 + ux * (el1.width / 2 + 2);
+                var sy = y1 + uy * (el1.height / 2 + 2);
+                var ex = x2 - ux * (el2.width / 2 + 2);
+                var ey = y2 - uy * (el2.height / 2 + 2);
+                lines += '<line x1="' + sx + '" y1="' + sy + '" x2="' + ex + '" y2="' + ey + '" stroke="#fff" stroke-width="' + (width || 1.5) + '" marker-end="url(#ah)" opacity="' + (opacity || 0.6) + '"/>';
+            }
+
+            [r1, r2, r3, r4, r5, r6].forEach(function(r) {
+                arrowFromTo(cx, cy, r.left + r.width / 2, r.top + r.height / 2, {width: avRect.width, height: avRect.height}, {width: r.width, height: r.height});
             });
+
             svg.innerHTML = defs + lines;
         }
         drawArrows();
         window.addEventListener('resize', drawArrows);
+
+        function createParticles() {
+            var container = document.getElementById('particles');
+            container.innerHTML = '';
+            for (var i = 0; i < 60; i++) {
+                var p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.animationDuration = (Math.random() * 4 + 3) + 's';
+                p.style.animationDelay = (Math.random() * 3) + 's';
+                var size = Math.random() * 3 + 1;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                container.appendChild(p);
+            }
+        }
+
+        function toggleBg(mode) {
+            document.body.classList.remove('no-bg', 'gradient-bg');
+            document.getElementById('btnBgImage').classList.remove('active');
+            document.getElementById('btnBgDark').classList.remove('active');
+            document.getElementById('btnBgGradient').classList.remove('active');
+            if (mode === 'dark') {
+                document.body.classList.add('no-bg');
+                document.getElementById('btnBgDark').classList.add('active');
+            } else if (mode === 'gradient') {
+                document.body.classList.add('gradient-bg');
+                document.getElementById('btnBgGradient').classList.add('active');
+            } else {
+                document.getElementById('btnBgImage').classList.add('active');
+            }
+            localStorage.setItem('checkbf_bg', mode);
+        }
+
+        createParticles();
+
+        (function() {
+            var saved = localStorage.getItem('checkbf_bg');
+            if (saved) toggleBg(saved); else toggleBg('gradient');
+        })();
     </script>
 </body>
 </html>

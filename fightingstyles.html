@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Стили боя — CheckBF</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            height: 100vh;
+            background-color: #1a1a1a;
+            color: #c900c9;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            isolation: isolate;
+            padding: 20px 30px 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('assets/background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            filter: blur(4px);
+            z-index: -1;
+        }
+        body.no-bg::before {
+            background-image: none;
+        }
+        body.gradient-bg::before {
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d1b4e 30%, #1a0a2e 60%, #0a0a0a 100%);
+            filter: none;
+        }
+        body.gradient-bg {
+            background-color: transparent;
+        }
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+            display: none;
+        }
+        body.gradient-bg .particles {
+            display: block;
+        }
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle ease-in-out infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.1; transform: translateY(0); }
+            50% { opacity: 0.8; transform: translateY(-20px); }
+        }
+        .bg-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 6px;
+            z-index: 20;
+        }
+        .bg-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 2px solid #555;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .bg-btn:hover {
+            border-color: #8cf;
+        }
+        .bg-btn.active {
+            border-color: #8cf;
+            box-shadow: 0 0 6px rgba(100,180,255,0.4);
+        }
+        .bg-btn.bg-image {
+            background: url('assets/background.jpg') center/cover;
+        }
+        .bg-btn.bg-dark {
+            background: #1a1a1a;
+        }
+        .back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1rem;
+            border: 1px solid #555;
+            border-radius: 16px;
+            padding: 6px 16px;
+            background: #2a2a3a;
+            z-index: 20;
+        }
+        .back:hover {
+            background: #33334a;
+        }
+        h1 {
+            font-size: 2rem;
+            margin: 0 0 16px 0;
+            color: #fff;
+            -webkit-text-stroke: 1px #000;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .trees {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 30px;
+            flex: 1;
+            overflow: hidden;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 0 10px;
+        }
+        .tree {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            align-items: center;
+        }
+        .tree-title {
+            font-size: 0.7rem;
+            color: #aaa;
+            padding: 3px 10px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background: rgba(42,42,58,0.9);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: fit-content;
+            flex-shrink: 0;
+        }
+        .tree-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+        }
+        .tree-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 110px;
+            min-height: 110px;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            padding: 6px 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: border-color 0.2s;
+        }
+        .tree-node.max-mastery {
+            border-color: #ffc107;
+            box-shadow: 0 0 8px rgba(255,193,7,0.3);
+        }
+        .tree-node .eat-icon {
+            font-size: 0.8rem;
+            cursor: pointer;
+            user-select: none;
+            width: 100%;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.05);
+            color: #666;
+            margin-top: 4px;
+            transition: all 0.2s;
+        }
+        .tree-node .eat-icon:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .tree-node .eat-icon.owned {
+            background: #2e7d32;
+            color: #fff;
+        }
+        .tree-node:hover {
+            background: #33334a;
+        }
+        .tree-node img {
+            width: 44px;
+            height: 44px;
+            border-radius: 6px;
+            margin-bottom: 3px;
+        }
+        .tree-node h3 {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #fff;
+            margin: 0 0 2px;
+            text-align: center;
+            line-height: 1.1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+        }
+        .tree-node[data-rarity="uncommon"] h3 { background: rgba(76,175,80,0.35); }
+        .tree-node[data-rarity="rare"] h3 { background: rgba(66,165,245,0.35); }
+        .tree-node[data-rarity="legendary"] h3 { background: rgba(244,143,177,0.35); }
+        .tree-node[data-rarity="mythical"] h3 { background: rgba(239,83,80,0.35); }
+        .tree-node .mastery-val {
+            font-size: 0.55rem;
+            color: #8cf;
+            font-weight: 600;
+        }
+        .progress-bar {
+            display: flex;
+            gap: 1px;
+            margin-top: 2px;
+            padding: 1px;
+            border: 1px solid #555;
+            border-radius: 3px;
+            background: #1a1a1a;
+            width: fit-content;
+        }
+        .progress-bar .seg {
+            width: 10px;
+            height: 5px;
+            border-radius: 1px;
+            background: #c62828;
+        }
+        .progress-bar .seg.filled {
+            background: #43a047;
+        }
+        .tree-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            flex-shrink: 0;
+            color: #555;
+        }
+        .tree-arrow svg {
+            width: 14px;
+            height: 14px;
+        }
+        .tree-node.standalone {
+            border-color: #7b1fa2;
+        }
+        .tree-node.standalone h3 {
+            background: rgba(123,31,162,0.35);
+        }
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 30;
+            align-items: center;
+            justify-content: center;
+        }
+        .popup-overlay.active {
+            display: flex;
+        }
+        .popup {
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 14px;
+            padding: 24px 30px;
+            min-width: 260px;
+        }
+        .popup h2 {
+            font-size: 1.2rem;
+            color: #8cf;
+            margin: 0;
+        }
+        .popup-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .popup-header img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+        .popup .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .popup .label {
+            color: #999;
+            font-size: 0.85rem;
+        }
+        .popup .value {
+            color: #fff;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-bottom: 1px dashed #666;
+            padding: 0 4px;
+            min-width: 40px;
+            text-align: center;
+        }
+        .popup .value:hover {
+            border-bottom-color: #aaa;
+        }
+        .popup .value-input {
+            color: #fff;
+            font-size: 0.85rem;
+            background: #1a1a1a;
+            border: 1px solid #4caf50;
+            border-radius: 4px;
+            padding: 0 4px;
+            width: 50px;
+            text-align: center;
+            outline: none;
+        }
+        .popup .controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .popup .ctrl-btn {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #555;
+            background: #2a2a3a;
+            color: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .popup .ctrl-btn:hover {
+            background: #33334a;
+        }
+        .popup .close {
+            margin-top: 14px;
+            background: none;
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 10px;
+            padding: 6px 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            width: 100%;
+        }
+        .popup .close:hover {
+            background: #33334a;
+        }
+        .popup-bar {
+            display: flex;
+            gap: 3px;
+            padding: 4px 6px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background: #1a1a1a;
+            cursor: pointer;
+        }
+        .popup-bar .seg {
+            width: 28px;
+            height: 14px;
+            border-radius: 3px;
+            background: #c62828;
+            transition: background 0.15s;
+        }
+        .popup-bar .seg.filled {
+            background: #43a047;
+        }
+        .popup-bar .seg:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-toggle">
+        <div class="bg-btn bg-image" id="btnBgImage" onclick="toggleBg('image')" title="С фоном"></div>
+        <div class="bg-btn bg-dark" id="btnBgDark" onclick="toggleBg('dark')" title="Без фона"></div>
+        <div class="bg-btn bg-gradient" id="btnBgGradient" onclick="toggleBg('gradient')" title="Градиент"></div>
+    </div>
+    <div class="particles" id="particles"></div>
+    <a class="back" href="index.html">&larr; Назад</a>
+    <h1>Стили боя</h1>
+
+    <div class="trees">
+        <div class="tree">
+            <div class="tree-title">Тёмный Шаг</div>
+            <div class="tree-row">
+                <div class="tree-node" data-name="Тёмный Шаг (Dark Step)" data-mastery="0/600" data-rarity="uncommon" data-owned="false" onclick="openPopup(this)">
+                    <img src="assets/fighting/DarkStepA.webp" alt="Dark Step" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22><rect fill=%22%23444%22 width=%2248%22 height=%2248%22 rx=%226%22/><text x=%2250%%22 y=%2258%%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2218%22>D</text></svg>'">
+                    <h3>Тёмный Шаг</h3>
+                    <p class="mastery-val">0/600</p>
+                    <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
+                </div>
+                <div class="tree-arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="tree-node" data-name="Шаг Смерти (Death Step)" data-mastery="0/600" data-rarity="legendary" data-owned="false" onclick="openPopup(this)">
+                    <img src="assets/fighting/DeathStepA.webp" alt="Death Step" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22><rect fill=%22%23444%22 width=%2248%22 height=%2248%22 rx=%226%22/><text x=%2250%%22 y=%2258%%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2218%22>D</text></svg>'">
+                    <h3>Шаг Смерти</h3>
+                    <p class="mastery-val">0/600</p>
+                    <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tree">
+            <div class="tree-title">Электричество</div>
+            <div class="tree-row">
+                <div class="tree-node" data-name="Электричество (Electric)" data-mastery="0/600" data-rarity="uncommon" data-owned="false" onclick="openPopup(this)">
+                    <img src="assets/fighting/ElectricA.webp" alt="Electric" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22><rect fill=%22%23444%22 width=%2248%22 height=%2248%22 rx=%226%22/><text x=%2250%%22 y=%2258%%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2218%22>E</text></svg>'">
+                    <h3>Электричество</h3>
+                    <p class="mastery-val">0/600</p>
+                    <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
+                </div>
+                <div class="tree-arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="tree-node" data-name="Электрический Коготь (Electric Claw)" data-mastery="0/600" data-rarity="legendary" data-owned="false" onclick="openPopup(this)">
+                    <img src="assets/fighting/ElectricClawA.webp" alt="Electric Claw" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22><rect fill=%22%23444%22 width=%2248%22 height=%2248%22 rx=%226%22/><text x=%2250%%22 y=%2258%%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2218%22>E</text></svg>'">
+                    <h3>Электрический Коготь</h3>
+                    <p class="mastery-val">0/600</p>
+                    <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tree">
+            <div class="tree-title">Водное Кунг-Фу</div>
+            <div class="tree-row">
+                <div class="tree-node" data-name="Водное Кунг-Фу (Water Kung Fu)" data-mastery="0/600" data-rarity="rare" data-owned="false" onclick="openPopup(this)">
+                    <img src="assets/fighting/WaterKungFuA.webp" alt="Water Kung Fu" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22><rect fill=%22%23444%22 width=%2248%22 height=%2248%22 rx=%226%22/><text x=%2250%%22 y=%2258%%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2218%22>W</text></svg>'">
+                    <h3>Водное Кунг-Фу</h3>
+                    <p class="mastery-val">0/600</p>
+                    <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
+                </div>
+                <div class="tree-arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="tree-node" data-name="Каратэ Акуло-Человека (Sharkman Karate)" data-mastery="0/600" data-prokachka="0/3" data-rarity="legendary" data-owned="false" onclick="openPopup(this)">
+                    <img src="assets/fighting/SharkmanKarateA.webp" alt="Sharkman Karate" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22><rect fill=%22%23444%22 width=%2248%22 height=%2248%22 rx=%226%22/><text x=%2250%%22 y=%2258%%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2218%22>S</text></svg>'">
+                    <h3>Каратэ Акуло-Человека</h3>
+                    <p class="mastery-val">0/600</p>
+                    <div class="progress-bar" data-prokachka-bar><span class="seg"></span><span class="seg"></span><span class="seg"></span></div>
+                    <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tree">
+            <div class="tree-title">Дыхание Дракона</div>
+            <div class="tree-row">
+                <div class="tree-node" data-name="Дыхание Дракона (Dragon Breath)" data-mastery="0/600" data-rarity="rare" data-owned="false" onclick="openPopup(this)">
+                    <img src="assets/fighting/DragonBreathA.webp" alt="Dragon Breath" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22><rect fill=%22%23444%22 width=%2248%22 height=%2248%22 rx=%226%22/><text x=%2250%%22 y=%2258%%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2218%22>D</text></svg>'">
+                    <h3>Дыхание Дракона</h3>
+                    <p class="mastery-val">0/600</p>
+                    <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
+                </div>
+                <div class="tree-arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="tree-node" data-name="Коготь Дракона (Dragon Talon)" data-mastery="0/600" data-prokachka="0/3" data-rarity="legendary" data-owned="false" onclick="openPopup(this)">
+                    <img src="assets/fighting/DragonTalonA.webp" alt="Dragon Talon" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22><rect fill=%22%23444%22 width=%2248%22 height=%2248%22 rx=%226%22/><text x=%2250%%22 y=%2258%%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2218%22>D</text></svg>'">
+                    <h3>Коготь Дракона</h3>
+                    <p class="mastery-val">0/600</p>
+                    <div class="progress-bar" data-prokachka-bar><span class="seg"></span><span class="seg"></span><span class="seg"></span></div>
+                    <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tree">
+            <div class="tree-title">Суперчеловек → Богочеловек</div>
+            <div class="tree-row">
+                <div class="tree-node" data-name="Борьба (Basic)" data-mastery="0/600" data-rarity="common" data-owned="false" onclick="openPopup(this)">
+                    <img src="assets/fighting/CombatA.webp" alt="Basic" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22><rect fill=%22%23444%22 width=%2248%22 height=%2248%22 rx=%226%22/><text x=%2250%%22 y=%2258%%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2218%22>B</text></svg>'">
+                    <h3>Борьба</h3>
+                    <p class="mastery-val">0/600</p>
+                    <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
+                </div>
+                <div class="tree-arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="tree-node" data-name="Суперчеловек (Superhuman)" data-mastery="0/600" data-rarity="legendary" data-owned="false" onclick="openPopup(this)">
+                    <img src="assets/fighting/SuperhumanA.webp" alt="Superhuman" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22><rect fill=%22%23444%22 width=%2248%22 height=%2248%22 rx=%226%22/><text x=%2250%%22 y=%2258%%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2218%22>S</text></svg>'">
+                    <h3>Суперчеловек</h3>
+                    <p class="mastery-val">0/600</p>
+                    <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
+                </div>
+                <div class="tree-arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="tree-node" data-name="Богочеловек (Godhuman)" data-mastery="0/600" data-rarity="mythical" data-owned="false" onclick="openPopup(this)">
+                    <img src="assets/fighting/GodhumanA.webp" alt="Godhuman" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22><rect fill=%22%23444%22 width=%2248%22 height=%2248%22 rx=%226%22/><text x=%2250%%22 y=%2258%%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2218%22>G</text></svg>'">
+                    <h3>Богочеловек</h3>
+                    <p class="mastery-val">0/600</p>
+                    <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tree">
+            <div class="tree-title">Отдельный стиль</div>
+            <div class="tree-row">
+                <div class="tree-node standalone" data-name="Искусство Крови (Sanguine Art)" data-mastery="0/600" data-rarity="mythical" data-owned="false" onclick="openPopup(this)">
+                    <img src="assets/fighting/SanguineArtA.webp" alt="Sanguine Art" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 48 48%22><rect fill=%22%23444%22 width=%2248%22 height=%2248%22 rx=%226%22/><text x=%2250%%22 y=%2258%%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2218%22>S</text></svg>'">
+                    <h3>Искусство Крови</h3>
+                    <p class="mastery-val">0/600</p>
+                    <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup">
+            <div class="popup-header">
+                <img id="popupIcon" src="" alt="">
+                <h2 id="popupName"></h2>
+            </div>
+            <div class="row">
+                <span class="label">Мастерство:</span>
+                <div class="controls">
+                    <button class="ctrl-btn" onmousedown="startChange('mastery',-10)" onmouseup="stopChange()" onmouseleave="stopChange()">−</button>
+                    <span class="value" id="popupMastery"></span>
+                    <button class="ctrl-btn" onmousedown="startChange('mastery',10)" onmouseup="stopChange()" onmouseleave="stopChange()">+</button>
+                </div>
+            </div>
+            <div class="row" id="popupProkachkaRow" style="display:none">
+                <span class="label">Прокачка:</span>
+                <div class="popup-bar" id="popupProkachkaBar" onclick="setProkachka(event)">
+                    <span class="seg" data-val="1"></span>
+                    <span class="seg" data-val="2"></span>
+                    <span class="seg" data-val="3"></span>
+                </div>
+            </div>
+            <button class="close" onclick="document.getElementById('popupOverlay').classList.remove('active')">Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        var currentNode = null;
+        var holdTimer = null;
+        var holdInterval = null;
+
+        function renderProkachkaBar(node) {
+            if (node.dataset.prokachka === undefined) return;
+            var val = parseInt(node.dataset.prokachka.split('/')[0]) || 0;
+            var bar = node.querySelector('[data-prokachka-bar]');
+            if (!bar) return;
+            var segs = bar.querySelectorAll('.seg');
+            for (var i = 0; i < segs.length; i++) {
+                segs[i].classList.toggle('filled', i < val);
+            }
+        }
+
+        function renderPopupBar(val) {
+            var segs = document.getElementById('popupProkachkaBar').querySelectorAll('.seg');
+            for (var i = 0; i < segs.length; i++) {
+                segs[i].classList.toggle('filled', i < val);
+            }
+        }
+
+        function openPopup(node) {
+            currentNode = node;
+            document.getElementById('popupName').textContent = node.dataset.name;
+            document.getElementById('popupMastery').textContent = node.dataset.mastery;
+            var img = node.querySelector('img');
+            document.getElementById('popupIcon').src = img ? img.src : '';
+            var prokRow = document.getElementById('popupProkachkaRow');
+            if (node.dataset.prokachka) {
+                prokRow.style.display = '';
+                var val = parseInt(node.dataset.prokachka.split('/')[0]) || 0;
+                renderPopupBar(val);
+            } else {
+                prokRow.style.display = 'none';
+            }
+            document.getElementById('popupOverlay').classList.add('active');
+        }
+
+        function setProkachka(e) {
+            var seg = e.target.closest('.seg');
+            if (!seg || !currentNode) return;
+            var val = parseInt(seg.dataset.val);
+            var current = parseInt(currentNode.dataset.prokachka.split('/')[0]) || 0;
+            if (val === current) val = val - 1;
+            val = Math.max(0, Math.min(3, val));
+            currentNode.dataset.prokachka = val + '/3';
+            renderPopupBar(val);
+            renderProkachkaBar(currentNode);
+            saveData();
+        }
+
+        function enableMasteryEdit() {
+            var el = document.getElementById('popupMastery');
+            if (el.tagName === 'INPUT') return;
+            var current = parseInt(el.textContent.split('/')[0]) || 0;
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'value-input';
+            input.value = current;
+            input.maxLength = 3;
+            el.parentNode.replaceChild(input, el);
+            input.focus();
+            input.select();
+            function finishEdit() {
+                var val = parseInt(input.value) || 0;
+                val = Math.max(0, Math.min(600, val));
+                var span = document.createElement('span');
+                span.className = 'value';
+                span.id = 'popupMastery';
+                span.textContent = val + '/600';
+                span.onclick = enableMasteryEdit;
+                input.parentNode.replaceChild(span, input);
+                if (currentNode) {
+                    currentNode.dataset.mastery = val + '/600';
+                    currentNode.querySelector('.mastery-val').textContent = val + '/600';
+                    currentNode.classList.toggle('max-mastery', val >= 600);
+                }
+                saveData();
+            }
+            input.addEventListener('blur', finishEdit);
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') input.blur();
+                if (e.key === 'Escape') { input.value = current; input.blur(); }
+            });
+            input.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (parseInt(this.value) > 600) this.value = '600';
+            });
+        }
+        document.getElementById('popupMastery').onclick = enableMasteryEdit;
+
+        function changeMastery(type, step) {
+            if (type === 'mastery') {
+                var el = document.getElementById('popupMastery');
+                var parts = el.textContent.split('/');
+                var val = Math.max(0, Math.min(600, parseInt(parts[0]) + step));
+                el.textContent = val + '/600';
+                if (currentNode) {
+                    currentNode.dataset.mastery = val + '/600';
+                    currentNode.querySelector('.mastery-val').textContent = val + '/600';
+                    currentNode.classList.toggle('max-mastery', val >= 600);
+                }
+            }
+            saveData();
+        }
+
+        function startChange(type, step) {
+            changeMastery(type, step);
+            holdTimer = setTimeout(function() {
+                holdInterval = setInterval(function() {
+                    changeMastery(type, step);
+                }, 50);
+            }, 400);
+        }
+
+        function stopChange() {
+            clearTimeout(holdTimer);
+            clearInterval(holdInterval);
+        }
+
+        function saveData() {
+            var data = {};
+            document.querySelectorAll('.tree-node').forEach(function(node) {
+                var obj = { mastery: node.dataset.mastery, owned: node.dataset.owned };
+                if (node.dataset.prokachka) obj.prokachka = node.dataset.prokachka;
+                data[node.dataset.name] = obj;
+            });
+            localStorage.setItem('checkbf_styles', JSON.stringify(data));
+        }
+
+        function toggleOwned(e, el) {
+            e.stopPropagation();
+            var node = el.closest('.tree-node');
+            var val = node.dataset.owned === 'true' ? 'false' : 'true';
+            node.dataset.owned = val;
+            el.textContent = val === 'true' ? '✓' : '⊘';
+            el.classList.toggle('owned', val === 'true');
+            saveData();
+        }
+
+        function loadData() {
+            var raw = localStorage.getItem('checkbf_styles');
+            if (!raw) return;
+            var data = JSON.parse(raw);
+            document.querySelectorAll('.tree-node').forEach(function(node) {
+                var saved = data[node.dataset.name];
+                if (saved) {
+                    if (typeof saved === 'string') {
+                        node.dataset.mastery = saved;
+                    } else {
+                        node.dataset.mastery = saved.mastery;
+                        if (saved.prokachka && node.dataset.prokachka !== undefined) {
+                            node.dataset.prokachka = saved.prokachka;
+                        }
+                        if (saved.owned) {
+                            node.dataset.owned = saved.owned;
+                            var eatEl = node.querySelector('.eat-icon');
+                            if (eatEl) {
+                                eatEl.textContent = saved.owned === 'true' ? '✓' : '⊘';
+                                eatEl.classList.toggle('owned', saved.owned === 'true');
+                            }
+                        }
+                    }
+                    node.querySelector('.mastery-val').textContent = node.dataset.mastery;
+                    var mastery = parseInt(node.dataset.mastery.split('/')[0]) || 0;
+                    node.classList.toggle('max-mastery', mastery >= 600);
+                    renderProkachkaBar(node);
+                }
+            });
+        }
+
+        loadData();
+        document.querySelectorAll('[data-prokachka-bar]').forEach(function(bar) {
+            renderProkachkaBar(bar.closest('.tree-node'));
+        });
+
+        document.getElementById('popupOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
+        });
+
+        function createParticles() {
+            var container = document.getElementById('particles');
+            container.innerHTML = '';
+            for (var i = 0; i < 60; i++) {
+                var p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.animationDuration = (Math.random() * 4 + 3) + 's';
+                p.style.animationDelay = (Math.random() * 3) + 's';
+                var size = Math.random() * 3 + 1;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                container.appendChild(p);
+            }
+        }
+
+        function toggleBg(mode) {
+            document.body.classList.remove('no-bg', 'gradient-bg');
+            document.getElementById('btnBgImage').classList.remove('active');
+            document.getElementById('btnBgDark').classList.remove('active');
+            document.getElementById('btnBgGradient').classList.remove('active');
+            if (mode === 'dark') {
+                document.body.classList.add('no-bg');
+                document.getElementById('btnBgDark').classList.add('active');
+            } else if (mode === 'gradient') {
+                document.body.classList.add('gradient-bg');
+                document.getElementById('btnBgGradient').classList.add('active');
+            } else {
+                document.getElementById('btnBgImage').classList.add('active');
+            }
+            localStorage.setItem('checkbf_bg', mode);
+        }
+
+        createParticles();
+
+        (function() {
+            var saved = localStorage.getItem('checkbf_bg');
+            if (saved) toggleBg(saved); else toggleBg('gradient');
+        })();
+    </script>
+</body>
+</html>
