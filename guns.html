@@ -204,6 +204,72 @@
             height: 14px;
             flex-shrink: 0;
         }
+        .filter-wrap {
+            position: relative;
+        }
+        .filter-btn {
+            height: 36px;
+            padding: 0 14px;
+            border: 1px solid #555;
+            border-radius: 10px;
+            background: #2a2a3a;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .filter-btn:hover {
+            background: #33334a;
+            color: #fff;
+        }
+        .filter-btn.active {
+            border-color: #8cf;
+            color: #8cf;
+        }
+        .filter-btn svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+        .filter-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 25;
+            min-width: 200px;
+        }
+        .filter-dropdown.open {
+            display: block;
+        }
+        .filter-dropdown label {
+            width: 100%;
+            padding: 10px 16px;
+            color: #ccc;
+            font-size: 0.85rem;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            user-select: none;
+        }
+        .filter-dropdown label:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+        .filter-dropdown input[type="checkbox"] {
+            accent-color: #8cf;
+            width: 14px;
+            height: 14px;
+        }
         .list {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
@@ -574,6 +640,22 @@
                     </button>
                 </div>
             </div>
+            <div class="filter-wrap">
+                <button class="filter-btn" id="filterBtn" onclick="toggleFilterDropdown()">
+                    <svg viewBox="0 0 16 16" fill="none">
+                        <rect x="2" y="3" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/>
+                        <rect x="2" y="7" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/>
+                        <rect x="2" y="11" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/>
+                        <circle cx="5" cy="4" r="1.5" fill="currentColor"/>
+                        <circle cx="10" cy="8" r="1.5" fill="currentColor"/>
+                        <circle cx="7" cy="12" r="1.5" fill="currentColor"/>
+                    </svg>
+                    <span>Фильтр</span>
+                </button>
+                <div class="filter-dropdown" id="filterDropdown">
+                    <label><input type="checkbox" id="filterNotUpgraded" onchange="applyFilters()"> Не улучшенные</label>
+                </div>
+            </div>
         </div>
         <div class="list">
             <div class="item" data-name="Рогатка" data-mastery="0/600" data-rarity="common" data-eaten="false" data-fav="false" data-perm="false">
@@ -883,14 +965,7 @@
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.sidebar button').forEach(function(b) { b.classList.remove('active'); });
                 btn.classList.add('active');
-                var filter = btn.dataset.filter;
-                document.querySelectorAll('.item').forEach(function(item) {
-                    var show = false;
-                    if (filter === 'all') show = true;
-                    else if (filter === 'favourite') show = item.dataset.fav === 'true';
-                    else show = item.dataset.rarity === filter;
-                    item.style.display = show ? '' : 'none';
-                });
+                applyAllVisibility();
             });
         });
 
@@ -934,10 +1009,39 @@
                 });
             }
             items.forEach(function(item) { list.appendChild(item); });
+            applyAllVisibility();
+        }
+
+        function getSidebarFilter() {
+            var active = document.querySelector('.sidebar button.active');
+            return active ? active.dataset.filter : 'all';
+        }
+        function applyAllVisibility() {
+            var sidebarFilter = getSidebarFilter();
+            var notUpgraded = document.getElementById('filterNotUpgraded').checked;
+            document.getElementById('filterBtn').classList.toggle('active', notUpgraded);
+            document.querySelectorAll('.list .item').forEach(function(item) {
+                var showSidebar = false;
+                if (sidebarFilter === 'all') showSidebar = true;
+                else if (sidebarFilter === 'favourite') showSidebar = item.dataset.fav === 'true';
+                else showSidebar = item.dataset.rarity === sidebarFilter;
+                var showFilter = true;
+                if (notUpgraded && item.dataset.perm === 'true') showFilter = false;
+                item.style.display = (showSidebar && showFilter) ? '' : 'none';
+            });
+        }
+
+        function toggleFilterDropdown() {
+            document.getElementById('filterDropdown').classList.toggle('open');
+        }
+        function applyFilters() {
+            applyAllVisibility();
+            localStorage.setItem('checkbf_guns_filters', JSON.stringify({notUpgraded: document.getElementById('filterNotUpgraded').checked}));
         }
 
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.sort-wrap')) document.getElementById('sortDropdown').classList.remove('open');
+            if (!e.target.closest('.filter-wrap')) document.getElementById('filterDropdown').classList.remove('open');
         });
 
         (function() {
@@ -946,6 +1050,14 @@
                 var btn = document.querySelector('#sortDropdown button[data-sort="' + saved + '"]');
                 if (btn) setSort(saved, btn);
             }
+            var fSaved = localStorage.getItem('checkbf_guns_filters');
+            if (fSaved) {
+                try {
+                    var filters = JSON.parse(fSaved);
+                    document.getElementById('filterNotUpgraded').checked = !!filters.notUpgraded;
+                } catch(e) {}
+            }
+            applyAllVisibility();
         })();
 
         function createParticles() {
