@@ -1524,10 +1524,7 @@
             return active ? active.dataset.filter : 'all';
         }
         function hasAwakening(item) {
-            var aw = item.dataset.awakening || '0/0';
-            var parts = aw.split('/');
-            var max = parseInt(parts[1]) || 0;
-            return max > 0;
+            return item.dataset.type === 'awakening' || item.dataset.type === 'prokachka';
         }
         function isAwakeningMax(item) {
             var aw = item.dataset.awakening || '0/0';
