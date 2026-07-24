@@ -242,33 +242,62 @@
             background: #2a2a3a;
             border: 1px solid #555;
             border-radius: 10px;
-            overflow: hidden;
             z-index: 25;
-            min-width: 200px;
         }
         .filter-dropdown.open {
             display: block;
         }
-        .filter-dropdown label {
-            width: 100%;
-            padding: 10px 16px;
-            color: #ccc;
-            font-size: 0.85rem;
-            text-align: left;
-            cursor: pointer;
+        .filter-row {
+            padding: 8px 14px;
             display: flex;
             align-items: center;
             gap: 10px;
-            user-select: none;
         }
-        .filter-dropdown label:hover {
-            background: rgba(255,255,255,0.08);
+        .filter-row:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .filter-label {
+            color: #ccc;
+            font-size: 0.82rem;
+            flex: 1;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .filter-tbtns {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .filter-tbtn {
+            width: 24px;
+            height: 22px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background: #1a1a2a;
+            color: #666;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            line-height: 1;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .filter-tbtn.plus.on {
+            background: #2e7d32;
+            border-color: #43a047;
             color: #fff;
         }
-        .filter-dropdown input[type="checkbox"] {
-            accent-color: #8cf;
-            width: 14px;
-            height: 14px;
+        .filter-tbtn.minus.on {
+            background: #c62828;
+            border-color: #e53935;
+            color: #fff;
+        }
+        .filter-tbtn:hover {
+            opacity: 0.85;
         }
         .list {
             display: grid;
@@ -675,9 +704,27 @@
                     <span>Фильтр</span>
                 </button>
                 <div class="filter-dropdown" id="filterDropdown">
-                    <label><input type="checkbox" id="filterNotUpgraded" onchange="applyFilters()"> Не улучшенные</label>
-                    <label><input type="checkbox" id="filterNotPerfect" onchange="applyFilters()"> Не идеальные</label>
-                    <label><input type="checkbox" id="filterNotObtained" onchange="applyFilters()"> Не полученные</label>
+                    <div class="filter-row">
+                        <span class="filter-label">Улучшенный</span>
+                        <div class="filter-tbtns">
+                            <button class="filter-tbtn plus" data-filter="upgraded" data-val="1" onclick="toggleFilterBtn(this)">+</button>
+                            <button class="filter-tbtn minus" data-filter="upgraded" data-val="-1" onclick="toggleFilterBtn(this)">-</button>
+                        </div>
+                    </div>
+                    <div class="filter-row">
+                        <span class="filter-label">Идеальный</span>
+                        <div class="filter-tbtns">
+                            <button class="filter-tbtn plus" data-filter="perfect" data-val="1" onclick="toggleFilterBtn(this)">+</button>
+                            <button class="filter-tbtn minus" data-filter="perfect" data-val="-1" onclick="toggleFilterBtn(this)">-</button>
+                        </div>
+                    </div>
+                    <div class="filter-row">
+                        <span class="filter-label">Полученный</span>
+                        <div class="filter-tbtns">
+                            <button class="filter-tbtn plus" data-filter="obtained" data-val="1" onclick="toggleFilterBtn(this)">+</button>
+                            <button class="filter-tbtn minus" data-filter="obtained" data-val="-1" onclick="toggleFilterBtn(this)">-</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1332,12 +1379,48 @@
             var m = item.dataset.mastery || '0/600';
             return parseInt(m.split('/')[0]) || 0;
         }
+        function toggleFilterBtn(btn) {
+            var siblings = btn.parentElement.querySelectorAll('.filter-tbtn');
+            if (btn.classList.contains('on')) {
+                btn.classList.remove('on');
+            } else {
+                siblings.forEach(function(s) { s.classList.remove('on'); });
+                btn.classList.add('on');
+            }
+            applyAllVisibility();
+            saveFilters();
+        }
+        function getFilterState(filterName) {
+            var btn = document.querySelector('.filter-tbtn[data-filter="' + filterName + '"].on');
+            if (!btn) return 0;
+            return parseInt(btn.dataset.val);
+        }
+        function saveFilters() {
+            var state = {};
+            ['upgraded','perfect','obtained'].forEach(function(f) {
+                state[f] = getFilterState(f);
+            });
+            localStorage.setItem('checkbf_swords_filters', JSON.stringify(state));
+        }
+        function loadFilters() {
+            var saved = localStorage.getItem('checkbf_swords_filters');
+            if (!saved) return;
+            try {
+                var state = JSON.parse(saved);
+                Object.keys(state).forEach(function(f) {
+                    if (state[f] !== 0) {
+                        var btn = document.querySelector('.filter-tbtn[data-filter="' + f + '"][data-val="' + state[f] + '"]');
+                        if (btn) btn.classList.add('on');
+                    }
+                });
+            } catch(e) {}
+        }
         function applyAllVisibility() {
             var sidebarFilter = getSidebarFilter();
-            var notUpgraded = document.getElementById('filterNotUpgraded').checked;
-            var notPerfect = document.getElementById('filterNotPerfect').checked;
-            var notObtained = document.getElementById('filterNotObtained').checked;
-            var anyActive = notUpgraded || notPerfect || notObtained;
+            var upgradedState = getFilterState('upgraded');
+            var perfectState = getFilterState('perfect');
+            var obtainedState = getFilterState('obtained');
+            var anyActive = upgradedState !== 0 || perfectState !== 0 || obtainedState !== 0;
             document.getElementById('filterBtn').classList.toggle('active', anyActive);
             document.querySelectorAll('.list .item').forEach(function(item) {
                 var showSidebar = false;
@@ -1345,9 +1428,12 @@
                 else if (sidebarFilter === 'favourite') showSidebar = item.dataset.fav === 'true';
                 else showSidebar = item.dataset.rarity === sidebarFilter;
                 var showFilter = true;
-                if (notUpgraded && item.dataset.perm === 'true') showFilter = false;
-                if (notPerfect && getMasteryVal(item) >= 600) showFilter = false;
-                if (notObtained && item.dataset.eaten !== 'false') showFilter = false;
+                if (upgradedState === 1 && item.dataset.perm !== 'true') showFilter = false;
+                if (upgradedState === -1 && item.dataset.perm === 'true') showFilter = false;
+                if (perfectState === 1 && getMasteryVal(item) < 600) showFilter = false;
+                if (perfectState === -1 && getMasteryVal(item) >= 600) showFilter = false;
+                if (obtainedState === 1 && item.dataset.eaten === 'false') showFilter = false;
+                if (obtainedState === -1 && item.dataset.eaten !== 'false') showFilter = false;
                 item.style.display = (showSidebar && showFilter) ? '' : 'none';
             });
         }
@@ -1357,11 +1443,6 @@
         }
         function applyFilters() {
             applyAllVisibility();
-            localStorage.setItem('checkbf_swords_filters', JSON.stringify({
-                notUpgraded: document.getElementById('filterNotUpgraded').checked,
-                notPerfect: document.getElementById('filterNotPerfect').checked,
-                notObtained: document.getElementById('filterNotObtained').checked
-            }));
         }
 
         document.addEventListener('click', function(e) {
@@ -1375,15 +1456,7 @@
                 var btn = document.querySelector('#sortDropdown button[data-sort="' + saved + '"]');
                 if (btn) setSort(saved, btn);
             }
-            var fSaved = localStorage.getItem('checkbf_swords_filters');
-            if (fSaved) {
-                try {
-                    var filters = JSON.parse(fSaved);
-                    if (filters.notUpgraded !== undefined) document.getElementById('filterNotUpgraded').checked = !!filters.notUpgraded;
-                    if (filters.notPerfect !== undefined) document.getElementById('filterNotPerfect').checked = !!filters.notPerfect;
-                    if (filters.notObtained !== undefined) document.getElementById('filterNotObtained').checked = !!filters.notObtained;
-                } catch(e) {}
-            }
+            loadFilters();
             applyAllVisibility();
         })();
 

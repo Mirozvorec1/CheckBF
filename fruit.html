@@ -666,33 +666,62 @@
             background: #2a2a3a;
             border: 1px solid #555;
             border-radius: 10px;
-            overflow: hidden;
             z-index: 25;
-            min-width: 220px;
         }
         .filter-dropdown.open {
             display: block;
         }
-        .filter-dropdown label {
-            width: 100%;
-            padding: 10px 16px;
-            color: #ccc;
-            font-size: 0.85rem;
-            text-align: left;
-            cursor: pointer;
+        .filter-row {
+            padding: 8px 14px;
             display: flex;
             align-items: center;
             gap: 10px;
-            user-select: none;
         }
-        .filter-dropdown label:hover {
-            background: rgba(255,255,255,0.08);
+        .filter-row:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .filter-label {
+            color: #ccc;
+            font-size: 0.82rem;
+            flex: 1;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .filter-tbtns {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .filter-tbtn {
+            width: 24px;
+            height: 22px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background: #1a1a2a;
+            color: #666;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            line-height: 1;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .filter-tbtn.plus.on {
+            background: #2e7d32;
+            border-color: #43a047;
             color: #fff;
         }
-        .filter-dropdown input[type="checkbox"] {
-            accent-color: #8cf;
-            width: 14px;
-            height: 14px;
+        .filter-tbtn.minus.on {
+            background: #c62828;
+            border-color: #e53935;
+            color: #fff;
+        }
+        .filter-tbtn:hover {
+            opacity: 0.85;
         }
         .auth-bar {
             position: fixed;
@@ -851,10 +880,34 @@
                     <span>Фильтр</span>
                 </button>
                 <div class="filter-dropdown" id="filterDropdown">
-                    <label><input type="checkbox" id="filterNoPerm" onchange="applyFilters()"> Не имеют перм фрукт</label>
-                    <label><input type="checkbox" id="filterNotAwakened" onchange="applyFilters()"> Не пробуждённые</label>
-                    <label><input type="checkbox" id="filterNotTasted" onchange="applyFilters()"> Не пробованные</label>
-                    <label><input type="checkbox" id="filterNotPerfect" onchange="applyFilters()"> Не идеальные</label>
+                    <div class="filter-row">
+                        <span class="filter-label">Перм фрукт</span>
+                        <div class="filter-tbtns">
+                            <button class="filter-tbtn plus" data-filter="perm" data-val="1" onclick="toggleFilterBtn(this)">+</button>
+                            <button class="filter-tbtn minus" data-filter="perm" data-val="-1" onclick="toggleFilterBtn(this)">-</button>
+                        </div>
+                    </div>
+                    <div class="filter-row">
+                        <span class="filter-label">Пробуждённый</span>
+                        <div class="filter-tbtns">
+                            <button class="filter-tbtn plus" data-filter="awakened" data-val="1" onclick="toggleFilterBtn(this)">+</button>
+                            <button class="filter-tbtn minus" data-filter="awakened" data-val="-1" onclick="toggleFilterBtn(this)">-</button>
+                        </div>
+                    </div>
+                    <div class="filter-row">
+                        <span class="filter-label">Пробованный</span>
+                        <div class="filter-tbtns">
+                            <button class="filter-tbtn plus" data-filter="tasted" data-val="1" onclick="toggleFilterBtn(this)">+</button>
+                            <button class="filter-tbtn minus" data-filter="tasted" data-val="-1" onclick="toggleFilterBtn(this)">-</button>
+                        </div>
+                    </div>
+                    <div class="filter-row">
+                        <span class="filter-label">Идеальный</span>
+                        <div class="filter-tbtns">
+                            <button class="filter-tbtn plus" data-filter="perfect" data-val="1" onclick="toggleFilterBtn(this)">+</button>
+                            <button class="filter-tbtn minus" data-filter="perfect" data-val="-1" onclick="toggleFilterBtn(this)">-</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1523,6 +1576,43 @@
             var active = document.querySelector('.sidebar button.active');
             return active ? active.dataset.filter : 'all';
         }
+        function toggleFilterBtn(btn) {
+            var val = parseInt(btn.dataset.val);
+            var siblings = btn.parentElement.querySelectorAll('.filter-tbtn');
+            if (btn.classList.contains('on')) {
+                btn.classList.remove('on');
+            } else {
+                siblings.forEach(function(s) { s.classList.remove('on'); });
+                btn.classList.add('on');
+            }
+            applyAllVisibility();
+            saveFilters();
+        }
+        function getFilterState(filterName) {
+            var btn = document.querySelector('.filter-tbtn[data-filter="' + filterName + '"].on');
+            if (!btn) return 0;
+            return parseInt(btn.dataset.val);
+        }
+        function saveFilters() {
+            var state = {};
+            ['perm','awakened','tasted','perfect'].forEach(function(f) {
+                state[f] = getFilterState(f);
+            });
+            localStorage.setItem('checkbf_filters', JSON.stringify(state));
+        }
+        function loadFilters() {
+            var saved = localStorage.getItem('checkbf_filters');
+            if (!saved) return;
+            try {
+                var state = JSON.parse(saved);
+                Object.keys(state).forEach(function(f) {
+                    if (state[f] !== 0) {
+                        var btn = document.querySelector('.filter-tbtn[data-filter="' + f + '"][data-val="' + state[f] + '"]');
+                        if (btn) btn.classList.add('on');
+                    }
+                });
+            } catch(e) {}
+        }
         function hasAwakening(item) {
             return item.dataset.type === 'awakening' || item.dataset.type === 'prokachka';
         }
@@ -1540,11 +1630,11 @@
         }
         function applyAllVisibility() {
             var sidebarFilter = getSidebarFilter();
-            var noPerm = document.getElementById('filterNoPerm').checked;
-            var notAwakened = document.getElementById('filterNotAwakened').checked;
-            var notTasted = document.getElementById('filterNotTasted').checked;
-            var notPerfect = document.getElementById('filterNotPerfect').checked;
-            var anyActive = noPerm || notAwakened || notTasted || notPerfect;
+            var permState = getFilterState('perm');
+            var awakenedState = getFilterState('awakened');
+            var tastedState = getFilterState('tasted');
+            var perfectState = getFilterState('perfect');
+            var anyActive = permState !== 0 || awakenedState !== 0 || tastedState !== 0 || perfectState !== 0;
             document.getElementById('filterBtn').classList.toggle('active', anyActive);
             document.querySelectorAll('.list .item').forEach(function(item) {
                 var showSidebar = false;
@@ -1553,10 +1643,14 @@
                 else if (sidebarFilter === 'awakening') showSidebar = item.dataset.type === 'awakening' || item.dataset.type === 'prokachka';
                 else showSidebar = item.dataset.rarity === sidebarFilter;
                 var showFilter = true;
-                if (noPerm && item.dataset.perm === 'true') showFilter = false;
-                if (notAwakened && (!hasAwakening(item) || isAwakeningMax(item))) showFilter = false;
-                if (notTasted && item.dataset.eaten !== 'false') showFilter = false;
-                if (notPerfect && getMasteryVal(item) >= 600) showFilter = false;
+                if (permState === 1 && item.dataset.perm !== 'true') showFilter = false;
+                if (permState === -1 && item.dataset.perm === 'true') showFilter = false;
+                if (awakenedState === 1 && (!hasAwakening(item) || !isAwakeningMax(item))) showFilter = false;
+                if (awakenedState === -1 && (!hasAwakening(item) || isAwakeningMax(item))) showFilter = false;
+                if (tastedState === 1 && item.dataset.eaten === 'false') showFilter = false;
+                if (tastedState === -1 && item.dataset.eaten !== 'false') showFilter = false;
+                if (perfectState === 1 && getMasteryVal(item) < 600) showFilter = false;
+                if (perfectState === -1 && getMasteryVal(item) >= 600) showFilter = false;
                 item.style.display = (showSidebar && showFilter) ? '' : 'none';
             });
         }
@@ -1566,12 +1660,6 @@
         }
         function applyFilters() {
             applyAllVisibility();
-            localStorage.setItem('checkbf_filters', JSON.stringify({
-                noPerm: document.getElementById('filterNoPerm').checked,
-                notAwakened: document.getElementById('filterNotAwakened').checked,
-                notTasted: document.getElementById('filterNotTasted').checked,
-                notPerfect: document.getElementById('filterNotPerfect').checked
-            }));
         }
 
         document.addEventListener('click', function(e) {
@@ -1586,16 +1674,7 @@
                 var btn = document.querySelector('#sortDropdown button[data-sort="' + saved + '"]');
                 if (btn) setSort(saved, btn);
             }
-            var fSaved = localStorage.getItem('checkbf_filters');
-            if (fSaved) {
-                try {
-                    var filters = JSON.parse(fSaved);
-                    if (filters.noPerm !== undefined) document.getElementById('filterNoPerm').checked = !!filters.noPerm;
-                    if (filters.notAwakened !== undefined) document.getElementById('filterNotAwakened').checked = !!filters.notAwakened;
-                    if (filters.notTasted !== undefined) document.getElementById('filterNotTasted').checked = !!filters.notTasted;
-                    if (filters.notPerfect !== undefined) document.getElementById('filterNotPerfect').checked = !!filters.notPerfect;
-                } catch(e) {}
-            }
+            loadFilters();
             applyAllVisibility();
             document.getElementById('sortLabel').textContent = labels[currentSort] || 'По редкости';
         })();
