@@ -737,7 +737,7 @@
     <div class="main">
         <h1>Фрукты</h1>
         <div class="toolbar">
-            <input class="search" type="text" placeholder="Поиск по названию..." id="searchInput" oninput="filterBySearch()">
+            <input class="search" type="text" placeholder="Поиск по названию..." id="searchInput" oninput="filterBySearch()" autocomplete="off">
             <div class="sort-wrap">
                 <button class="sort-btn" id="sortBtn" onclick="toggleSortDropdown()">
                     <svg viewBox="0 0 16 16" fill="none">
@@ -1559,8 +1559,8 @@
         <div class="auth-modal">
             <h2 id="authTitle">Вход</h2>
             <div class="error-msg" id="authError"></div>
-            <input type="email" id="authEmail" placeholder="Email">
-            <input type="password" id="authPass" placeholder="Пароль">
+            <input type="email" id="authEmail" placeholder="Email" autocomplete="off">
+            <input type="password" id="authPass" placeholder="Пароль" autocomplete="new-password">
             <button class="auth-submit" id="authSubmit" onclick="handleAuth()">Войти</button>
             <button class="google-btn" onclick="handleGoogleAuth()">Войти через Google</button>
             <span class="switch-link" id="authSwitch" onclick="toggleAuthMode()">Нет аккаунта? Регистрация</span>

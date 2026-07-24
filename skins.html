@@ -395,7 +395,7 @@
     <a class="back" href="index.html">&larr; Назад</a>
     <h1>Скины</h1>
     <div class="toolbar">
-        <input class="search" id="searchInput" type="text" placeholder="Поиск скина..." oninput="filterBySearch()">
+        <input class="search" id="searchInput" type="text" placeholder="Поиск скина..." oninput="filterBySearch()" autocomplete="off">
     </div>
 
     <div class="categories" id="categoriesView"></div>
@@ -817,8 +817,8 @@
         <div class="auth-modal">
             <h2 id="authTitle">Вход</h2>
             <div class="error-msg" id="authError"></div>
-            <input type="email" id="authEmail" placeholder="Email">
-            <input type="password" id="authPass" placeholder="Пароль">
+            <input type="email" id="authEmail" placeholder="Email" autocomplete="off">
+            <input type="password" id="authPass" placeholder="Пароль" autocomplete="new-password">
             <button class="auth-submit" id="authSubmit" onclick="handleAuth()">Войти</button>
             <button class="google-btn" onclick="handleGoogleAuth()">Войти через Google</button>
             <span class="switch-link" id="authSwitch" onclick="toggleAuthMode()">Нет аккаунта? Регистрация</span>
