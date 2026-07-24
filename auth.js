@@ -63,9 +63,7 @@ function showAuthRequiredOverlay() {
 
 window.checkbfAuth.requireAuth = function() {
     if (window.checkbfAuth.user) return true;
-    if (!window.checkbfAuth.authReady) {
-        return false;
-    }
+    if (!window.checkbfAuth.authReady) return true;
     showAuthRequiredOverlay();
     return false;
 };
