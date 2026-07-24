@@ -281,63 +281,7 @@
         .sync-indicator.active {
             display: block;
         }
-        .roblox-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 50;
-            justify-content: center;
-            align-items: center;
-        }
-        .roblox-overlay.active {
-            display: flex;
-        }
-        .roblox-modal {
-            background: #1e1e2e;
-            border: 1px solid #555;
-            border-radius: 16px;
-            padding: 30px;
-            width: 340px;
-            text-align: center;
-        }
-        .roblox-modal h2 {
-            color: #8cf;
-            margin: 0 0 10px;
-            font-size: 1.3rem;
-        }
-        .roblox-modal input {
-            width: 100%;
-            padding: 10px 14px;
-            margin-bottom: 12px;
-            border: 1px solid #555;
-            border-radius: 8px;
-            background: #2a2a3a;
-            color: #fff;
-            font-size: 0.9rem;
-            box-sizing: border-box;
-        }
-        .roblox-modal input:focus {
-            outline: none;
-            border-color: #8cf;
-        }
-        .roblox-modal .auth-submit {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            background: #5c6bc0;
-            color: #fff;
-            font-size: 0.9rem;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-        .roblox-modal .auth-submit:hover {
-            background: #7986cb;
-        }
-        .avatar {
-            cursor: pointer;
-        }
+
     </style>
 </head>
 <body class="gradient-bg">
@@ -360,16 +304,7 @@
     </div>
     <div class="sync-indicator" id="syncIndicator">Синхронизация...</div>
     <svg class="arrows" id="arrows"></svg>
-    <img class="avatar" id="avatar" src="https://tr.rbxcdn.com/30DAY-AvatarHeadshot-1507DAB190B8A3C9CEA7A26EE1A69D31-Png/420/420/AvatarHeadshot/Png/noFilter" alt="Avatar" onclick="openRobloxModal()">
-    <div class="roblox-overlay" id="robloxOverlay">
-        <div class="roblox-modal">
-            <h2>Roblox Профиль</h2>
-            <p style="color:#aaa;font-size:0.8rem;margin:0 0 15px;">Введите имя профиля Roblox для отображения аватара</p>
-            <input type="text" id="robloxIdInput" placeholder="Имя профиля Roblox" maxlength="30" autocomplete="off">
-            <button class="auth-submit" onclick="saveRobloxId()">Сохранить</button>
-            <span class="switch-link" onclick="closeRobloxModal()">Отмена</span>
-        </div>
-    </div>
+    <img class="avatar" id="avatar" src="https://tr.rbxcdn.com/30DAY-AvatarHeadshot-1507DAB190B8A3C9CEA7A26EE1A69D31-Png/420/420/AvatarHeadshot/Png/noFilter" alt="Avatar">
     <h1>CheckBF</h1>
     <div class="grid">
         <div class="oval o1" onclick="location.href='fruit.html'">
@@ -464,61 +399,31 @@
             document.getElementById('authError').textContent = '';
         };
 
-        window.openRobloxModal = function() {
-            var overlay = document.getElementById('robloxOverlay');
-            overlay.classList.add('active');
-            var input = document.getElementById('robloxIdInput');
-            input.value = window._savedRobloxId || '';
-            input.focus();
+        var ROBLOX_PROFILES = {
+            'mirozvorec42@gmail.com': 2630155094,
+            'alex.i.08@mail.ru': 3910707676
         };
-        window.closeRobloxModal = function() {
-            document.getElementById('robloxOverlay').classList.remove('active');
-        };
-        window._savedRobloxId = '';
+        var DEFAULT_AVATAR = 'https://tr.rbxcdn.com/30DAY-AvatarHeadshot-1507DAB190B8A3C9CEA7A26EE1A69D31-Png/420/420/AvatarHeadshot/Png/noFilter';
 
-        async function fetchRobloxAvatar(username) {
+        async function fetchAvatarByUserId(userId) {
             try {
-                var resp = await fetch('https://api.roblox.com/users/get-by-username?username=' + encodeURIComponent(username));
-                var json = await resp.json();
-                if (json.Id) {
-                    var thumb = await fetch('https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=' + json.Id + '&size=150x150&format=Png&isCircular=false');
-                    var tjson = await thumb.json();
-                    if (tjson.data && tjson.data[0] && tjson.data[0].imageUrl) {
-                        return { avatarUrl: tjson.data[0].imageUrl, userId: json.Id, username: json.Username };
-                    }
-                    return { avatarUrl: '', userId: json.Id, username: json.Username };
+                var thumb = await fetch('https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=' + userId + '&size=150x150&format=Png&isCircular=false&isPlaceholder=false');
+                var tjson = await thumb.json();
+                if (tjson.data && tjson.data[0] && tjson.data[0].imageUrl) {
+                    return tjson.data[0].imageUrl;
                 }
-            } catch(e) {}
-            return null;
+            } catch(e) { console.error('Avatar fetch error:', e); }
+            return '';
         }
 
-        window.saveRobloxId = async function() {
-            var input = document.getElementById('robloxIdInput');
-            var val = input.value.trim();
-            if (!val) { input.style.borderColor = '#c62828'; return; }
-            input.style.borderColor = '#555';
-            var result = await fetchRobloxAvatar(val);
-            if (!result) { input.style.borderColor = '#c62828'; return; }
-            input.style.borderColor = '#555';
-            document.getElementById('avatar').src = result.avatarUrl || 'https://tr.rbxcdn.com/30DAY-AvatarHeadshot-1507DAB190B8A3C9CEA7A26EE1A69D31-Png/420/420/AvatarHeadshot/Png/noFilter';
-            window._savedRobloxId = result.username;
-            closeRobloxModal();
-            if (window.checkbfAuth && window.checkbfAuth.user) {
-                window.checkbfAuth.saveToDB('profile', { robloxId: result.username, avatarUrl: result.avatarUrl || '' });
-            }
-        };
-
-        async function loadRobloxProfile() {
-            if (!window.checkbfAuth || !window.checkbfAuth.user) return;
-            var data = await window.checkbfAuth.loadFromDB('profile');
-            if (data && data.robloxId) {
-                window._savedRobloxId = data.robloxId;
-                if (data.avatarUrl) {
-                    document.getElementById('avatar').src = data.avatarUrl;
-                } else {
-                    var result = await fetchRobloxAvatar(data.robloxId);
-                    if (result && result.avatarUrl) document.getElementById('avatar').src = result.avatarUrl;
-                }
+        async function loadRobloxProfile(email) {
+            var avatar = document.getElementById('avatar');
+            var userId = ROBLOX_PROFILES[email];
+            if (userId) {
+                var freshAvatar = await fetchAvatarByUserId(userId);
+                avatar.src = freshAvatar ? freshAvatar + '&t=' + Date.now() : DEFAULT_AVATAR;
+            } else {
+                avatar.src = DEFAULT_AVATAR;
             }
         }
     </script>
@@ -600,7 +505,11 @@
 
         auth.onAuthStateChanged(function(user) {
             updateAuthBar(user);
-            if (user) loadRobloxProfile();
+            if (user) {
+                loadRobloxProfile(user.email);
+            } else {
+                document.getElementById('avatar').src = DEFAULT_AVATAR;
+            }
         });
     </script>
 </body>
