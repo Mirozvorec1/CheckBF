@@ -676,6 +676,8 @@
                 </button>
                 <div class="filter-dropdown" id="filterDropdown">
                     <label><input type="checkbox" id="filterNotUpgraded" onchange="applyFilters()"> Не улучшенные</label>
+                    <label><input type="checkbox" id="filterNotPerfect" onchange="applyFilters()"> Не идеальные</label>
+                    <label><input type="checkbox" id="filterNotObtained" onchange="applyFilters()"> Не полученные</label>
                 </div>
             </div>
         </div>
@@ -1326,10 +1328,17 @@
             var active = document.querySelector('.sidebar button.active');
             return active ? active.dataset.filter : 'all';
         }
+        function getMasteryVal(item) {
+            var m = item.dataset.mastery || '0/600';
+            return parseInt(m.split('/')[0]) || 0;
+        }
         function applyAllVisibility() {
             var sidebarFilter = getSidebarFilter();
             var notUpgraded = document.getElementById('filterNotUpgraded').checked;
-            document.getElementById('filterBtn').classList.toggle('active', notUpgraded);
+            var notPerfect = document.getElementById('filterNotPerfect').checked;
+            var notObtained = document.getElementById('filterNotObtained').checked;
+            var anyActive = notUpgraded || notPerfect || notObtained;
+            document.getElementById('filterBtn').classList.toggle('active', anyActive);
             document.querySelectorAll('.list .item').forEach(function(item) {
                 var showSidebar = false;
                 if (sidebarFilter === 'all') showSidebar = true;
@@ -1337,6 +1346,8 @@
                 else showSidebar = item.dataset.rarity === sidebarFilter;
                 var showFilter = true;
                 if (notUpgraded && item.dataset.perm === 'true') showFilter = false;
+                if (notPerfect && getMasteryVal(item) >= 600) showFilter = false;
+                if (notObtained && item.dataset.eaten !== 'false') showFilter = false;
                 item.style.display = (showSidebar && showFilter) ? '' : 'none';
             });
         }
@@ -1346,7 +1357,11 @@
         }
         function applyFilters() {
             applyAllVisibility();
-            localStorage.setItem('checkbf_swords_filters', JSON.stringify({notUpgraded: document.getElementById('filterNotUpgraded').checked}));
+            localStorage.setItem('checkbf_swords_filters', JSON.stringify({
+                notUpgraded: document.getElementById('filterNotUpgraded').checked,
+                notPerfect: document.getElementById('filterNotPerfect').checked,
+                notObtained: document.getElementById('filterNotObtained').checked
+            }));
         }
 
         document.addEventListener('click', function(e) {
@@ -1364,7 +1379,9 @@
             if (fSaved) {
                 try {
                     var filters = JSON.parse(fSaved);
-                    document.getElementById('filterNotUpgraded').checked = !!filters.notUpgraded;
+                    if (filters.notUpgraded !== undefined) document.getElementById('filterNotUpgraded').checked = !!filters.notUpgraded;
+                    if (filters.notPerfect !== undefined) document.getElementById('filterNotPerfect').checked = !!filters.notPerfect;
+                    if (filters.notObtained !== undefined) document.getElementById('filterNotObtained').checked = !!filters.notObtained;
                 } catch(e) {}
             }
             applyAllVisibility();

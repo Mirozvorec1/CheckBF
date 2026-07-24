@@ -851,10 +851,10 @@
                     <span>Фильтр</span>
                 </button>
                 <div class="filter-dropdown" id="filterDropdown">
-                    <label><input type="checkbox" id="filterNotUpgraded" onchange="applyFilters()"> Не улучшенные</label>
+                    <label><input type="checkbox" id="filterNoPerm" onchange="applyFilters()"> Не имеют перм фрукт</label>
                     <label><input type="checkbox" id="filterNotAwakened" onchange="applyFilters()"> Не пробуждённые</label>
-                    <label><input type="checkbox" id="filterNotObtained" onchange="applyFilters()"> Не полученные</label>
                     <label><input type="checkbox" id="filterNotTasted" onchange="applyFilters()"> Не пробованные</label>
+                    <label><input type="checkbox" id="filterNotPerfect" onchange="applyFilters()"> Не идеальные</label>
                 </div>
             </div>
         </div>
@@ -1523,20 +1523,31 @@
             var active = document.querySelector('.sidebar button.active');
             return active ? active.dataset.filter : 'all';
         }
+        function hasAwakening(item) {
+            var aw = item.dataset.awakening || '0/0';
+            var parts = aw.split('/');
+            var max = parseInt(parts[1]) || 0;
+            return max > 0;
+        }
         function isAwakeningMax(item) {
-            var aw = item.dataset.awakening || '0/1';
+            var aw = item.dataset.awakening || '0/0';
             var parts = aw.split('/');
             var cur = parseInt(parts[0]) || 0;
-            var max = parseInt(parts[1]) || 1;
+            var max = parseInt(parts[1]) || 0;
+            if (max === 0) return true;
             return cur >= max;
+        }
+        function getMasteryVal(item) {
+            var m = item.dataset.mastery || '0/600';
+            return parseInt(m.split('/')[0]) || 0;
         }
         function applyAllVisibility() {
             var sidebarFilter = getSidebarFilter();
-            var notUpgraded = document.getElementById('filterNotUpgraded').checked;
+            var noPerm = document.getElementById('filterNoPerm').checked;
             var notAwakened = document.getElementById('filterNotAwakened').checked;
-            var notObtained = document.getElementById('filterNotObtained').checked;
             var notTasted = document.getElementById('filterNotTasted').checked;
-            var anyActive = notUpgraded || notAwakened || notObtained || notTasted;
+            var notPerfect = document.getElementById('filterNotPerfect').checked;
+            var anyActive = noPerm || notAwakened || notTasted || notPerfect;
             document.getElementById('filterBtn').classList.toggle('active', anyActive);
             document.querySelectorAll('.list .item').forEach(function(item) {
                 var showSidebar = false;
@@ -1545,10 +1556,10 @@
                 else if (sidebarFilter === 'awakening') showSidebar = item.dataset.type === 'awakening' || item.dataset.type === 'prokachka';
                 else showSidebar = item.dataset.rarity === sidebarFilter;
                 var showFilter = true;
-                if (notUpgraded && item.dataset.perm === 'true') showFilter = false;
-                if (notAwakened && isAwakeningMax(item)) showFilter = false;
-                if (notObtained && item.dataset.eaten !== 'false') showFilter = false;
+                if (noPerm && item.dataset.perm === 'true') showFilter = false;
+                if (notAwakened && (!hasAwakening(item) || isAwakeningMax(item))) showFilter = false;
                 if (notTasted && item.dataset.eaten !== 'false') showFilter = false;
+                if (notPerfect && getMasteryVal(item) >= 600) showFilter = false;
                 item.style.display = (showSidebar && showFilter) ? '' : 'none';
             });
         }
@@ -1559,10 +1570,10 @@
         function applyFilters() {
             applyAllVisibility();
             localStorage.setItem('checkbf_filters', JSON.stringify({
-                notUpgraded: document.getElementById('filterNotUpgraded').checked,
+                noPerm: document.getElementById('filterNoPerm').checked,
                 notAwakened: document.getElementById('filterNotAwakened').checked,
-                notObtained: document.getElementById('filterNotObtained').checked,
-                notTasted: document.getElementById('filterNotTasted').checked
+                notTasted: document.getElementById('filterNotTasted').checked,
+                notPerfect: document.getElementById('filterNotPerfect').checked
             }));
         }
 
@@ -1582,10 +1593,10 @@
             if (fSaved) {
                 try {
                     var filters = JSON.parse(fSaved);
-                    document.getElementById('filterNotUpgraded').checked = !!filters.notUpgraded;
-                    document.getElementById('filterNotAwakened').checked = !!filters.notAwakened;
-                    document.getElementById('filterNotObtained').checked = !!filters.notObtained;
-                    document.getElementById('filterNotTasted').checked = !!filters.notTasted;
+                    if (filters.noPerm !== undefined) document.getElementById('filterNoPerm').checked = !!filters.noPerm;
+                    if (filters.notAwakened !== undefined) document.getElementById('filterNotAwakened').checked = !!filters.notAwakened;
+                    if (filters.notTasted !== undefined) document.getElementById('filterNotTasted').checked = !!filters.notTasted;
+                    if (filters.notPerfect !== undefined) document.getElementById('filterNotPerfect').checked = !!filters.notPerfect;
                 } catch(e) {}
             }
             applyAllVisibility();
