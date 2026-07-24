@@ -399,9 +399,6 @@
         };
     </script>
     <script>
-        if (typeof firebase === 'undefined') {
-            alert('Firebase SDK не загрузился. Проверьте подключение к интернету.');
-        }
         var firebaseConfig = {
             apiKey: "AIzaSyC10fTA0O6vpghuEanI52Yiyrtlkpmd8Nc",
             authDomain: "checkbf-d1a2d.firebaseapp.com",
@@ -448,7 +445,11 @@
         };
 
         window.handleGoogleAuth = function() {
-            auth.signInWithRedirect(googleProvider);
+            auth.signInWithPopup(googleProvider).then(function() {
+                document.getElementById('authOverlay').classList.remove('active');
+            }).catch(function(e) {
+                document.getElementById('authError').textContent = 'Ошибка Google: ' + e.message;
+            });
         };
 
         auth.getRedirectResult().then(function(result) {

@@ -42,3 +42,21 @@ window.checkbfAuth.saveToDB = function(page, data) {
         console.error("Save to DB error:", e);
     });
 };
+
+window.checkbfAuth.requireAuth = function() {
+    if (window.checkbfAuth.user) return true;
+    var overlay = document.getElementById('authRequiredOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'authRequiredOverlay';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;';
+        overlay.innerHTML = '<div style="background:#1a1a2e;border:1px solid #555;border-radius:16px;padding:30px 40px;text-align:center;max-width:360px;">' +
+            '<h3 style="color:#fff;margin:0 0 12px;font-size:1.2rem;">Требуется авторизация</h3>' +
+            '<p style="color:#aaa;margin:0 0 20px;font-size:0.9rem;">Войдите или зарегистрируйтесь, чтобы сохранять данные</p>' +
+            '<a href="index.html" style="display:inline-block;background:#6a3fc9;color:#fff;border:none;border-radius:12px;padding:10px 30px;font-size:0.95rem;text-decoration:none;cursor:pointer;">Войти</a>' +
+            '</div>';
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+    }
+    return false;
+};

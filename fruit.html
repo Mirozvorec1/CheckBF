@@ -1061,6 +1061,7 @@
 
         function toggleEaten(e, el) {
             e.stopPropagation();
+            if (!window.checkbfAuth.requireAuth()) return;
             var item = el.closest('.item');
             var val = item.dataset.eaten === 'true' ? 'false' : 'true';
             item.dataset.eaten = val;
@@ -1070,6 +1071,7 @@
         }
         function toggleFav(e, el) {
             e.stopPropagation();
+            if (!window.checkbfAuth.requireAuth()) return;
             var item = el.closest('.item');
             var val = item.dataset.fav === 'true' ? 'false' : 'true';
             item.dataset.fav = val;
@@ -1079,6 +1081,7 @@
         }
         function togglePerm(e, el) {
             e.stopPropagation();
+            if (!window.checkbfAuth.requireAuth()) return;
             var item = el.closest('.item');
             var val = item.dataset.perm === 'true' ? 'false' : 'true';
             item.dataset.perm = val;
@@ -1181,9 +1184,6 @@
             });
         }
 
-        loadData();
-        initProgressBars();
-
         function toggleLayoutDropdown() {
             document.getElementById('layoutDropdown').classList.toggle('open');
         }
@@ -1243,6 +1243,7 @@
         });
 
         function setAwakening(e) {
+            if (!window.checkbfAuth.requireAuth()) return;
             var seg = e.target.closest('.seg');
             if (!seg || !currentItem) return;
             var val = parseInt(seg.dataset.val);
@@ -1259,6 +1260,7 @@
         }
 
         function enableMasteryEdit() {
+            if (!window.checkbfAuth.requireAuth()) return;
             var el = document.getElementById('popupMastery');
             if (el.tagName === 'INPUT') return;
             var current = parseInt(el.textContent.split('/')[0]) || 0;
@@ -1298,6 +1300,7 @@
         document.getElementById('popupMastery').onclick = enableMasteryEdit;
 
         function changeMastery(step) {
+            if (!window.checkbfAuth.requireAuth()) return;
             var el = document.getElementById('popupMastery');
             var parts = el.textContent.split('/');
             var val = Math.max(0, Math.min(600, parseInt(parts[0]) + step));
@@ -1432,6 +1435,26 @@
             document.getElementById('syncIndicator').classList.remove('active');
         }
 
+        function resetToDefaults() {
+            localStorage.removeItem('checkbf_fruits');
+            document.querySelectorAll('.item').forEach(function(item) {
+                item.dataset.mastery = '0/600';
+                var awMax = item.dataset.awakening.split('/')[1] || '5';
+                item.dataset.awakening = '0/' + awMax;
+                item.dataset.eaten = 'false';
+                item.dataset.fav = 'false';
+                item.dataset.perm = 'false';
+                var eatEl = item.querySelector('.eat-icon');
+                if (eatEl) { eatEl.textContent = '⊘'; eatEl.classList.remove('eaten'); }
+                var favEl = item.querySelector('.fav-icon');
+                if (favEl) { favEl.textContent = '☆'; favEl.classList.remove('faved'); }
+                var permEl = item.querySelector('.perm-icon');
+                if (permEl) { permEl.classList.remove('permed'); }
+                updateItemText(item);
+            });
+            initProgressBars();
+        }
+
         function updateAuthBar(user) {
             var bar = document.getElementById('authBar');
             if (user) {
@@ -1443,6 +1466,7 @@
                 };
             } else {
                 bar.innerHTML = '<a class="back" href="index.html" style="position:static;font-size:0.75rem;">Войти</a>';
+                resetToDefaults();
             }
         }
 

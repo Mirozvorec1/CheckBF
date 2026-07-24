@@ -599,6 +599,7 @@
         }
 
         function setProkachka(e) {
+            if (!window.checkbfAuth.requireAuth()) return;
             var seg = e.target.closest('.seg');
             if (!seg || !currentNode) return;
             var val = parseInt(seg.dataset.val);
@@ -612,6 +613,7 @@
         }
 
         function enableMasteryEdit() {
+            if (!window.checkbfAuth.requireAuth()) return;
             var el = document.getElementById('popupMastery');
             if (el.tagName === 'INPUT') return;
             var current = parseInt(el.textContent.split('/')[0]) || 0;
@@ -652,6 +654,7 @@
         document.getElementById('popupMastery').onclick = enableMasteryEdit;
 
         function changeMastery(type, step) {
+            if (!window.checkbfAuth.requireAuth()) return;
             if (type === 'mastery') {
                 var el = document.getElementById('popupMastery');
                 var parts = el.textContent.split('/');
@@ -696,6 +699,7 @@
 
         function toggleOwned(e, el) {
             e.stopPropagation();
+            if (!window.checkbfAuth.requireAuth()) return;
             var node = el.closest('.tree-node');
             var val = node.dataset.owned === 'true' ? 'false' : 'true';
             node.dataset.owned = val;
@@ -735,11 +739,6 @@
             });
         }
 
-        loadData();
-        document.querySelectorAll('[data-prokachka-bar]').forEach(function(bar) {
-            renderProkachkaBar(bar.closest('.tree-node'));
-        });
-
         document.getElementById('popupOverlay').addEventListener('click', function(e) {
             if (e.target === this) {
                 this.classList.remove('active');
@@ -773,6 +772,20 @@
             document.getElementById('syncIndicator').classList.remove('active');
         }
 
+        function resetToDefaults() {
+            localStorage.removeItem('checkbf_styles');
+            document.querySelectorAll('.tree-node').forEach(function(node) {
+                node.dataset.mastery = '0/600';
+                node.dataset.owned = 'false';
+                if (node.dataset.prokachka !== undefined) node.dataset.prokachka = '0/3';
+                var eatEl = node.querySelector('.eat-icon');
+                if (eatEl) { eatEl.textContent = '⊘'; eatEl.classList.remove('owned'); }
+                node.querySelector('.mastery-val').textContent = '0/600';
+                node.classList.remove('max-mastery');
+                renderProkachkaBar(node);
+            });
+        }
+
         function updateAuthBar(user) {
             var bar = document.getElementById('authBar');
             if (user) {
@@ -784,6 +797,7 @@
                 };
             } else {
                 bar.innerHTML = '<a class="back" href="index.html" style="position:static;font-size:0.75rem;">Войти</a>';
+                resetToDefaults();
             }
         }
 

@@ -609,6 +609,7 @@
 
         function toggleOwn(e, name) {
             e.stopPropagation();
+            if (!window.checkbfAuth.requireAuth()) return;
             owned[name] = !owned[name];
             saveData();
             if (currentCat) renderSubSkins();
@@ -616,6 +617,7 @@
 
         function toggleRecipe(e, name) {
             e.stopPropagation();
+            if (!window.checkbfAuth.requireAuth()) return;
             owned[name + '_recipe'] = !owned[name + '_recipe'];
             saveData();
             if (currentCat) renderSubSkins();
@@ -680,7 +682,6 @@
             });
         }
 
-        loadData();
         renderCategories();
 
         function createParticles() {
@@ -710,6 +711,17 @@
             document.getElementById('syncIndicator').classList.remove('active');
         }
 
+        function resetToDefaults() {
+            localStorage.removeItem('checkbf_skins');
+            owned = {};
+            renderCategories();
+            if (currentCat) {
+                currentCat = '';
+                document.getElementById('categoriesView').style.display = '';
+                document.getElementById('subView').classList.remove('active');
+            }
+        }
+
         function updateAuthBar(user) {
             var bar = document.getElementById('authBar');
             if (user) {
@@ -721,6 +733,7 @@
                 };
             } else {
                 bar.innerHTML = '<a class="back" href="index.html" style="position:static;font-size:0.75rem;">Войти</a>';
+                resetToDefaults();
             }
         }
 
