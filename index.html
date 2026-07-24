@@ -291,9 +291,9 @@
             <div class="error-msg" id="authError"></div>
             <input type="email" id="authEmail" placeholder="Email">
             <input type="password" id="authPass" placeholder="Пароль">
-            <button class="auth-submit" id="authSubmit">Войти</button>
-            <button class="google-btn">Войти через Google</button>
-            <span class="switch-link" id="authSwitch">Нет аккаунта? Регистрация</span>
+            <button class="auth-submit" id="authSubmit" onclick="handleAuth()">Войти</button>
+            <button class="google-btn" onclick="handleGoogleAuth()">Войти через Google</button>
+            <span class="switch-link" id="authSwitch" onclick="toggleAuthMode()">Нет аккаунта? Регистрация</span>
             <br><br>
             <span class="switch-link" onclick="closeAuthModal()">Позже</span>
         </div>
@@ -414,21 +414,23 @@
 
         var isRegisterMode = false;
 
-        document.getElementById('authSwitch').addEventListener('click', function() {
+        window.toggleAuthMode = function() {
             isRegisterMode = !isRegisterMode;
             document.getElementById('authTitle').textContent = isRegisterMode ? 'Регистрация' : 'Вход';
             document.getElementById('authSubmit').textContent = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
-            this.textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
+            document.getElementById('authSwitch').textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
             document.getElementById('authError').textContent = '';
-        });
+        };
 
-        document.getElementById('authSubmit').addEventListener('click', function() {
+        window.handleAuth = function() {
             var email = document.getElementById('authEmail').value.trim();
             var pass = document.getElementById('authPass').value;
             var errEl = document.getElementById('authError');
             errEl.textContent = '';
             if (!email || !pass) { errEl.textContent = 'Заполните все поля'; return; }
-            var method = isRegisterMode ? auth.createUserWithEmailAndPassword(email, pass) : auth.signInWithEmailAndPassword(email, pass);
+            var method = isRegisterMode
+                ? auth.createUserWithEmailAndPassword(email, pass)
+                : auth.signInWithEmailAndPassword(email, pass);
             method.then(function() {
                 document.getElementById('authOverlay').classList.remove('active');
             }).catch(function(e) {
@@ -440,14 +442,21 @@
                           'Ошибка: ' + e.message;
                 errEl.textContent = msg;
             });
-        });
+        };
 
-        document.querySelector('.google-btn').addEventListener('click', function() {
-            auth.signInWithPopup(googleProvider).then(function() {
+        window.handleGoogleAuth = function() {
+            auth.signInWithRedirect(googleProvider);
+        };
+
+        auth.getRedirectResult().then(function(result) {
+            if (result && result.user) {
                 document.getElementById('authOverlay').classList.remove('active');
-            }).catch(function(e) {
-                document.getElementById('authError').textContent = 'Ошибка Google: ' + e.message;
-            });
+            }
+        }).catch(function(e) {
+            if (e.code && e.code !== 'auth/no-redirect-result') {
+                var errEl = document.getElementById('authError');
+                if (errEl) errEl.textContent = 'Ошибка: ' + e.message;
+            }
         });
 
         function updateAuthBar(user) {
@@ -455,8 +464,7 @@
             if (user) {
                 var photo = user.photoURL || 'https://tr.rbxcdn.com/30DAY-AvatarHeadshot-1507DAB190B8A3C9CEA7A26EE1A69D31-Png/420/420/AvatarHeadshot/Png/noFilter';
                 bar.innerHTML = '<div class="user-info"><img src="' + photo + '" alt=""><span class="email">' + (user.email || 'Google') + '</span></div>' +
-                    '<button class="logout-btn" id="logoutBtn">Выйти</button>';
-                document.getElementById('logoutBtn').onclick = function() { auth.signOut(); };
+                    '<button class="logout-btn" onclick="auth.signOut()">Выйти</button>';
             } else {
                 bar.innerHTML = '<button class="login-btn" onclick="openAuthModal()">Войти</button>';
             }
