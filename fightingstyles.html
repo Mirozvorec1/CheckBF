@@ -391,6 +391,11 @@
             background: #c62828;
             color: #fff;
         }
+        .auth-bar .login-btn {
+            background: #2a2a3a; border: 1px solid #555; border-radius: 10px;
+            padding: 8px 18px; color: #8cf; font-size: 0.85rem; cursor: pointer;
+        }
+        .auth-bar .login-btn:hover { background: #33334a; border-color: #8cf; }
         .sync-indicator {
             display: none;
             position: fixed;
@@ -405,6 +410,30 @@
             z-index: 30;
         }
         .sync-indicator.active { display: block; }
+        .auth-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); z-index: 50; justify-content: center; align-items: center;
+        }
+        .auth-overlay.active { display: flex; }
+        .auth-modal {
+            background: #1e1e2e; border: 1px solid #555; border-radius: 16px; padding: 30px; width: 340px; text-align: center;
+        }
+        .auth-modal h2 { color: #8cf; margin: 0 0 20px; font-size: 1.3rem; }
+        .auth-modal input {
+            width: 100%; padding: 10px 14px; margin-bottom: 12px; border: 1px solid #555; border-radius: 8px;
+            background: #2a2a3a; color: #fff; font-size: 0.9rem; box-sizing: border-box;
+        }
+        .auth-modal input:focus { outline: none; border-color: #8cf; }
+        .auth-modal .auth-submit {
+            width: 100%; padding: 10px; border: none; border-radius: 8px; background: #5c6bc0; color: #fff; font-size: 0.9rem; cursor: pointer; margin-bottom: 10px;
+        }
+        .auth-modal .auth-submit:hover { background: #7986cb; }
+        .auth-modal .google-btn {
+            width: 100%; padding: 10px; border: 1px solid #555; border-radius: 8px; background: #2a2a3a; color: #ccc; font-size: 0.9rem; cursor: pointer; margin-bottom: 12px;
+        }
+        .auth-modal .google-btn:hover { background: #33334a; border-color: #8cf; }
+        .auth-modal .switch-link { color: #8cf; cursor: pointer; font-size: 0.8rem; }
+        .auth-modal .error-msg { color: #c62828; font-size: 0.8rem; margin-bottom: 10px; min-height: 1.2em; }
     </style>
 </head>
 <body class="gradient-bg">
@@ -806,7 +835,7 @@
                     if (window.checkbfAuth) window.checkbfAuth.logout();
                 };
             } else {
-                bar.innerHTML = '<a class="back" href="index.html" style="position:static;font-size:0.75rem;">Войти</a>';
+                bar.innerHTML = '<button class="login-btn" onclick="openAuthModal()" style="position:static;font-size:0.75rem;">Войти</button>';
                 resetToDefaults();
             }
         }
@@ -852,5 +881,57 @@
         });
     </script>
     <script src="auth.js"></script>
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-modal">
+            <h2 id="authTitle">Вход</h2>
+            <div class="error-msg" id="authError"></div>
+            <input type="email" id="authEmail" placeholder="Email">
+            <input type="password" id="authPass" placeholder="Пароль">
+            <button class="auth-submit" id="authSubmit" onclick="handleAuth()">Войти</button>
+            <button class="google-btn" onclick="handleGoogleAuth()">Войти через Google</button>
+            <span class="switch-link" id="authSwitch" onclick="toggleAuthMode()">Нет аккаунта? Регистрация</span>
+            <br><br>
+            <span class="switch-link" onclick="closeAuthModal()">Позже</span>
+        </div>
+    </div>
+    <script>
+        var isRegisterMode = false;
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('authTitle').textContent = isRegisterMode ? 'Регистрация' : 'Вход';
+            document.getElementById('authSubmit').textContent = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
+            document.getElementById('authSwitch').textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
+            document.getElementById('authError').textContent = '';
+        }
+        function handleAuth() {
+            var email = document.getElementById('authEmail').value.trim();
+            var pass = document.getElementById('authPass').value;
+            var errEl = document.getElementById('authError');
+            errEl.textContent = '';
+            if (!email || !pass) { errEl.textContent = 'Заполните все поля'; return; }
+            var a = firebase.auth();
+            var method = isRegisterMode
+                ? a.createUserWithEmailAndPassword(email, pass)
+                : a.signInWithEmailAndPassword(email, pass);
+            method.then(function() { closeAuthModal(); }).catch(function(e) {
+                var msg = e.code === 'auth/email-already-in-use' ? 'Email уже зарегистрирован' :
+                          e.code === 'auth/wrong-password' ? 'Неверный пароль' :
+                          e.code === 'auth/user-not-found' ? 'Пользователь не найден' :
+                          e.code === 'auth/weak-password' ? 'Пароль минимум 6 символов' :
+                          e.code === 'auth/invalid-email' ? 'Некорректный email' :
+                          'Ошибка: ' + e.message;
+                errEl.textContent = msg;
+            });
+        }
+        function handleGoogleAuth() {
+            var a = firebase.auth();
+            var p = new firebase.auth.GoogleAuthProvider();
+            a.signInWithPopup(p).then(function() { closeAuthModal(); }).catch(function(e) {
+                document.getElementById('authError').textContent = 'Ошибка Google: ' + e.message;
+            });
+        }
+        function openAuthModal() { document.getElementById('authOverlay').classList.add('active'); }
+        function closeAuthModal() { document.getElementById('authOverlay').classList.remove('active'); document.getElementById('authError').textContent = ''; }
+    </script>
 </body>
 </html>
