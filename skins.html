@@ -21,15 +21,7 @@
             content: '';
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-image: url('assets/background.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            filter: blur(4px);
             z-index: -1;
-        }
-        body.no-bg::before {
-            background-image: none;
         }
         body.gradient-bg::before {
             background: linear-gradient(135deg, #0a0a0a 0%, #2d1b4e 30%, #1a0a2e 60%, #0a0a0a 100%);
@@ -47,10 +39,6 @@
             pointer-events: none;
             z-index: 0;
             overflow: hidden;
-            display: none;
-        }
-        body.gradient-bg .particles {
-            display: block;
         }
         .particle {
             position: absolute;
@@ -63,35 +51,6 @@
         @keyframes twinkle {
             0%, 100% { opacity: 0.1; transform: translateY(0); }
             50% { opacity: 0.8; transform: translateY(-20px); }
-        }
-        .bg-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 6px;
-            z-index: 20;
-        }
-        .bg-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            border: 2px solid #555;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .bg-btn:hover {
-            border-color: #8cf;
-        }
-        .bg-btn.active {
-            border-color: #8cf;
-            box-shadow: 0 0 6px rgba(100,180,255,0.4);
-        }
-        .bg-btn.bg-image {
-            background: url('assets/background.jpg') center/cover;
-        }
-        .bg-btn.bg-dark {
-            background: #1a1a1a;
         }
         .back {
             position: fixed;
@@ -345,12 +304,7 @@
         }
     </style>
 </head>
-<body>
-    <div class="bg-toggle">
-        <div class="bg-btn bg-image" id="btnBgImage" onclick="toggleBg('image')" title="С фоном"></div>
-        <div class="bg-btn bg-dark" id="btnBgDark" onclick="toggleBg('dark')" title="Без фона"></div>
-        <div class="bg-btn bg-gradient" id="btnBgGradient" onclick="toggleBg('gradient')" title="Градиент"></div>
-    </div>
+<body class="gradient-bg">
     <div class="particles" id="particles"></div>
     <a class="back" href="index.html">&larr; Назад</a>
     <h1>Скины</h1>
@@ -473,7 +427,14 @@
 
         function loadData() {
             var raw = localStorage.getItem('checkbf_skins');
-            if (raw) owned = JSON.parse(raw);
+            if (raw) {
+                var parsed = JSON.parse(raw);
+                if (parsed && Object.keys(parsed).length > 0 && Object.keys(parsed)[0].indexOf(':') === -1) {
+                    localStorage.removeItem('checkbf_skins');
+                } else {
+                    owned = parsed;
+                }
+            }
         }
 
         function saveData() {
@@ -505,7 +466,7 @@
             keys.forEach(function(key) {
                 var cat = categories[key];
                 var total = cat.skins.filter(function(s) { return disabledSkins.indexOf(s.name) === -1; }).length;
-                var ownedCount = cat.skins.filter(function(s) { return disabledSkins.indexOf(s.name) === -1 && owned[s.name]; }).length;
+                var ownedCount = cat.skins.filter(function(s) { return disabledSkins.indexOf(s.name) === -1 && owned[key + ':' + s.name]; }).length;
                 var isComplete = total > 0 && ownedCount === total;
                 var div = document.createElement('div');
                 div.className = 'cat-card' + (isComplete ? ' completed' : '');
@@ -555,9 +516,10 @@
             var skins = categories[currentCat].skins;
             var isDouble = categories[currentCat].double;
             skins.forEach(function(skin) {
-                var isOwned = owned[skin.name] === true;
+                var owKey = currentCat + ':' + skin.name;
+                var isOwned = owned[owKey] === true;
                 var hasRecipe = (hasRecipeSkins[currentCat] || []).indexOf(skin.name) !== -1;
-                var recipeOwned = owned[skin.name + '_recipe'] === true;
+                var recipeOwned = owned[owKey + '_recipe'] === true;
                 var isDisabled = disabledSkins.indexOf(skin.name) !== -1;
                 var div = document.createElement('div');
                 div.className = 'skin-item' + (isOwned ? ' owned' : '');
@@ -573,11 +535,11 @@
                     btns = '<button class="own-btn disabled" disabled>Недоступен</button>';
                 } else if (hasRecipe) {
                     btns = '<div class="btn-row">' +
-                        '<button class="recipe-btn' + (recipeOwned ? ' has-recipe' : '') + '" onclick="toggleRecipe(event, \'' + skin.name + '\')">' + (recipeOwned ? '✓ Рецепт' : 'Рецепт') + '</button>' +
-                        '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + skin.name + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>' +
+                        '<button class="recipe-btn' + (recipeOwned ? ' has-recipe' : '') + '" onclick="toggleRecipe(event, \'' + owKey + '\')">' + (recipeOwned ? '✓ Рецепт' : 'Рецепт') + '</button>' +
+                        '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + owKey + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>' +
                         '</div>';
                 } else {
-                    btns = '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + skin.name + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
+                    btns = '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + owKey + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
                 }
                 div.innerHTML = imgHtml + '<h3>' + skin.name + '</h3>' + btns;
                 list.appendChild(div);
@@ -626,9 +588,10 @@
                 var isDouble = cat.double;
                 cat.skins.forEach(function(skin) {
                     if (skin.name.toLowerCase().indexOf(q) === -1) return;
-                    var isOwned = owned[skin.name] === true;
-                var hasRecipe = (hasRecipeSkins[key] || []).indexOf(skin.name) !== -1;
-                    var recipeOwned = owned[skin.name + '_recipe'] === true;
+                    var owKey = key + ':' + skin.name;
+                    var isOwned = owned[owKey] === true;
+                    var hasRecipe = (hasRecipeSkins[key] || []).indexOf(skin.name) !== -1;
+                    var recipeOwned = owned[owKey + '_recipe'] === true;
                     var isDisabled = disabledSkins.indexOf(skin.name) !== -1;
                     var div = document.createElement('div');
                     div.className = 'skin-item' + (isOwned ? ' owned' : '');
@@ -644,11 +607,11 @@
                         btns = '<button class="own-btn disabled" disabled>Недоступен</button>';
                     } else if (hasRecipe) {
                         btns = '<div class="btn-row">' +
-                            '<button class="recipe-btn' + (recipeOwned ? ' has-recipe' : '') + '" onclick="toggleRecipe(event, \'' + skin.name + '\')">' + (recipeOwned ? '✓ Рецепт' : 'Рецепт') + '</button>' +
-                            '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + skin.name + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>' +
+                            '<button class="recipe-btn' + (recipeOwned ? ' has-recipe' : '') + '" onclick="toggleRecipe(event, \'' + owKey + '\')">' + (recipeOwned ? '✓ Рецепт' : 'Рецепт') + '</button>' +
+                            '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + owKey + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>' +
                             '</div>';
                     } else {
-                        btns = '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + skin.name + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
+                        btns = '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + owKey + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
                     }
                     div.innerHTML = '<span class="cat-label">' + cat.name + '</span>' + imgHtml + '<h3>' + skin.name + '</h3>' + btns;
                     searchList.appendChild(div);
@@ -675,30 +638,7 @@
                 container.appendChild(p);
             }
         }
-
-        function toggleBg(mode) {
-            document.body.classList.remove('no-bg', 'gradient-bg');
-            document.getElementById('btnBgImage').classList.remove('active');
-            document.getElementById('btnBgDark').classList.remove('active');
-            document.getElementById('btnBgGradient').classList.remove('active');
-            if (mode === 'dark') {
-                document.body.classList.add('no-bg');
-                document.getElementById('btnBgDark').classList.add('active');
-            } else if (mode === 'gradient') {
-                document.body.classList.add('gradient-bg');
-                document.getElementById('btnBgGradient').classList.add('active');
-            } else {
-                document.getElementById('btnBgImage').classList.add('active');
-            }
-            localStorage.setItem('checkbf_bg', mode);
-        }
-
         createParticles();
-
-        (function() {
-            var saved = localStorage.getItem('checkbf_bg');
-            if (saved) toggleBg(saved); else toggleBg('gradient');
-        })();
     </script>
 </body>
 </html>

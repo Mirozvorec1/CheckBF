@@ -26,9 +26,6 @@
             align-items: center;
             transition: background 0.3s;
         }
-        body.no-bg {
-            background-image: none;
-        }
         body.gradient-bg {
             background: linear-gradient(135deg, #0a0a0a 0%, #2d1b4e 30%, #1a0a2e 60%, #0a0a0a 100%);
         }
@@ -39,12 +36,8 @@
             width: 100vw;
             height: 100vh;
             pointer-events: none;
-            z-index: 1;
+            z-index: 0;
             overflow: hidden;
-            display: none;
-        }
-        body.gradient-bg .particles {
-            display: block;
         }
         .particle {
             position: absolute;
@@ -57,38 +50,6 @@
         @keyframes twinkle {
             0%, 100% { opacity: 0.1; transform: translateY(0); }
             50% { opacity: 0.8; transform: translateY(-20px); }
-        }
-        .bg-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            gap: 6px;
-            z-index: 20;
-        }
-        .bg-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            border: 2px solid #555;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .bg-btn:hover {
-            border-color: #8cf;
-        }
-        .bg-btn.active {
-            border-color: #8cf;
-            box-shadow: 0 0 6px rgba(100,180,255,0.4);
-        }
-        .bg-btn.bg-image {
-            background: url('assets/background.jpg') center/cover;
-        }
-        .bg-btn.bg-dark {
-            background: #1a1a1a;
-        }
-        .bg-btn.bg-gradient {
-            background: linear-gradient(135deg, #1a1a1a 0%, #4a1a6b 50%, #1a1a1a 100%);
         }
         h1 {
             font-size: 4rem;
@@ -165,12 +126,7 @@
         }
     </style>
 </head>
-<body>
-    <div class="bg-toggle">
-        <div class="bg-btn bg-image active" id="btnBgImage" onclick="toggleBg('image')" title="С фоном"></div>
-        <div class="bg-btn bg-dark" id="btnBgDark" onclick="toggleBg('dark')" title="Без фона"></div>
-        <div class="bg-btn bg-gradient" id="btnBgGradient" onclick="toggleBg('gradient')" title="Градиент"></div>
-    </div>
+<body class="gradient-bg">
     <div class="particles" id="particles"></div>
     <svg class="arrows" id="arrows"></svg>
     <img class="avatar" id="avatar" src="https://tr.rbxcdn.com/30DAY-AvatarHeadshot-1507DAB190B8A3C9CEA7A26EE1A69D31-Png/420/420/AvatarHeadshot/Png/noFilter" alt="Avatar">
@@ -258,30 +214,7 @@
                 container.appendChild(p);
             }
         }
-
-        function toggleBg(mode) {
-            document.body.classList.remove('no-bg', 'gradient-bg');
-            document.getElementById('btnBgImage').classList.remove('active');
-            document.getElementById('btnBgDark').classList.remove('active');
-            document.getElementById('btnBgGradient').classList.remove('active');
-            if (mode === 'dark') {
-                document.body.classList.add('no-bg');
-                document.getElementById('btnBgDark').classList.add('active');
-            } else if (mode === 'gradient') {
-                document.body.classList.add('gradient-bg');
-                document.getElementById('btnBgGradient').classList.add('active');
-            } else {
-                document.getElementById('btnBgImage').classList.add('active');
-            }
-            localStorage.setItem('checkbf_bg', mode);
-        }
-
         createParticles();
-
-        (function() {
-            var saved = localStorage.getItem('checkbf_bg');
-            if (saved) toggleBg(saved); else toggleBg('gradient');
-        })();
     </script>
 </body>
 </html>
