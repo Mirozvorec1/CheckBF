@@ -534,7 +534,19 @@
             renderCategories();
         }
 
-        var hasRecipeSkins = ["Апельсиновая Сода", "Яркий Жёлтый", "Солнечный Жёлтый", "Слаймовый Зелёный", "Зелёная Ящерица", "Синие Джинсы", "Пухлый Фиолетовый", "Огненная Роза", "Волна Тепла", "Абсолютный Ноль", "Снежный Белый", "Чистый Красный", "Зимнее Небо", "Кицунэ", "Дракон", "Хакер", "Бархат", "Сокол", "Золотой Мох", "Синее Небо", "Оранжевый Крем", "Оранжевый", "Жёлтый", "Синий", "Красный", "Фиолетовый", "Чёрный", "Замороженный", "Изумрудный"];
+        var hasRecipeSkins = {
+            aura: ["Апельсиновая Сода", "Яркий Жёлтый", "Солнечный Жёлтый", "Слаймовый Зелёный", "Зелёная Ящерица", "Синие Джинсы", "Пухлый Фиолетовый", "Огненная Роза", "Волна Тепла", "Абсолютный Ноль", "Снежный Белый", "Чистый Красный", "Зимнее Небо"],
+            kitsune: ["Кицунэ"],
+            dragon: ["Дракон"],
+            pain: ["Хакер"],
+            lightning: [],
+            portal: [],
+            diamond: ["Бархат"],
+            eagle: ["Сокол", "Золотой Мох", "Синее Небо"],
+            bomb: ["Оранжевый Крем"],
+            tiger: ["Оранжевый", "Жёлтый", "Синий", "Красный", "Фиолетовый"],
+            yeti: ["Чёрный", "Замороженный", "Изумрудный"]
+        };
         var disabledSkins = ["Хакер", "Белый", "Лиловая Ночь", "Небесный Феникс", "Кровавая Луна"];
 
         function renderSubSkins() {
@@ -544,7 +556,7 @@
             var isDouble = categories[currentCat].double;
             skins.forEach(function(skin) {
                 var isOwned = owned[skin.name] === true;
-                var hasRecipe = hasRecipeSkins.indexOf(skin.name) !== -1;
+                var hasRecipe = (hasRecipeSkins[currentCat] || []).indexOf(skin.name) !== -1;
                 var recipeOwned = owned[skin.name + '_recipe'] === true;
                 var isDisabled = disabledSkins.indexOf(skin.name) !== -1;
                 var div = document.createElement('div');
@@ -615,7 +627,7 @@
                 cat.skins.forEach(function(skin) {
                     if (skin.name.toLowerCase().indexOf(q) === -1) return;
                     var isOwned = owned[skin.name] === true;
-                    var hasRecipe = hasRecipeSkins.indexOf(skin.name) !== -1;
+                var hasRecipe = (hasRecipeSkins[key] || []).indexOf(skin.name) !== -1;
                     var recipeOwned = owned[skin.name + '_recipe'] === true;
                     var isDisabled = disabledSkins.indexOf(skin.name) !== -1;
                     var div = document.createElement('div');
