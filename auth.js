@@ -1,6 +1,7 @@
 window.checkbfAuth = {
     user: null,
-    listeners: []
+    listeners: [],
+    authReady: false
 };
 
 var auth = firebase.auth();
@@ -8,12 +9,13 @@ var db = firebase.firestore();
 
 auth.onAuthStateChanged(function(user) {
     window.checkbfAuth.user = user;
+    window.checkbfAuth.authReady = true;
     window.checkbfAuth.listeners.forEach(function(fn) { fn(user); });
 });
 
 window.checkbfAuth.onAuthChange = function(fn) {
     window.checkbfAuth.listeners.push(fn);
-    if (window.checkbfAuth.user) fn(window.checkbfAuth.user);
+    if (window.checkbfAuth.authReady) fn(window.checkbfAuth.user);
 };
 
 window.checkbfAuth.logout = function() {
@@ -43,8 +45,7 @@ window.checkbfAuth.saveToDB = function(page, data) {
     });
 };
 
-window.checkbfAuth.requireAuth = function() {
-    if (window.checkbfAuth.user) return true;
+function showAuthRequiredOverlay() {
     var overlay = document.getElementById('authRequiredOverlay');
     if (!overlay) {
         overlay = document.createElement('div');
@@ -58,5 +59,13 @@ window.checkbfAuth.requireAuth = function() {
         document.body.appendChild(overlay);
         overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
     }
+}
+
+window.checkbfAuth.requireAuth = function() {
+    if (window.checkbfAuth.user) return true;
+    if (!window.checkbfAuth.authReady) {
+        return false;
+    }
+    showAuthRequiredOverlay();
     return false;
 };

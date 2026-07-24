@@ -563,6 +563,23 @@
         var holdTimer = null;
         var holdInterval = null;
 
+        function requireAuth() {
+            if (window.checkbfAuth && window.checkbfAuth.requireAuth) return requireAuth();
+            if (typeof showAuthRequiredOverlay === 'function') { showAuthRequiredOverlay(); }
+            else {
+                var o = document.getElementById('authRequiredOverlay');
+                if (!o) {
+                    o = document.createElement('div');
+                    o.id = 'authRequiredOverlay';
+                    o.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;';
+                    o.innerHTML = '<div style="background:#1a1a2e;border:1px solid #555;border-radius:16px;padding:30px 40px;text-align:center;max-width:360px;"><h3 style="color:#fff;margin:0 0 12px;font-size:1.2rem;">Требуется авторизация</h3><p style="color:#aaa;margin:0 0 20px;font-size:0.9rem;">Войдите или зарегистрируйтесь, чтобы сохранять данные</p><a href="index.html" style="display:inline-block;background:#6a3fc9;color:#fff;border:none;border-radius:12px;padding:10px 30px;font-size:0.95rem;text-decoration:none;cursor:pointer;">Войти</a></div>';
+                    document.body.appendChild(o);
+                    o.addEventListener('click', function(e) { if (e.target === o) o.remove(); });
+                }
+            }
+            return false;
+        }
+
         function renderProkachkaBar(node) {
             if (node.dataset.prokachka === undefined) return;
             var val = parseInt(node.dataset.prokachka.split('/')[0]) || 0;
@@ -599,7 +616,7 @@
         }
 
         function setProkachka(e) {
-            if (!window.checkbfAuth.requireAuth()) return;
+            if (!requireAuth()) return;
             var seg = e.target.closest('.seg');
             if (!seg || !currentNode) return;
             var val = parseInt(seg.dataset.val);
@@ -613,7 +630,7 @@
         }
 
         function enableMasteryEdit() {
-            if (!window.checkbfAuth.requireAuth()) return;
+            if (!requireAuth()) return;
             var el = document.getElementById('popupMastery');
             if (el.tagName === 'INPUT') return;
             var current = parseInt(el.textContent.split('/')[0]) || 0;
@@ -654,7 +671,7 @@
         document.getElementById('popupMastery').onclick = enableMasteryEdit;
 
         function changeMastery(type, step) {
-            if (!window.checkbfAuth.requireAuth()) return;
+            if (!requireAuth()) return;
             if (type === 'mastery') {
                 var el = document.getElementById('popupMastery');
                 var parts = el.textContent.split('/');
@@ -699,7 +716,7 @@
 
         function toggleOwned(e, el) {
             e.stopPropagation();
-            if (!window.checkbfAuth.requireAuth()) return;
+            if (!requireAuth()) return;
             var node = el.closest('.tree-node');
             var val = node.dataset.owned === 'true' ? 'false' : 'true';
             node.dataset.owned = val;
