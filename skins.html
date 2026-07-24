@@ -302,10 +302,64 @@
             border-radius: 6px;
             object-fit: cover;
         }
+        .auth-bar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .auth-bar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            padding: 5px 12px;
+            color: #ccc;
+            font-size: 0.75rem;
+        }
+        .auth-bar .user-info img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+        .auth-bar .logout-btn {
+            background: none;
+            border: 1px solid #c62828;
+            color: #c62828;
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        .auth-bar .logout-btn:hover {
+            background: #c62828;
+            color: #fff;
+        }
+        .sync-indicator {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2a2a3a;
+            border: 1px solid #43a047;
+            border-radius: 10px;
+            padding: 6px 12px;
+            color: #43a047;
+            font-size: 0.7rem;
+            z-index: 30;
+        }
+        .sync-indicator.active { display: block; }
     </style>
 </head>
 <body class="gradient-bg">
     <div class="particles" id="particles"></div>
+    <div class="auth-bar" id="authBar"></div>
+    <div class="sync-indicator" id="syncIndicator">Синхронизация...</div>
     <a class="back" href="index.html">&larr; Назад</a>
     <h1>Скины</h1>
     <div class="toolbar">
@@ -439,6 +493,10 @@
 
         function saveData() {
             localStorage.setItem('checkbf_skins', JSON.stringify(owned));
+            if (window.checkbfAuth && window.checkbfAuth.user) {
+                showSync();
+                window.checkbfAuth.saveToDB('skins', owned).then(hideSync);
+            }
         }
 
         var catIcons = {
@@ -639,6 +697,67 @@
             }
         }
         createParticles();
+
+        function showSync() {
+            var el = document.getElementById('syncIndicator');
+            el.classList.add('active');
+            setTimeout(function() { el.classList.remove('active'); }, 1500);
+        }
+        function hideSync() {
+            document.getElementById('syncIndicator').classList.remove('active');
+        }
+
+        function updateAuthBar(user) {
+            var bar = document.getElementById('authBar');
+            if (user) {
+                var photo = user.photoURL || 'https://tr.rbxcdn.com/30DAY-AvatarHeadshot-1507DAB190B8A3C9CEA7A26EE1A69D31-Png/420/420/AvatarHeadshot/Png/noFilter';
+                bar.innerHTML = '<div class="user-info"><img src="' + photo + '" alt=""><span>' + (user.email || 'Google') + '</span></div>' +
+                    '<button class="logout-btn" id="logoutBtn">Выйти</button>';
+                document.getElementById('logoutBtn').onclick = function() {
+                    if (window.checkbfAuth) window.checkbfAuth.logout();
+                };
+            } else {
+                bar.innerHTML = '<a class="back" href="index.html" style="position:static;font-size:0.75rem;">Войти</a>';
+            }
+        }
+
+        async function syncFromDB() {
+            if (!window.checkbfAuth || !window.checkbfAuth.user) return;
+            var dbData = await window.checkbfAuth.loadFromDB('skins');
+            if (dbData) {
+                localStorage.setItem('checkbf_skins', JSON.stringify(dbData));
+                owned = dbData;
+                loadData();
+                renderCategories();
+                if (currentCat) {
+                    renderSubSkins();
+                }
+                showSync();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.checkbfAuth) {
+                window.checkbfAuth.onAuthChange(function(user) {
+                    updateAuthBar(user);
+                    if (user) syncFromDB();
+                });
+            }
+        });
     </script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
+    <script>
+        firebase.initializeApp({
+            apiKey: "AIzaSyC10fTA0O6vpghuEanI52Yiyrtlkpmd8Nc",
+            authDomain: "checkbf-d1a2d.firebaseapp.com",
+            projectId: "checkbf-d1a2d",
+            storageBucket: "checkbf-d1a2d.firebasestorage.app",
+            messagingSenderId: "79682535947",
+            appId: "1:79682535947:web:714e3f81408d7a0d0dbd0e"
+        });
+    </script>
+    <script src="auth.js"></script>
 </body>
 </html>

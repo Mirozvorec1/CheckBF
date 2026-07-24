@@ -124,10 +124,181 @@
             pointer-events: none;
             z-index: 5;
         }
+        .auth-bar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .auth-bar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            padding: 6px 14px;
+            color: #ccc;
+            font-size: 0.8rem;
+        }
+        .auth-bar .user-info img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+        }
+        .auth-bar .user-info .email {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .auth-bar .logout-btn {
+            background: none;
+            border: 1px solid #c62828;
+            color: #c62828;
+            border-radius: 6px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .auth-bar .logout-btn:hover {
+            background: #c62828;
+            color: #fff;
+        }
+        .auth-bar .login-btn {
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            padding: 8px 18px;
+            color: #8cf;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .auth-bar .login-btn:hover {
+            background: #33334a;
+            border-color: #8cf;
+        }
+        .auth-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 50;
+            justify-content: center;
+            align-items: center;
+        }
+        .auth-overlay.active {
+            display: flex;
+        }
+        .auth-modal {
+            background: #1e1e2e;
+            border: 1px solid #555;
+            border-radius: 16px;
+            padding: 30px;
+            width: 340px;
+            text-align: center;
+        }
+        .auth-modal h2 {
+            color: #8cf;
+            margin: 0 0 20px;
+            font-size: 1.3rem;
+        }
+        .auth-modal input {
+            width: 100%;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            border: 1px solid #555;
+            border-radius: 8px;
+            background: #2a2a3a;
+            color: #fff;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+        }
+        .auth-modal input:focus {
+            outline: none;
+            border-color: #8cf;
+        }
+        .auth-modal .auth-submit {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #5c6bc0;
+            color: #fff;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .auth-modal .auth-submit:hover {
+            background: #7986cb;
+        }
+        .auth-modal .google-btn {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 8px;
+            background: #2a2a3a;
+            color: #ccc;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+        .auth-modal .google-btn:hover {
+            background: #33334a;
+            border-color: #8cf;
+        }
+        .auth-modal .switch-link {
+            color: #8cf;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .auth-modal .error-msg {
+            color: #c62828;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            min-height: 1.2em;
+        }
+        .sync-indicator {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2a2a3a;
+            border: 1px solid #43a047;
+            border-radius: 10px;
+            padding: 8px 14px;
+            color: #43a047;
+            font-size: 0.75rem;
+            z-index: 30;
+            transition: opacity 0.3s;
+        }
+        .sync-indicator.active {
+            display: block;
+        }
     </style>
 </head>
 <body class="gradient-bg">
     <div class="particles" id="particles"></div>
+    <div class="auth-bar" id="authBar">
+        <button class="login-btn" id="loginBtn" onclick="openAuthModal()">Войти</button>
+    </div>
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-modal">
+            <h2 id="authTitle">Вход</h2>
+            <div class="error-msg" id="authError"></div>
+            <input type="email" id="authEmail" placeholder="Email">
+            <input type="password" id="authPass" placeholder="Пароль">
+            <button class="auth-submit" id="authSubmit">Войти</button>
+            <button class="google-btn">Войти через Google</button>
+            <span class="switch-link" id="authSwitch">Нет аккаунта? Регистрация</span>
+            <br><br>
+            <span class="switch-link" onclick="closeAuthModal()">Позже</span>
+        </div>
+    </div>
+    <div class="sync-indicator" id="syncIndicator">Синхронизация...</div>
     <svg class="arrows" id="arrows"></svg>
     <img class="avatar" id="avatar" src="https://tr.rbxcdn.com/30DAY-AvatarHeadshot-1507DAB190B8A3C9CEA7A26EE1A69D31-Png/420/420/AvatarHeadshot/Png/noFilter" alt="Avatar">
     <h1>CheckBF</h1>
@@ -215,6 +386,85 @@
             }
         }
         createParticles();
+
+        window.openAuthModal = function() {
+            document.getElementById('authOverlay').classList.add('active');
+        };
+        window.closeAuthModal = function() {
+            document.getElementById('authOverlay').classList.remove('active');
+            document.getElementById('authError').textContent = '';
+        };
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore-compat.js"></script>
+    <script>
+        var firebaseConfig = {
+            apiKey: "AIzaSyC10fTA0O6vpghuEanI52Yiyrtlkpmd8Nc",
+            authDomain: "checkbf-d1a2d.firebaseapp.com",
+            projectId: "checkbf-d1a2d",
+            storageBucket: "checkbf-d1a2d.firebasestorage.app",
+            messagingSenderId: "79682535947",
+            appId: "1:79682535947:web:714e3f81408d7a0d0dbd0e"
+        };
+        firebase.initializeApp(firebaseConfig);
+        var auth = firebase.auth();
+        var db = firebase.firestore();
+        var googleProvider = new firebase.auth.GoogleAuthProvider();
+
+        var isRegisterMode = false;
+
+        document.getElementById('authSwitch').addEventListener('click', function() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('authTitle').textContent = isRegisterMode ? 'Регистрация' : 'Вход';
+            document.getElementById('authSubmit').textContent = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
+            this.textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
+            document.getElementById('authError').textContent = '';
+        });
+
+        document.getElementById('authSubmit').addEventListener('click', function() {
+            var email = document.getElementById('authEmail').value.trim();
+            var pass = document.getElementById('authPass').value;
+            var errEl = document.getElementById('authError');
+            errEl.textContent = '';
+            if (!email || !pass) { errEl.textContent = 'Заполните все поля'; return; }
+            var method = isRegisterMode ? auth.createUserWithEmailAndPassword(email, pass) : auth.signInWithEmailAndPassword(email, pass);
+            method.then(function() {
+                document.getElementById('authOverlay').classList.remove('active');
+            }).catch(function(e) {
+                var msg = e.code === 'auth/email-already-in-use' ? 'Email уже зарегистрирован' :
+                          e.code === 'auth/wrong-password' ? 'Неверный пароль' :
+                          e.code === 'auth/user-not-found' ? 'Пользователь не найден' :
+                          e.code === 'auth/weak-password' ? 'Пароль минимум 6 символов' :
+                          e.code === 'auth/invalid-email' ? 'Некорректный email' :
+                          'Ошибка: ' + e.message;
+                errEl.textContent = msg;
+            });
+        });
+
+        document.querySelector('.google-btn').addEventListener('click', function() {
+            auth.signInWithPopup(googleProvider).then(function() {
+                document.getElementById('authOverlay').classList.remove('active');
+            }).catch(function(e) {
+                document.getElementById('authError').textContent = 'Ошибка Google: ' + e.message;
+            });
+        });
+
+        function updateAuthBar(user) {
+            var bar = document.getElementById('authBar');
+            if (user) {
+                var photo = user.photoURL || 'https://tr.rbxcdn.com/30DAY-AvatarHeadshot-1507DAB190B8A3C9CEA7A26EE1A69D31-Png/420/420/AvatarHeadshot/Png/noFilter';
+                bar.innerHTML = '<div class="user-info"><img src="' + photo + '" alt=""><span class="email">' + (user.email || 'Google') + '</span></div>' +
+                    '<button class="logout-btn" id="logoutBtn">Выйти</button>';
+                document.getElementById('logoutBtn').onclick = function() { auth.signOut(); };
+            } else {
+                bar.innerHTML = '<button class="login-btn" onclick="openAuthModal()">Войти</button>';
+            }
+        }
+
+        auth.onAuthStateChanged(function(user) {
+            updateAuthBar(user);
+        });
     </script>
 </body>
 </html>
