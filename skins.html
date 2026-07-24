@@ -483,9 +483,6 @@
             if (window.checkbfAuth && window.checkbfAuth.requireAuth) return window.checkbfAuth.requireAuth();
             return false;
         }
-            }
-            return false;
-        }
 
         var owned = {};
         var currentCat = '';
@@ -749,14 +746,20 @@
         async function syncFromDB() {
             if (!window.checkbfAuth || !window.checkbfAuth.user) return;
             var dbData = await window.checkbfAuth.loadFromDB('skins');
-            if (dbData) {
+            var localData = null;
+            var raw = localStorage.getItem('checkbf_skins');
+            if (raw) {
+                try { localData = JSON.parse(raw); } catch(e) {}
+            }
+            if (dbData && Object.keys(dbData).length > 0) {
                 localStorage.setItem('checkbf_skins', JSON.stringify(dbData));
                 owned = dbData;
-                loadData();
                 renderCategories();
-                if (currentCat) {
-                    renderSubSkins();
-                }
+                if (currentCat) renderSubSkins();
+                showSync();
+            } else if (localData && Object.keys(localData).length > 0) {
+                await window.checkbfAuth.saveToDB('skins', localData);
+                owned = localData;
                 showSync();
             }
         }

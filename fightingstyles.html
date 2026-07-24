@@ -814,12 +814,20 @@
         async function syncFromDB() {
             if (!window.checkbfAuth || !window.checkbfAuth.user) return;
             var dbData = await window.checkbfAuth.loadFromDB('fightingstyles');
-            if (dbData) {
+            var localData = null;
+            var raw = localStorage.getItem('checkbf_styles');
+            if (raw) {
+                try { localData = JSON.parse(raw); } catch(e) {}
+            }
+            if (dbData && Object.keys(dbData).length > 0) {
                 localStorage.setItem('checkbf_styles', JSON.stringify(dbData));
                 loadData();
                 document.querySelectorAll('[data-prokachka-bar]').forEach(function(bar) {
                     renderProkachkaBar(bar.closest('.tree-node'));
                 });
+                showSync();
+            } else if (localData && Object.keys(localData).length > 0) {
+                await window.checkbfAuth.saveToDB('fightingstyles', localData);
                 showSync();
             }
         }

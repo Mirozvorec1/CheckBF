@@ -23,8 +23,9 @@ window.checkbfAuth.logout = function() {
 };
 
 window.checkbfAuth.loadFromDB = function(page) {
-    if (!window.checkbfAuth.user) return Promise.resolve(null);
-    return db.collection("users").doc(window.checkbfAuth.user.uid).get().then(function(snap) {
+    var u = window.checkbfAuth.user || auth.currentUser;
+    if (!u) return Promise.resolve(null);
+    return db.collection("users").doc(u.uid).get().then(function(snap) {
         if (snap.exists) {
             var data = snap.data();
             return data[page] || null;
@@ -37,10 +38,11 @@ window.checkbfAuth.loadFromDB = function(page) {
 };
 
 window.checkbfAuth.saveToDB = function(page, data) {
-    if (!window.checkbfAuth.user) return Promise.resolve();
+    var u = window.checkbfAuth.user || auth.currentUser;
+    if (!u) return Promise.resolve();
     var update = {};
     update[page] = data;
-    return db.collection("users").doc(window.checkbfAuth.user.uid).set(update, { merge: true }).catch(function(e) {
+    return db.collection("users").doc(u.uid).set(update, { merge: true }).catch(function(e) {
         console.error("Save to DB error:", e);
     });
 };

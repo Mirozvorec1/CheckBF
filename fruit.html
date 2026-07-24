@@ -1100,7 +1100,8 @@
                 data[item.dataset.name] = { mastery: item.dataset.mastery, awakening: item.dataset.awakening, eaten: item.dataset.eaten, fav: item.dataset.fav, perm: item.dataset.perm };
             });
             localStorage.setItem('checkbf_fruits', JSON.stringify(data));
-            if (window.checkbfAuth && window.checkbfAuth.user) {
+            var u = (window.checkbfAuth && window.checkbfAuth.user) || firebase.auth().currentUser;
+            if (u) {
                 showSync();
                 window.checkbfAuth.saveToDB('fruits', data).then(hideSync);
             }
@@ -1481,10 +1482,18 @@
         async function syncFromDB() {
             if (!window.checkbfAuth || !window.checkbfAuth.user) return;
             var dbData = await window.checkbfAuth.loadFromDB('fruits');
-            if (dbData) {
+            var localData = null;
+            var raw = localStorage.getItem('checkbf_fruits');
+            if (raw) {
+                try { localData = JSON.parse(raw); } catch(e) {}
+            }
+            if (dbData && Object.keys(dbData).length > 0) {
                 localStorage.setItem('checkbf_fruits', JSON.stringify(dbData));
                 loadData();
                 initProgressBars();
+                showSync();
+            } else if (localData && Object.keys(localData).length > 0) {
+                await window.checkbfAuth.saveToDB('fruits', localData);
                 showSync();
             }
         }
