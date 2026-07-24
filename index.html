@@ -304,7 +304,7 @@
     </div>
     <div class="sync-indicator" id="syncIndicator">Синхронизация...</div>
     <svg class="arrows" id="arrows"></svg>
-    <img class="avatar" id="avatar" src="https://tr.rbxcdn.com/30DAY-AvatarHeadshot-1507DAB190B8A3C9CEA7A26EE1A69D31-Png/420/420/AvatarHeadshot/Png/noFilter" alt="Avatar">
+    <img class="avatar" id="avatar" src="" alt="Avatar" style="display:none">
     <h1>CheckBF</h1>
     <div class="grid">
         <div class="oval o1" onclick="location.href='fruit.html'">
@@ -420,12 +420,14 @@
         async function loadRobloxProfile(email) {
             var avatar = document.getElementById('avatar');
             var userId = ROBLOX_PROFILES[email];
+            var avatarUrl = DEFAULT_AVATAR;
             if (userId) {
                 var freshAvatar = await fetchAvatarByUserId(userId);
-                avatar.src = freshAvatar ? freshAvatar + '&t=' + Date.now() : DEFAULT_AVATAR;
-            } else {
-                avatar.src = DEFAULT_AVATAR;
+                avatarUrl = freshAvatar ? freshAvatar + '&t=' + Date.now() : DEFAULT_AVATAR;
             }
+            avatar.src = avatarUrl;
+            var barImg = document.querySelector('.auth-bar .user-info img');
+            if (barImg) barImg.src = avatarUrl;
         }
     </script>
     <script>
@@ -495,12 +497,15 @@
 
         function updateAuthBar(user) {
             var bar = document.getElementById('authBar');
+            var mainAvatar = document.getElementById('avatar');
             if (user) {
-                var photo = user.photoURL || 'https://tr.rbxcdn.com/30DAY-AvatarHeadshot-1507DAB190B8A3C9CEA7A26EE1A69D31-Png/420/420/AvatarHeadshot/Png/noFilter';
+                var photo = user.photoURL || '';
                 bar.innerHTML = '<div class="user-info"><img src="' + photo + '" alt=""><span class="email">' + (user.email || 'Google') + '</span></div>' +
                     '<button class="logout-btn" onclick="auth.signOut()">Выйти</button>';
+                mainAvatar.style.display = '';
             } else {
                 bar.innerHTML = '<button class="login-btn" onclick="openAuthModal()">Войти</button>';
+                mainAvatar.style.display = 'none';
             }
         }
 
@@ -508,8 +513,6 @@
             updateAuthBar(user);
             if (user) {
                 loadRobloxProfile(user.email);
-            } else {
-                document.getElementById('avatar').src = DEFAULT_AVATAR;
             }
         });
     </script>
