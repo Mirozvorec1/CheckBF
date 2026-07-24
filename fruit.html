@@ -725,9 +725,9 @@
     <div class="sync-indicator" id="syncIndicator">Синхронизация...</div>
     <a class="back" href="index.html">&larr; Назад</a>
     <div class="sidebar">
-        <h2>Редкость</h2>
         <button class="active" data-filter="all">Все</button>
         <button data-filter="favourite">★ Избранное</button>
+        <button data-filter="awakening">Пробуждение</button>
         <button data-filter="common">Обычные</button>
         <button data-filter="uncommon">Необычные</button>
         <button data-filter="rare">Редкие</button>
@@ -1384,6 +1384,7 @@
                     var show = false;
                     if (filter === 'all') show = true;
                     else if (filter === 'favourite') show = item.dataset.fav === 'true';
+                    else if (filter === 'awakening') show = item.dataset.type === 'awakening' || item.dataset.type === 'prokachka';
                     else show = item.dataset.rarity === filter;
                     item.style.display = show ? '' : 'none';
                 });
