@@ -407,7 +407,8 @@
 
         async function fetchAvatarByUserId(userId) {
             try {
-                var thumb = await fetch('https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=' + userId + '&size=150x150&format=Png&isCircular=false&isPlaceholder=false');
+                var proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=' + userId + '&size=150x150&format=Png&isCircular=false&isPlaceholder=false');
+                var thumb = await fetch(proxyUrl);
                 var tjson = await thumb.json();
                 if (tjson.data && tjson.data[0] && tjson.data[0].imageUrl) {
                     return tjson.data[0].imageUrl;
