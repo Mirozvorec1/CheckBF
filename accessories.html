@@ -325,6 +325,7 @@
         }
         .item:hover {
             background: #33334a;
+            z-index: 1;
         }
         .item img {
             width: 70px;
@@ -410,7 +411,10 @@
         }
         .item .seasonal .tooltip {
             display: none;
-            position: fixed;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
             background: #1a1a2e;
             border: 1px solid #e91e63;
             border-radius: 8px;
@@ -422,8 +426,15 @@
             pointer-events: none;
             font-weight: 400;
             text-align: center;
-            left: 50%;
-            transform: translateX(-50%);
+            margin-top: 6px;
+        }
+        .item .seasonal .tooltip.align-left {
+            left: 0;
+            transform: none;
+        }
+        .item .seasonal .tooltip.align-right {
+            left: 100%;
+            transform: translateX(-100%);
         }
         .item .seasonal:hover .tooltip {
             display: block;
@@ -1319,14 +1330,26 @@
             applyAllVisibility();
         })();
 
-        document.querySelectorAll('.seasonal').forEach(function(el) {
+        document.querySelectorAll('.item .seasonal').forEach(function(el) {
             var tip = el.querySelector('.tooltip');
             if (!tip) return;
             el.addEventListener('mouseenter', function() {
-                var rect = el.getBoundingClientRect();
-                tip.style.left = (rect.left + rect.width / 2) + 'px';
-                tip.style.top = (rect.bottom + 6) + 'px';
-                tip.style.transform = 'translateX(-50%)';
+                var item = el.closest('.item');
+                var grid = item ? item.parentElement : null;
+                tip.classList.remove('align-left', 'align-right');
+                if (grid) {
+                    var top = item.offsetTop;
+                    var siblings = grid.querySelectorAll('.item');
+                    var minLeft = Infinity, maxLeft = -Infinity;
+                    siblings.forEach(function(s) {
+                        if (Math.abs(s.offsetTop - top) < 5) {
+                            if (s.offsetLeft < minLeft) minLeft = s.offsetLeft;
+                            if (s.offsetLeft > maxLeft) maxLeft = s.offsetLeft;
+                        }
+                    });
+                    if (item.offsetLeft <= minLeft) tip.classList.add('align-left');
+                    else if (item.offsetLeft >= maxLeft) tip.classList.add('align-right');
+                }
             });
         });
 

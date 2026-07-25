@@ -322,6 +322,7 @@
         .skin-item:hover {
             background: #33334a;
             transform: translateY(-2px);
+            z-index: 1;
         }
         .skin-item.owned {
             border-color: #4caf50;
@@ -339,6 +340,56 @@
             font-weight: 600;
             margin: 0 0 6px 0;
             color: #fff;
+        }
+        .skin-item {
+            position: relative;
+        }
+        .skin-item .seasonal {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 18px;
+            height: 18px;
+            background: #e91e63;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+            z-index: 2;
+        }
+        .skin-item .seasonal .tooltip {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            border: 1px solid #e91e63;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 0.72rem;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
+            font-weight: 400;
+            text-align: center;
+            margin-top: 6px;
+        }
+        .skin-item .seasonal .tooltip.align-left {
+            left: 0;
+            transform: none;
+        }
+        .skin-item .seasonal .tooltip.align-right {
+            left: 100%;
+            transform: translateX(-100%);
+        }
+        .skin-item .seasonal:hover .tooltip {
+            display: block;
         }
         .own-btn {
             width: 100%;
@@ -553,13 +604,13 @@
                 { name: "Снежный Белый", img: "assets/skins/Aura_Snow_White_Icon.webp" },
                 { name: "Чистый Красный", img: "assets/skins/Aura_Pure_Red_Icon.webp" },
                 { name: "Зимнее Небо", img: "assets/skins/Aura_Winter_Sky_Icon.webp" },
-                { name: "Аквамариновый", img: "assets/skins/Aura_Aquamarine_Icon.webp" },
-                { name: "Лёгкий Розовый", img: "assets/skins/Aura_Light_Pink_Icon.webp" },
+                { name: "Аквамариновый", img: "assets/skins/Aura_Aquamarine_Icon.webp", seasonal: true },
+                { name: "Лёгкий Розовый", img: "assets/skins/Aura_Light_Pink_Icon.webp", seasonal: true },
                 { name: "Радужный Спаситель", img: "assets/skins/Aura_Rainbow_Saviour_Icon.webp" },
                 { name: "Кицунэ", img: "assets/skins/Aura_Kitsune_Icon.webp" },
                 { name: "Дракон", img: "assets/skins/Aura_Dragon_Icon.webp" },
-                { name: "Они", img: "assets/skins/Aura_Oni_Icon.webp" },
-                { name: "Небесный", img: "assets/skins/Aura_Celestial_Icon.webp" },
+                { name: "Они", img: "assets/skins/Aura_Oni_Icon.webp", seasonal: true },
+                { name: "Небесный", img: "assets/skins/Aura_Celestial_Icon.webp", seasonal: true },
                 { name: "Хакер", img: "assets/ItemPlaceHolder.webp" }
             ]},
             dragon: { name: "Дракон", double: true, skins: [
@@ -805,10 +856,12 @@
                     } else {
                         btns = '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + owKey + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
                     }
-                    div.innerHTML = '<span class="cat-label">' + cat.name + '</span>' + imgHtml + '<h3>' + skin.name + '</h3>' + btns;
+                    var seasonalHtml = skin.seasonal ? '<span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>' : '';
+                    div.innerHTML = seasonalHtml + '<span class="cat-label">' + cat.name + '</span>' + imgHtml + '<h3>' + skin.name + '</h3>' + btns;
                     searchList.appendChild(div);
                 });
             });
+            initSeasonalTooltips();
         }
         function toggleFilterDropdown() {
             document.getElementById('filterDropdown').classList.toggle('open');
@@ -865,9 +918,11 @@
                 } else {
                     btns = '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + owKey + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
                 }
-                div.innerHTML = imgHtml + '<h3>' + skin.name + '</h3>' + btns;
+                var seasonalHtml = skin.seasonal ? '<span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>' : '';
+                div.innerHTML = seasonalHtml + imgHtml + '<h3>' + skin.name + '</h3>' + btns;
                 list.appendChild(div);
             });
+            initSeasonalTooltips();
         }
 
         function toggleOwn(e, name) {
@@ -958,10 +1013,12 @@
                     } else {
                         btns = '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + owKey + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
                     }
-                    div.innerHTML = '<span class="cat-label">' + cat.name + '</span>' + imgHtml + '<h3>' + skin.name + '</h3>' + btns;
+                    var seasonalHtml = skin.seasonal ? '<span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>' : '';
+                    div.innerHTML = seasonalHtml + '<span class="cat-label">' + cat.name + '</span>' + imgHtml + '<h3>' + skin.name + '</h3>' + btns;
                     searchList.appendChild(div);
                 });
             });
+            initSeasonalTooltips();
         }
 
         loadData();
@@ -1120,6 +1177,32 @@
         }
         function openAuthModal() { document.getElementById('authOverlay').classList.add('active'); }
         function closeAuthModal() { document.getElementById('authOverlay').classList.remove('active'); document.getElementById('authError').textContent = ''; }
+
+        function initSeasonalTooltips() {
+            document.querySelectorAll('.skin-item .seasonal').forEach(function(el) {
+                var tip = el.querySelector('.tooltip');
+                if (!tip) return;
+                el.addEventListener('mouseenter', function() {
+                    var item = el.closest('.skin-item');
+                    var grid = item ? item.parentElement : null;
+                    tip.classList.remove('align-left', 'align-right');
+                    if (grid) {
+                        var top = item.offsetTop;
+                        var siblings = grid.querySelectorAll('.skin-item');
+                        var minLeft = Infinity, maxLeft = -Infinity;
+                        siblings.forEach(function(s) {
+                            if (Math.abs(s.offsetTop - top) < 5) {
+                                if (s.offsetLeft < minLeft) minLeft = s.offsetLeft;
+                                if (s.offsetLeft > maxLeft) maxLeft = s.offsetLeft;
+                            }
+                        });
+                        if (item.offsetLeft <= minLeft) tip.classList.add('align-left');
+                        else if (item.offsetLeft >= maxLeft) tip.classList.add('align-right');
+                    }
+                });
+            });
+        }
+        initSeasonalTooltips();
     </script>
 </body>
 </html>

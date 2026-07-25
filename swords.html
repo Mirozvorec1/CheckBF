@@ -320,7 +320,7 @@
             justify-content: flex-start;
             min-height: 140px;
             cursor: pointer;
-            overflow: hidden;
+            overflow: visible;
             transition: border-color 0.2s;
             position: relative;
             gap: 0;
@@ -331,6 +331,7 @@
         }
         .item:hover {
             background: #33334a;
+            z-index: 1;
         }
         .item img {
             width: 70px;
@@ -415,6 +416,53 @@
         }
         .item .perm-icon:hover { background: rgba(255,255,255,0.1); }
         .item .perm-icon.permed { background: #7b1fa2; color: #fff; }
+        .item .seasonal {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 18px;
+            height: 18px;
+            background: #e91e63;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+            z-index: 2;
+        }
+        .item .seasonal .tooltip {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            border: 1px solid #e91e63;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 0.72rem;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
+            font-weight: 400;
+            text-align: center;
+            margin-top: 6px;
+        }
+        .item .seasonal .tooltip.align-left {
+            left: 0;
+            transform: none;
+        }
+        .item .seasonal .tooltip.align-right {
+            left: 100%;
+            transform: translateX(-100%);
+        }
+        .item .seasonal:hover .tooltip {
+            display: block;
+        }
         .progress-bar {
             display: flex;
             gap: 1px;
@@ -784,6 +832,7 @@
                 <span class="perm-icon" onclick="togglePerm(event, this)">⚒</span>
             </div>
             <div class="item" data-name="Рыболовный Трофей" data-mastery="0/600" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
                 <img src="assets/swords/FishingTrophyQ.webp" alt="Fishing Trophy">
                 <div class="info"><h3>Рыболовный Трофей</h3><p>0/600</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
@@ -1623,6 +1672,28 @@
         }
         function openAuthModal() { document.getElementById('authOverlay').classList.add('active'); }
         function closeAuthModal() { document.getElementById('authOverlay').classList.remove('active'); document.getElementById('authError').textContent = ''; }
+        document.querySelectorAll('.item .seasonal').forEach(function(el) {
+            var tip = el.querySelector('.tooltip');
+            if (!tip) return;
+            el.addEventListener('mouseenter', function() {
+                var item = el.closest('.item');
+                var grid = item ? item.parentElement : null;
+                tip.classList.remove('align-left', 'align-right');
+                if (grid) {
+                    var top = item.offsetTop;
+                    var siblings = grid.querySelectorAll('.item');
+                    var minLeft = Infinity, maxLeft = -Infinity;
+                    siblings.forEach(function(s) {
+                        if (Math.abs(s.offsetTop - top) < 5) {
+                            if (s.offsetLeft < minLeft) minLeft = s.offsetLeft;
+                            if (s.offsetLeft > maxLeft) maxLeft = s.offsetLeft;
+                        }
+                    });
+                    if (item.offsetLeft <= minLeft) tip.classList.add('align-left');
+                    else if (item.offsetLeft >= maxLeft) tip.classList.add('align-right');
+                }
+            });
+        });
     </script>
 </body>
 </html>
