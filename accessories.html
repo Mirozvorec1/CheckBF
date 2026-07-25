@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аксессуары — CheckBF</title>
+    <script src="lib/firebase-app-compat.js"></script>
+    <script src="lib/firebase-auth-compat.js"></script>
+    <script src="lib/firebase-firestore-compat.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            height: 100vh;
+            background-color: #1a1a1a;
+            color: #c900c9;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            isolation: isolate;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+        }
+        body.gradient-bg::before {
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d1b4e 30%, #1a0a2e 60%, #0a0a0a 100%);
+            filter: none;
+        }
+        body.gradient-bg {
+            background-color: transparent;
+        }
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle ease-in-out infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.1; transform: translateY(0); }
+            50% { opacity: 0.8; transform: translateY(-20px); }
+        }
+        .back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1rem;
+            border: 1px solid #555;
+            border-radius: 16px;
+            padding: 6px 16px;
+            background: #2a2a3a;
+            z-index: 20;
+        }
+        .back:hover {
+            background: #33334a;
+        }
+        .sidebar {
+            width: 180px;
+            background: rgba(30,30,40,0.85);
+            border-right: 1px solid #444;
+            display: flex;
+            flex-direction: column;
+            padding: 60px 0 20px 0;
+            flex-shrink: 0;
+        }
+        .sidebar button {
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 0.85rem;
+            padding: 10px 20px;
+            text-align: left;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+        .sidebar button:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+        }
+        .sidebar button.active {
+            color: #8cf;
+            border-left-color: #8cf;
+            background: rgba(100,180,255,0.08);
+        }
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 40px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin: 0 0 12px 0;
+            color: #fff;
+            -webkit-text-stroke: 1px #000;
+            text-align: center;
+        }
+        .search {
+            flex: 1;
+            max-width: 400px;
+            padding: 8px 16px;
+            border: 1px solid #555;
+            border-radius: 20px;
+            background: #2a2a3a;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .search::placeholder {
+            color: #777;
+        }
+        .search:focus {
+            border-color: #8cf;
+        }
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .sort-wrap {
+            position: relative;
+        }
+        .sort-btn {
+            height: 36px;
+            padding: 0 14px;
+            border: 1px solid #555;
+            border-radius: 10px;
+            background: #2a2a3a;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .sort-btn:hover {
+            background: #33334a;
+            color: #fff;
+        }
+        .sort-btn svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+        .sort-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 25;
+            min-width: 180px;
+        }
+        .sort-dropdown.open {
+            display: block;
+        }
+        .sort-dropdown button {
+            width: 100%;
+            padding: 10px 16px;
+            border: none;
+            background: none;
+            color: #ccc;
+            font-size: 0.85rem;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sort-dropdown button:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+        .sort-dropdown button.active {
+            color: #8cf;
+        }
+        .sort-dropdown .icon {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+        .filter-wrap {
+            position: relative;
+        }
+        .filter-btn {
+            height: 36px;
+            padding: 0 14px;
+            border: 1px solid #555;
+            border-radius: 10px;
+            background: #2a2a3a;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .filter-btn:hover {
+            background: #33334a;
+            color: #fff;
+        }
+        .filter-btn.active {
+            border-color: #8cf;
+            color: #8cf;
+        }
+        .filter-btn svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+        .filter-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            z-index: 25;
+        }
+        .filter-dropdown.open {
+            display: block;
+        }
+        .filter-row {
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .filter-row:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .filter-label {
+            color: #ccc;
+            font-size: 0.82rem;
+            flex: 1;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .filter-tbtns {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .filter-tbtn {
+            width: 24px;
+            height: 22px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background: #1a1a2a;
+            color: #666;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            line-height: 1;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .filter-tbtn.plus.on {
+            background: #2e7d32;
+            border-color: #43a047;
+            color: #fff;
+        }
+        .filter-tbtn.minus.on {
+            background: #c62828;
+            border-color: #e53935;
+            color: #fff;
+        }
+        .filter-tbtn:hover {
+            opacity: 0.85;
+        }
+        .list {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+            width: 100%;
+            padding: 0 10px;
+            overflow-y: auto;
+            flex: 1;
+            align-content: start;
+        }
+        .item {
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 10px 4px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 140px;
+            overflow: visible;
+            transition: border-color 0.2s;
+            position: relative;
+            gap: 0;
+        }
+        .item:hover {
+            background: #33334a;
+        }
+        .item img {
+            width: 70px;
+            height: 70px;
+            margin: 0 0 4px 0;
+            border-radius: 6px;
+        }
+        .item .info {
+            padding: 0 2px;
+            align-items: center;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+        }
+        .item h3 {
+            font-size: 0.7rem;
+            font-weight: 600;
+            line-height: 1.15;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+            color: #eee;
+            margin: 0;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .item[data-rarity="common"] h3 { background: rgba(255,255,255,0.15); }
+        .item[data-rarity="uncommon"] h3 { background: rgba(76,175,80,0.35); }
+        .item[data-rarity="rare"] h3 { background: rgba(66,165,245,0.35); }
+        .item[data-rarity="legendary"] h3 { background: rgba(244,143,177,0.35); }
+        .item[data-rarity="mythical"] h3 { background: rgba(186,104,200,0.35); }
+        .item .eat-icon,
+        .item .fav-icon {
+            position: absolute;
+            bottom: 4px;
+            width: 48%;
+            height: 24px;
+            font-size: 0.7rem;
+            border-radius: 5px;
+        }
+        .item .eat-icon { left: 2%; }
+        .item .fav-icon { right: 2%; }
+        .item .eat-icon {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.05);
+            color: #888;
+        }
+        .item .eat-icon:hover { background: rgba(255,255,255,0.1); }
+        .item .eat-icon.eaten { background: #2e7d32; color: #4caf50; }
+        .item .eat-icon:not(.eaten) { color: #666; }
+        .item .fav-icon {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.05);
+            color: #555;
+        }
+        .item .fav-icon:hover { background: rgba(255,255,255,0.1); }
+        .item .fav-icon.faved { background: #e6a800; color: #ffc107; }
+        .item .seasonal {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 18px;
+            height: 18px;
+            background: #e91e63;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+            z-index: 2;
+        }
+        .item .seasonal .tooltip {
+            display: none;
+            position: fixed;
+            background: #1a1a2e;
+            border: 1px solid #e91e63;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 0.72rem;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
+            font-weight: 400;
+            text-align: center;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .item .seasonal:hover .tooltip {
+            display: block;
+        }
+        .auth-bar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .auth-bar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            padding: 5px 12px;
+            color: #ccc;
+            font-size: 0.75rem;
+        }
+        .auth-bar .user-info img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+        .auth-bar .logout-btn {
+            background: none;
+            border: 1px solid #c62828;
+            color: #c62828;
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        .auth-bar .logout-btn:hover { background: #c62828; color: #fff; }
+        .sync-indicator {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            border: 1px solid #43a047;
+            border-radius: 10px;
+            padding: 6px 12px;
+            color: #43a047;
+            font-size: 0.7rem;
+            z-index: 30;
+        }
+        .sync-indicator.active { display: block; }
+        .auth-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 50;
+            justify-content: center;
+            align-items: center;
+        }
+        .auth-overlay.active { display: flex; }
+        .auth-modal {
+            background: #1e1e2e;
+            border: 1px solid #555;
+            border-radius: 16px;
+            padding: 30px;
+            width: 340px;
+            text-align: center;
+        }
+        .auth-modal h2 { color: #8cf; margin: 0 0 20px; font-size: 1.3rem; }
+        .auth-modal input {
+            width: 100%; padding: 10px 14px; margin-bottom: 12px;
+            border: 1px solid #555; border-radius: 8px;
+            background: #2a2a3a; color: #fff; font-size: 0.9rem; box-sizing: border-box;
+        }
+        .auth-modal input:focus { outline: none; border-color: #8cf; }
+        .auth-modal .auth-submit {
+            width: 100%; padding: 10px; border: none; border-radius: 8px;
+            background: #5c6bc0; color: #fff; font-size: 0.9rem; cursor: pointer; margin-bottom: 10px;
+        }
+        .auth-modal .auth-submit:hover { background: #7986cb; }
+        .auth-modal .google-btn {
+            width: 100%; padding: 10px; border: 1px solid #555; border-radius: 8px;
+            background: #2a2a3a; color: #ccc; font-size: 0.9rem; cursor: pointer; margin-bottom: 12px;
+        }
+        .auth-modal .google-btn:hover { background: #33334a; border-color: #8cf; }
+        .auth-modal .switch-link { color: #8cf; cursor: pointer; font-size: 0.8rem; }
+        .auth-modal .error-msg { color: #c62828; font-size: 0.8rem; margin-bottom: 10px; min-height: 1.2em; }
+    </style>
+</head>
+<body class="gradient-bg">
+    <div class="particles" id="particles"></div>
+    <div class="auth-bar" id="authBar"></div>
+    <div class="sync-indicator" id="syncIndicator">Синхронизация...</div>
+    <a class="back" href="index.html">&larr; Назад</a>
+    <div class="sidebar">
+        <button class="active" data-filter="all">Все</button>
+        <button data-filter="favourite">★ Избранное</button>
+        <hr style="border:none;border-top:1px solid #555;margin:6px 16px;">
+        <button data-filter="common">Обычные</button>
+        <button data-filter="uncommon">Необычные</button>
+        <button data-filter="rare">Редкие</button>
+        <button data-filter="legendary">Легендарные</button>
+        <button data-filter="mythical">Мифические</button>
+    </div>
+    <div class="main">
+        <h1>Аксессуары</h1>
+        <div class="toolbar">
+            <input class="search" type="text" placeholder="Поиск по названию..." id="searchInput" oninput="filterBySearch()" autocomplete="off">
+            <div class="sort-wrap">
+                <button class="sort-btn" id="sortBtn" onclick="toggleSortDropdown()">
+                    <svg viewBox="0 0 16 16" fill="none">
+                        <path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span id="sortLabel">По редкости</span>
+                </button>
+                <div class="sort-dropdown" id="sortDropdown">
+                    <button data-sort="default" class="active" onclick="setSort('default', this)">
+                        <svg class="icon" viewBox="0 0 16 16" fill="none">
+                            <rect x="1" y="2" width="14" height="3" rx="1" fill="currentColor" opacity="0.3"/>
+                            <rect x="1" y="6.5" width="14" height="3" rx="1" fill="currentColor" opacity="0.3"/>
+                            <rect x="1" y="11" width="14" height="3" rx="1" fill="currentColor" opacity="0.3"/>
+                        </svg>
+                        По редкости
+                    </button>
+                    <button data-sort="name" onclick="setSort('name', this)">
+                        <svg class="icon" viewBox="0 0 16 16" fill="none">
+                            <text x="1" y="12" font-size="11" font-weight="700" fill="currentColor">A</text>
+                            <text x="8" y="12" font-size="11" font-weight="700" fill="currentColor">Z</text>
+                        </svg>
+                        По алфавиту
+                    </button>
+                    <button data-sort="fav" onclick="setSort('fav', this)">
+                        <svg class="icon" viewBox="0 0 16 16" fill="none">
+                            <polygon points="8,2 10,6 14,7 11,10 12,14 8,12 4,14 5,10 2,7 6,6" fill="currentColor" opacity="0.6"/>
+                        </svg>
+                        По фавориту
+                    </button>
+                </div>
+            </div>
+            <div class="filter-wrap">
+                <button class="filter-btn" id="filterBtn" onclick="toggleFilterDropdown()">
+                    <svg viewBox="0 0 16 16" fill="none">
+                        <rect x="2" y="3" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/>
+                        <rect x="2" y="7" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/>
+                        <rect x="2" y="11" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/>
+                        <circle cx="5" cy="4" r="1.5" fill="currentColor"/>
+                        <circle cx="10" cy="8" r="1.5" fill="currentColor"/>
+                        <circle cx="7" cy="12" r="1.5" fill="currentColor"/>
+                    </svg>
+                    <span>Фильтр</span>
+                </button>
+                <div class="filter-dropdown" id="filterDropdown">
+                    <div class="filter-row">
+                        <span class="filter-label">Полученный</span>
+                        <div class="filter-tbtns">
+                            <button class="filter-tbtn plus" data-filter="obtained" data-val="1" onclick="toggleFilterBtn(this)">+</button>
+                            <button class="filter-tbtn minus" data-filter="obtained" data-val="-1" onclick="toggleFilterBtn(this)">-</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="list">
+            <div class="item" data-name="Головная Повязка (Белая)" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/HeadbandWhiteQ.webp" alt="Headband White">
+                <div class="info"><h3>Головная Повязка (Белая)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Головная Повязка (Жёлтая)" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/HeadbandYellowQ.webp" alt="Headband Yellow">
+                <div class="info"><h3>Головная Повязка (Жёлтая)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Головная Повязка (Оранжевая)" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/HeadbandOrangeQ.webp" alt="Headband Orange">
+                <div class="info"><h3>Головная Повязка (Оранжевая)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Головная Повязка (Зелёная)" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/HeadbandGreenQ.webp" alt="Headband Green">
+                <div class="info"><h3>Головная Повязка (Зелёная)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Головная Повязка (Синяя)" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/HeadbandBlueQ.webp" alt="Headband Blue">
+                <div class="info"><h3>Головная Повязка (Синяя)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Головная Повязка (Фиолетовая)" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/HeadbandPurpleQ.webp" alt="Headband Purple">
+                <div class="info"><h3>Головная Повязка (Фиолетовая)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Головная Повязка (Красная)" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/HeadbandRedQ.webp" alt="Headband Red">
+                <div class="info"><h3>Головная Повязка (Красная)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Головная Повязка (Чёрная)" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/HeadbandBlackQ.webp" alt="Headband Black">
+                <div class="info"><h3>Головная Повязка (Чёрная)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Розовое Пальто" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/PinkCoatQ.webp" alt="Pink Coat">
+                <div class="info"><h3>Розовое Пальто</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Пояс Додзё (Белый)" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/DojoBeltWhiteQ.webp" alt="Dojo Belt White">
+                <div class="info"><h3>Пояс Додзё (Белый)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Пояс Додзё (Жёлтый)" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/DojoBeltYellowQ.webp" alt="Dojo Belt Yellow">
+                <div class="info"><h3>Пояс Додзё (Жёлтый)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Пояс Додзё (Оранжевый)" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/DojoBeltOrangeQ.webp" alt="Dojo Belt Orange">
+                <div class="info"><h3>Пояс Додзё (Оранжевый)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Пояс Додзё (Зелёный)" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/DojoBeltGreenQ.webp" alt="Dojo Belt Green">
+                <div class="info"><h3>Пояс Додзё (Зелёный)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Пояс Додзё (Синий)" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/DojoBeltBlueQ.webp" alt="Dojo Belt Blue">
+                <div class="info"><h3>Пояс Додзё (Синий)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Пояс Додзё (Фиолетовый)" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/DojoBeltPurpleQ.webp" alt="Dojo Belt Purple">
+                <div class="info"><h3>Пояс Додзё (Фиолетовый)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Пояс Додзё (Красный)" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/DojoBeltRedQ.webp" alt="Dojo Belt Red">
+                <div class="info"><h3>Пояс Додзё (Красный)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Шляпа Мечника" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/SwordsmanHatQ.webp" alt="Swordsman Hat">
+                <div class="info"><h3>Шляпа Мечника</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Чёрный Плащ" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/BlackCapeQ.webp" alt="Black Cloak">
+                <div class="info"><h3>Чёрный Плащ</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Пальто" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/CoatQ.webp" alt="Coat">
+                <div class="info"><h3>Пальто</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Кольцо Томоэ" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/TomoeRingQ.webp" alt="Tomoe Ring">
+                <div class="info"><h3>Кольцо Томоэ</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Крутые Очки" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/CoolShadesQ.webp" alt="Cool Glasses">
+                <div class="info"><h3>Крутые Очки</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Кепка Дозорного" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/MarineCapQ.webp" alt="Marine Cap">
+                <div class="info"><h3>Кепка Дозорного</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Шляпа Усоапа" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/UsoapsHatQ.webp" alt="Usopp Hat">
+                <div class="info"><h3>Шляпа Усоапа</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Чёрное Колючее Пальто" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/BlackSpikeyCoatQ.webp" alt="Black Spiky Coat">
+                <div class="info"><h3>Чёрное Колючее Пальто</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Шлем Воина" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/WarriorHelmetQ.webp" alt="Warrior Helmet">
+                <div class="info"><h3>Шлем Воина</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Маска Гуля" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/GhoulMaskQ.webp" alt="Ghoul Mask">
+                <div class="info"><h3>Маска Гуля</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Синее Колючее Пальто" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/BlueSpikeyCoatQ.webp" alt="Blue Spiky Coat">
+                <div class="info"><h3>Синее Колючее Пальто</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Красное Колючее Пальто" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/RedSpikeyCoatQ.webp" alt="Red Spiky Coat">
+                <div class="info"><h3>Красное Колючее Пальто</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Цилиндр" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/TophatQ.webp" alt="Top Hat">
+                <div class="info"><h3>Цилиндр</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Чоппа" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/ChoppaQ.webp" alt="Chopper">
+                <div class="info"><h3>Чоппа</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Шлем Пилота" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/PilotHelmetQ.webp" alt="Pilot Helmet">
+                <div class="info"><h3>Шлем Пилота</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Леи" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/LeiQ.webp" alt="Lei">
+                <div class="info"><h3>Леи</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Золотая Шляпа от Солнца" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/GoldenSunhatQ.webp" alt="Sun Hat Gold">
+                <div class="info"><h3>Золотая Шляпа от Солнца</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Медвежьи Уши" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/BearEarsQ.webp" alt="Bear Ears">
+                <div class="info"><h3>Медвежьи Уши</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Плащ Охотника (Чёрный)" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/HuntersCapeAQ.webp" alt="Hunter Cloak Black">
+                <div class="info"><h3>Плащ Охотника (Чёрный)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Плащ Охотника (Зелёный)" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/HuntersCapeBQ.webp" alt="Hunter Cloak Green">
+                <div class="info"><h3>Плащ Охотника (Зелёный)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Плащ Охотника (Красный)" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/HuntersCapeCQ.webp" alt="Hunter Cloak Red">
+                <div class="info"><h3>Плащ Охотника (Красный)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Бандана (Чёрная)" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/BandannaAQ.webp" alt="Bandana Black">
+                <div class="info"><h3>Бандана (Чёрная)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Бандана (Зелёная)" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/BandannaBQ.webp" alt="Bandana Green">
+                <div class="info"><h3>Бандана (Зелёная)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Бандана (Красная)" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/BandannaCQ.webp" alt="Bandana Red">
+                <div class="info"><h3>Бандана (Красная)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Симпатичный Шлем" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/PrettyHelmetQ.webp" alt="Cute Helmet">
+                <div class="info"><h3>Симпатичный Шлем</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Челюстной Щит" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/JawShieldQ.webp" alt="Jaw Shield">
+                <div class="info"><h3>Челюстной Щит</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Ожерелье из Зубов Акулы" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/SharkToothNecklaceQ.webp" alt="Shark Tooth Necklace">
+                <div class="info"><h3>Ожерелье из Зубов Акулы</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Пояс Додзё (Чёрный)" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/DojoBeltBlackQ.webp" alt="Dojo Belt Black">
+                <div class="info"><h3>Пояс Додзё (Чёрный)</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Череп Т-Рекса" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/TRexSkullQ.webp" alt="TRex Skull">
+                <div class="info"><h3>Череп Т-Рекса</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Шляпа Эльфа" data-rarity="rare" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/ElfHatQ.webp" alt="Elf Hat">
+                <div class="info"><h3>Шляпа Эльфа</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Шляпа Санты" data-rarity="rare" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/SantaHatQ.webp" alt="Santa Hat">
+                <div class="info"><h3>Шляпа Санты</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Очки Свана" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/SwanGlassesQ.webp" alt="Swan Glasses">
+                <div class="info"><h3>Очки Свана</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Кепка-Зебра" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/ZebraCapQ.webp" alt="Zebra Cap">
+                <div class="info"><h3>Кепка-Зебра</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Мушкетёрская Шляпа" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/MusketeerHatQ.webp" alt="Musketeer Hat">
+                <div class="info"><h3>Мушкетёрская Шляпа</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Святая Корона" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/HolyCrownQ.webp" alt="Holy Crown">
+                <div class="info"><h3>Святая Корона</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Бледный Шарф" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/PaleScarfQ.webp" alt="Pale Scarf">
+                <div class="info"><h3>Бледный Шарф</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Пернатый Лик" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/FeatheredVisageQ.webp" alt="Feathered Visage">
+                <div class="info"><h3>Пернатый Лик</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Шлем Валькирии" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/ValkyrieHelmetQ.webp" alt="Valkyrie Helmet">
+                <div class="info"><h3>Шлем Валькирии</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Челюсть Ужаса" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/TerrorJawQ.webp" alt="Jaw of Terror">
+                <div class="info"><h3>Челюсть Ужаса</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Корона Левиафана" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/LeviathanCrownQ.webp" alt="Leviathan Crown">
+                <div class="info"><h3>Корона Левиафана</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Риббон Кицунэ" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/KitsuneRibbonQ.webp" alt="Kitsune Ribbon">
+                <div class="info"><h3>Риббон Кицунэ</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Маска Кицунэ" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/KitsuneMaskQ.webp" alt="Kitsune Mask">
+                <div class="info"><h3>Маска Кицунэ</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Капюшон Дино" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/DinoHoodQ.webp" alt="Dino Hood">
+                <div class="info"><h3>Капюшон Дино</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Пальто Купидона" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/CupidsCoatQ.webp" alt="Cupid Coat">
+                <div class="info"><h3>Пальто Купидона</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Сердечные Очки" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/HeartShadesQ.webp" alt="Heart Glasses">
+                <div class="info"><h3>Сердечные Очки</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Пальто D.S." data-rarity="legendary" data-eaten="false" data-fav="false" style="opacity:0.4;">
+                <img src="assets/accessories/DSCoatQ.webp" alt="D.S. Coat">
+                <div class="info"><h3>Пальто D.S.</h3><p style="color:#c62828;font-size:0.55rem;">Недоступно</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Драконья Мантия" data-rarity="legendary" data-eaten="false" data-fav="false" style="opacity:0.4;">
+                <img src="assets/accessories/DragonMantleQ.webp" alt="Dragon Mantle">
+                <div class="info"><h3>Драконья Мантия</h3><p style="color:#c62828;font-size:0.55rem;">Недоступно</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Шлем Виверны" data-rarity="legendary" data-eaten="false" data-fav="false" style="opacity:0.4;">
+                <img src="assets/accessories/WyvernHelmetQ.webp" alt="Wyvern Helmet">
+                <div class="info"><h3>Шлем Виверны</h3><p style="color:#c62828;font-size:0.55rem;">Недоступно</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Тёмное Пальто" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/DarkCoatQ.webp" alt="Dark Coat">
+                <div class="info"><h3>Тёмное Пальто</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Щит Левиафана" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <img src="assets/accessories/LeviathanShieldQ.webp" alt="Leviathan Shield">
+                <div class="info"><h3>Щит Левиафана</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Пальто Крови" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/SanguineCloakQ.webp" alt="Blood Coat">
+                <div class="info"><h3>Пальто Крови</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Шлем Они" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/OniHelmetQ.webp" alt="Oni Helmet">
+                <div class="info"><h3>Шлем Они</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Божественное Пальто" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/DivineCloakQ.webp" alt="Divine Coat">
+                <div class="info"><h3>Божественное Пальто</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Небесный Шлем" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/CelestialHelmetQ.webp" alt="Celestial Helmet">
+                <div class="info"><h3>Небесный Шлем</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Ковенская Шляпа Ведьмы" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/CovenWitchHatQ.webp" alt="Coven Witch Hat">
+                <div class="info"><h3>Ковенская Шляпа Ведьмы</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Тыквенная Маска" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/PumpkinMaskQ.webp" alt="Pumpkin Mask">
+                <div class="info"><h3>Тыквенная Маска</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Праздничный Плащ" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/HolidayCloakQ.webp" alt="Festive Cloak">
+                <div class="info"><h3>Праздничный Плащ</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Праздничная Шляпа" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/PartyHatQ.webp" alt="Festive Hat">
+                <div class="info"><h3>Праздничная Шляпа</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Праздничная Шляпа 50B" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/PartyHat50BQ.webp" alt="Festive Hat 50B">
+                <div class="info"><h3>Праздничная Шляпа 50B</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Морозный Шлем" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/FrostyHelmetQ.webp" alt="Frost Helmet">
+                <div class="info"><h3>Морозный Шлем</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Шлем из Перечной Мяты" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/PeppermintHelmetQ.webp" alt="Peppermint Helmet">
+                <div class="info"><h3>Шлем из Перечной Мяты</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Красный Бант" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/RedRibbonQ.webp" alt="Red Bow">
+                <div class="info"><h3>Красный Бант</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Романтический Букет" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/RomanticBouquetQ.webp" alt="Romantic Bouquet">
+                <div class="info"><h3>Романтический Букет</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Цилиндр Купидона" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/CupidsTopHatQ.webp" alt="Cupid Top Hat">
+                <div class="info"><h3>Цилиндр Купидона</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Шлем из Расколотого Яйца" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/CrackedEggHelmetQ.webp" alt="Cracked Egg Helmet">
+                <div class="info"><h3>Шлем из Расколотого Яйца</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Плащ Пасхального Кролика" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/accessories/EasterBunnyCapeQ.webp" alt="Easter Bunny Cloak">
+                <div class="info"><h3>Плащ Пасхального Кролика</h3></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Плащ Uzoth'a" data-rarity="mythical" data-eaten="false" data-fav="false" style="opacity:0.4;">
+                <img src="assets/accessories/UzothsCloakQ.webp" alt="Uzoth Coat">
+                <div class="info"><h3>Плащ Uzoth'a</h3><p style="color:#c62828;font-size:0.55rem;">Недоступно</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+        </div>
+    </div>
+    <script>
+        function requireAuth() {
+            if (window.checkbfAuth && window.checkbfAuth.requireAuth) return window.checkbfAuth.requireAuth();
+            return false;
+        }
+
+        function toggleEaten(e, el) {
+            e.stopPropagation();
+            if (!requireAuth()) return;
+            var item = el.closest('.item');
+            var val = item.dataset.eaten === 'true' ? 'false' : 'true';
+            item.dataset.eaten = val;
+            el.textContent = val === 'true' ? '✓' : '⊘';
+            el.classList.toggle('eaten', val === 'true');
+            saveData();
+        }
+        function toggleFav(e, el) {
+            e.stopPropagation();
+            if (!requireAuth()) return;
+            var item = el.closest('.item');
+            var val = item.dataset.fav === 'true' ? 'false' : 'true';
+            item.dataset.fav = val;
+            el.textContent = val === 'true' ? '★' : '☆';
+            el.classList.toggle('faved', val === 'true');
+            saveData();
+        }
+
+        function saveData() {
+            var data = {};
+            document.querySelectorAll('.item').forEach(function(item) {
+                data[item.dataset.name] = { eaten: item.dataset.eaten, fav: item.dataset.fav };
+            });
+            localStorage.setItem('checkbf_accessories', JSON.stringify(data));
+            var u = (window.checkbfAuth && window.checkbfAuth.user) || firebase.auth().currentUser;
+            if (u) {
+                showSync();
+                window.checkbfAuth.saveToDB('accessories', data).then(hideSync);
+            }
+        }
+
+        function loadData() {
+            var raw = localStorage.getItem('checkbf_accessories');
+            if (!raw) return;
+            var data = JSON.parse(raw);
+            document.querySelectorAll('.item').forEach(function(item) {
+                var saved = data[item.dataset.name];
+                if (saved) {
+                    if (saved.eaten) {
+                        item.dataset.eaten = saved.eaten;
+                        var eatEl = item.querySelector('.eat-icon');
+                        if (eatEl) {
+                            eatEl.textContent = saved.eaten === 'true' ? '✓' : '⊘';
+                            eatEl.classList.toggle('eaten', saved.eaten === 'true');
+                        }
+                    }
+                    if (saved.fav) {
+                        item.dataset.fav = saved.fav;
+                        var favEl = item.querySelector('.fav-icon');
+                        if (favEl) {
+                            favEl.textContent = saved.fav === 'true' ? '★' : '☆';
+                            favEl.classList.toggle('faved', saved.fav === 'true');
+                        }
+                    }
+                }
+            });
+        }
+
+        loadData();
+
+        function filterBySearch() {
+            var q = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.item').forEach(function(item) {
+                var name = item.dataset.name.toLowerCase();
+                item.style.display = name.indexOf(q) !== -1 ? '' : 'none';
+            });
+        }
+
+        document.querySelectorAll('.sidebar button').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.sidebar button').forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                applyAllVisibility();
+            });
+        });
+
+        var currentSort = 'default';
+        var rarityOrder = { common: 0, uncommon: 1, rare: 2, legendary: 3, mythical: 4 };
+        var originalOrder = {};
+        document.querySelectorAll('.item').forEach(function(item, i) {
+            originalOrder[item.dataset.name] = i;
+        });
+
+        function toggleSortDropdown() {
+            document.getElementById('sortDropdown').classList.toggle('open');
+        }
+        function setSort(type, btn) {
+            currentSort = type;
+            document.querySelectorAll('#sortDropdown button').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            document.getElementById('sortDropdown').classList.remove('open');
+            var labels = { default: 'По редкости', name: 'По алфавиту', fav: 'По фавориту' };
+            document.getElementById('sortLabel').textContent = labels[type] || 'По редкости';
+            applySort();
+            localStorage.setItem('checkbf_accessories_sort', type);
+        }
+        function applySort() {
+            var list = document.querySelector('.list');
+            var items = Array.from(list.querySelectorAll('.item'));
+            if (currentSort === 'default') {
+                items.sort(function(a, b) {
+                    var ra = rarityOrder[a.dataset.rarity] || 0;
+                    var rb = rarityOrder[b.dataset.rarity] || 0;
+                    if (ra !== rb) return ra - rb;
+                    return (originalOrder[a.dataset.name] || 0) - (originalOrder[b.dataset.name] || 0);
+                });
+            } else if (currentSort === 'name') {
+                items.sort(function(a, b) { return a.dataset.name.localeCompare(b.dataset.name); });
+            } else if (currentSort === 'fav') {
+                items.sort(function(a, b) {
+                    var fa = a.dataset.fav === 'true' ? 0 : 1;
+                    var fb = b.dataset.fav === 'true' ? 0 : 1;
+                    if (fa !== fb) return fa - fb;
+                    return (originalOrder[a.dataset.name] || 0) - (originalOrder[b.dataset.name] || 0);
+                });
+            }
+            items.forEach(function(item) { list.appendChild(item); });
+            applyAllVisibility();
+        }
+
+        function getSidebarFilter() {
+            var active = document.querySelector('.sidebar button.active');
+            return active ? active.dataset.filter : 'all';
+        }
+        function toggleFilterBtn(btn) {
+            var siblings = btn.parentElement.querySelectorAll('.filter-tbtn');
+            if (btn.classList.contains('on')) {
+                btn.classList.remove('on');
+            } else {
+                siblings.forEach(function(s) { s.classList.remove('on'); });
+                btn.classList.add('on');
+            }
+            applyAllVisibility();
+            saveFilters();
+        }
+        function getFilterState(filterName) {
+            var btn = document.querySelector('.filter-tbtn[data-filter="' + filterName + '"].on');
+            if (!btn) return 0;
+            return parseInt(btn.dataset.val);
+        }
+        function saveFilters() {
+            var state = {};
+            ['obtained'].forEach(function(f) {
+                state[f] = getFilterState(f);
+            });
+            localStorage.setItem('checkbf_accessories_filters', JSON.stringify(state));
+        }
+        function loadFilters() {
+            var saved = localStorage.getItem('checkbf_accessories_filters');
+            if (!saved) return;
+            try {
+                var state = JSON.parse(saved);
+                Object.keys(state).forEach(function(f) {
+                    if (state[f] !== 0) {
+                        var btn = document.querySelector('.filter-tbtn[data-filter="' + f + '"][data-val="' + state[f] + '"]');
+                        if (btn) btn.classList.add('on');
+                    }
+                });
+            } catch(e) {}
+        }
+        function applyAllVisibility() {
+            var sidebarFilter = getSidebarFilter();
+            var obtainedState = getFilterState('obtained');
+            var anyActive = obtainedState !== 0;
+            document.getElementById('filterBtn').classList.toggle('active', anyActive);
+            document.querySelectorAll('.list .item').forEach(function(item) {
+                var showSidebar = false;
+                if (sidebarFilter === 'all') showSidebar = true;
+                else if (sidebarFilter === 'favourite') showSidebar = item.dataset.fav === 'true';
+                else showSidebar = item.dataset.rarity === sidebarFilter;
+                var showFilter = true;
+                if (obtainedState === 1 && item.dataset.eaten === 'false') showFilter = false;
+                if (obtainedState === -1 && item.dataset.eaten !== 'false') showFilter = false;
+                item.style.display = (showSidebar && showFilter) ? '' : 'none';
+            });
+        }
+
+        function toggleFilterDropdown() {
+            document.getElementById('filterDropdown').classList.toggle('open');
+        }
+        function applyFilters() {
+            applyAllVisibility();
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.sort-wrap')) document.getElementById('sortDropdown').classList.remove('open');
+            if (!e.target.closest('.filter-wrap')) document.getElementById('filterDropdown').classList.remove('open');
+        });
+
+        (function() {
+            var saved = localStorage.getItem('checkbf_accessories_sort');
+            if (saved) {
+                var btn = document.querySelector('#sortDropdown button[data-sort="' + saved + '"]');
+                if (btn) setSort(saved, btn);
+            }
+            loadFilters();
+            applyAllVisibility();
+        })();
+
+        document.querySelectorAll('.seasonal').forEach(function(el) {
+            var tip = el.querySelector('.tooltip');
+            if (!tip) return;
+            el.addEventListener('mouseenter', function() {
+                var rect = el.getBoundingClientRect();
+                tip.style.left = (rect.left + rect.width / 2) + 'px';
+                tip.style.top = (rect.bottom + 6) + 'px';
+                tip.style.transform = 'translateX(-50%)';
+            });
+        });
+
+        function createParticles() {
+            var container = document.getElementById('particles');
+            container.innerHTML = '';
+            for (var i = 0; i < 60; i++) {
+                var p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.animationDuration = (Math.random() * 4 + 3) + 's';
+                p.style.animationDelay = (Math.random() * 3) + 's';
+                var size = Math.random() * 3 + 1;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                container.appendChild(p);
+            }
+        }
+        createParticles();
+
+        function showSync() {
+            var el = document.getElementById('syncIndicator');
+            el.classList.add('active');
+            clearTimeout(el._hideTimer);
+            el._hideTimer = setTimeout(function() { el.classList.remove('active'); }, 1500);
+        }
+        function hideSync() {
+            var el = document.getElementById('syncIndicator');
+            clearTimeout(el._hideTimer);
+            el._hideTimer = setTimeout(function() { el.classList.remove('active'); }, 500);
+        }
+
+        function resetToDefaults() {
+            localStorage.removeItem('checkbf_accessories');
+            document.querySelectorAll('.item').forEach(function(item) {
+                item.dataset.eaten = 'false';
+                item.dataset.fav = 'false';
+                var eatEl = item.querySelector('.eat-icon');
+                if (eatEl) { eatEl.textContent = '⊘'; eatEl.classList.remove('eaten'); }
+                var favEl = item.querySelector('.fav-icon');
+                if (favEl) { favEl.textContent = '☆'; favEl.classList.remove('faved'); }
+            });
+        }
+
+        function updateAuthBar(user) {
+            var bar = document.getElementById('authBar');
+            if (user) {
+                var photo = user.photoURL || '';
+                bar.innerHTML = '<div class="user-info"><img src="' + photo + '" alt=""><span>' + (user.email || 'Google') + '</span></div>' +
+                    '<button class="logout-btn" id="logoutBtn">Выйти</button>';
+                document.getElementById('logoutBtn').onclick = function() {
+                    if (window.checkbfAuth) window.checkbfAuth.logout();
+                };
+            } else {
+                bar.innerHTML = '<button class="login-btn" onclick="openAuthModal()" style="position:static;font-size:0.75rem;">Войти</button>';
+                resetToDefaults();
+            }
+        }
+
+        async function syncFromDB() {
+            if (!window.checkbfAuth || !window.checkbfAuth.user) return;
+            var dbData = await window.checkbfAuth.loadFromDB('accessories');
+            var localData = null;
+            var raw = localStorage.getItem('checkbf_accessories');
+            if (raw) { try { localData = JSON.parse(raw); } catch(e) {} }
+            if (dbData && Object.keys(dbData).length > 0) {
+                localStorage.setItem('checkbf_accessories', JSON.stringify(dbData));
+                loadData();
+                showSync();
+            } else if (localData && Object.keys(localData).length > 0) {
+                await window.checkbfAuth.saveToDB('accessories', localData);
+                showSync();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.checkbfAuth) {
+                window.checkbfAuth.onAuthChange(function(user) {
+                    updateAuthBar(user);
+                    if (user) syncFromDB();
+                });
+            }
+        });
+    </script>
+    <script>
+        firebase.initializeApp({
+            apiKey: "AIzaSyC10fTA0O6vpghuEanI52Yiyrtlkpmd8Nc",
+            authDomain: "checkbf-d1a2d.firebaseapp.com",
+            projectId: "checkbf-d1a2d",
+            storageBucket: "checkbf-d1a2d.firebasestorage.app",
+            messagingSenderId: "79682535947",
+            appId: "1:79682535947:web:714e3f81408d7a0d0dbd0e"
+        });
+    </script>
+    <script src="auth.js"></script>
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-modal">
+            <h2 id="authTitle">Вход</h2>
+            <div class="error-msg" id="authError"></div>
+            <input type="email" id="authEmail" placeholder="Email" autocomplete="off">
+            <input type="password" id="authPass" placeholder="Пароль" autocomplete="new-password">
+            <button class="auth-submit" id="authSubmit" onclick="handleAuth()">Войти</button>
+            <button class="google-btn" onclick="handleGoogleAuth()">Войти через Google</button>
+            <span class="switch-link" id="authSwitch" onclick="toggleAuthMode()">Нет аккаунта? Регистрация</span>
+            <br><br>
+            <span class="switch-link" onclick="closeAuthModal()">Позже</span>
+        </div>
+    </div>
+    <script>
+        var isRegisterMode = false;
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('authTitle').textContent = isRegisterMode ? 'Регистрация' : 'Вход';
+            document.getElementById('authSubmit').textContent = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
+            document.getElementById('authSwitch').textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
+            document.getElementById('authError').textContent = '';
+        }
+        function handleAuth() {
+            var email = document.getElementById('authEmail').value.trim();
+            var pass = document.getElementById('authPass').value;
+            var errEl = document.getElementById('authError');
+            errEl.textContent = '';
+            if (!email || !pass) { errEl.textContent = 'Заполните все поля'; return; }
+            if (email === 'test' && pass === 'test') {
+                window.checkbfAuth.enterTestMode();
+                closeAuthModal();
+                return;
+            }
+            var a = firebase.auth();
+            var method = isRegisterMode
+                ? a.createUserWithEmailAndPassword(email, pass)
+                : a.signInWithEmailAndPassword(email, pass);
+            method.then(function() { closeAuthModal(); }).catch(function(e) {
+                var msg = e.code === 'auth/email-already-in-use' ? 'Email уже зарегистрирован' :
+                          e.code === 'auth/wrong-password' ? 'Неверный пароль' :
+                          e.code === 'auth/user-not-found' ? 'Пользователь не найден' :
+                          e.code === 'auth/weak-password' ? 'Пароль минимум 6 символов' :
+                          e.code === 'auth/invalid-email' ? 'Некорректный email' :
+                          'Ошибка: ' + e.message;
+                errEl.textContent = msg;
+            });
+        }
+        function handleGoogleAuth() {
+            var a = firebase.auth();
+            var p = new firebase.auth.GoogleAuthProvider();
+            a.signInWithPopup(p).then(function() { closeAuthModal(); }).catch(function(e) {
+                document.getElementById('authError').textContent = 'Ошибка Google: ' + e.message;
+            });
+        }
+        function openAuthModal() { document.getElementById('authOverlay').classList.add('active'); }
+        function closeAuthModal() { document.getElementById('authOverlay').classList.remove('active'); document.getElementById('authError').textContent = ''; }
+    </script>
+</body>
+</html>
