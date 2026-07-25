@@ -1,17 +1,46 @@
 window.checkbfAuth = {
     user: null,
     listeners: [],
-    authReady: false
+    authReady: false,
+    testMode: false
 };
 
-var auth = firebase.auth();
-var db = firebase.firestore();
+var _auth = null;
+var _db = null;
 
-auth.onAuthStateChanged(function(user) {
-    window.checkbfAuth.user = user;
+function _getAuth() {
+    if (!_auth) _auth = firebase.auth();
+    return _auth;
+}
+function _getDb() {
+    if (!_db) _db = firebase.firestore();
+    return _db;
+}
+
+function _initFirebase() {
+    try {
+        firebase.app();
+    } catch(e) {
+        return;
+    }
+    try {
+        var a = _getAuth();
+        a.onAuthStateChanged(function(user) {
+            if (window.checkbfAuth.testMode) return;
+            window.checkbfAuth.user = user;
+            window.checkbfAuth.authReady = true;
+            window.checkbfAuth.listeners.forEach(function(fn) { fn(user); });
+        });
+    } catch(e) {}
+}
+
+_initFirebase();
+
+if (localStorage.getItem('checkbf_test_mode') === '1') {
+    window.checkbfAuth.testMode = true;
+    window.checkbfAuth.user = { email: 'test', uid: 'test-local', displayName: 'Test' };
     window.checkbfAuth.authReady = true;
-    window.checkbfAuth.listeners.forEach(function(fn) { fn(user); });
-});
+}
 
 window.checkbfAuth.onAuthChange = function(fn) {
     window.checkbfAuth.listeners.push(fn);
@@ -19,13 +48,25 @@ window.checkbfAuth.onAuthChange = function(fn) {
 };
 
 window.checkbfAuth.logout = function() {
-    return auth.signOut();
+    if (window.checkbfAuth.testMode) {
+        window.checkbfAuth.testMode = false;
+        window.checkbfAuth.user = null;
+        window.checkbfAuth.authReady = false;
+        localStorage.removeItem('checkbf_test_mode');
+        window.checkbfAuth.listeners.forEach(function(fn) { fn(null); });
+        return Promise.resolve();
+    }
+    return _getAuth().signOut();
 };
 
 window.checkbfAuth.loadFromDB = function(page) {
-    var u = window.checkbfAuth.user || auth.currentUser;
+    if (window.checkbfAuth.testMode) {
+        var raw = localStorage.getItem('checkbf_test_' + page);
+        return Promise.resolve(raw ? JSON.parse(raw) : null);
+    }
+    var u = window.checkbfAuth.user || (_auth ? _auth.currentUser : null);
     if (!u) return Promise.resolve(null);
-    return db.collection("users").doc(u.uid).get().then(function(snap) {
+    return _getDb().collection("users").doc(u.uid).get().then(function(snap) {
         if (snap.exists) {
             var data = snap.data();
             return data[page] || null;
@@ -38,11 +79,15 @@ window.checkbfAuth.loadFromDB = function(page) {
 };
 
 window.checkbfAuth.saveToDB = function(page, data) {
-    var u = window.checkbfAuth.user || auth.currentUser;
+    if (window.checkbfAuth.testMode) {
+        localStorage.setItem('checkbf_test_' + page, JSON.stringify(data));
+        return Promise.resolve();
+    }
+    var u = window.checkbfAuth.user || (_auth ? _auth.currentUser : null);
     if (!u) return Promise.resolve();
     var update = {};
     update[page] = data;
-    return db.collection("users").doc(u.uid).set(update, { merge: true }).catch(function(e) {
+    return _getDb().collection("users").doc(u.uid).set(update, { merge: true }).catch(function(e) {
         console.error("Save to DB error:", e);
     });
 };
@@ -74,8 +119,21 @@ function showAuthRequiredOverlay() {
 }
 
 window.checkbfAuth.requireAuth = function() {
+    if (window.checkbfAuth.testMode) return true;
     if (window.checkbfAuth.user) return true;
     if (!window.checkbfAuth.authReady) return true;
     showAuthRequiredOverlay();
     return false;
+};
+
+window.checkbfAuth.enterTestMode = function() {
+    window.checkbfAuth.testMode = true;
+    window.checkbfAuth.user = { email: 'test', uid: 'test-local', displayName: 'Test' };
+    window.checkbfAuth.authReady = true;
+    localStorage.setItem('checkbf_test_mode', '1');
+    window.checkbfAuth.listeners.forEach(function(fn) { fn(window.checkbfAuth.user); });
+};
+
+window.checkbfAuth.isFirebaseReady = function() {
+    try { return !!firebase.app(); } catch(e) { return false; }
 };

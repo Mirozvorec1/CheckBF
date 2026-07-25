@@ -7,6 +7,7 @@
     <script src="lib/firebase-app-compat.js"></script>
     <script src="lib/firebase-auth-compat.js"></script>
     <script src="lib/firebase-firestore-compat.js"></script>
+    <script src="auth.js"></script>
     <style>
         html, body {
             margin: 0;
@@ -478,6 +479,11 @@
             var errEl = document.getElementById('authError');
             errEl.textContent = '';
             if (!email || !pass) { errEl.textContent = 'Заполните все поля'; return; }
+            if (email === 'test' && pass === 'test') {
+                window.checkbfAuth.enterTestMode();
+                document.getElementById('authOverlay').classList.remove('active');
+                return;
+            }
             var method = isRegisterMode
                 ? auth.createUserWithEmailAndPassword(email, pass)
                 : auth.signInWithEmailAndPassword(email, pass);
@@ -518,13 +524,25 @@
             if (user) {
                 var photo = user.photoURL || '';
                 bar.innerHTML = '<div class="user-info"><img src="' + photo + '" alt=""><span class="email">' + (user.email || 'Google') + '</span></div>' +
-                    '<button class="logout-btn" onclick="auth.signOut()">Выйти</button>';
+                    '<button class="logout-btn" onclick="doLogout()">Выйти</button>';
             } else {
                 bar.innerHTML = '<button class="login-btn" onclick="openAuthModal()">Войти</button>';
             }
         }
 
+        function doLogout() {
+            if (window.checkbfAuth && window.checkbfAuth.testMode) {
+                window.checkbfAuth.logout().then(function() {
+                    updateAuthBar(null);
+                    document.getElementById('avatar').src = DEFAULT_AVATAR;
+                });
+            } else {
+                auth.signOut();
+            }
+        }
+
         auth.onAuthStateChanged(function(user) {
+            if (window.checkbfAuth && window.checkbfAuth.testMode) return;
             updateAuthBar(user);
             if (user) {
                 loadRobloxProfile(user.email);
@@ -532,6 +550,21 @@
                 document.getElementById('avatar').src = DEFAULT_AVATAR;
             }
         });
+
+        window.checkbfAuth.onAuthChange(function(user) {
+            if (!window.checkbfAuth.testMode) return;
+            updateAuthBar(user);
+            if (user) {
+                loadRobloxProfile(user.email);
+            } else {
+                document.getElementById('avatar').src = DEFAULT_AVATAR;
+            }
+        });
+
+        if (window.checkbfAuth.testMode) {
+            updateAuthBar(window.checkbfAuth.user);
+            loadRobloxProfile(window.checkbfAuth.user.email);
+        }
     </script>
 </body>
 </html>
