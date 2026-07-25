@@ -884,6 +884,14 @@
             e.stopPropagation();
             if (!requireAuth()) return;
             owned[name] = !owned[name];
+            if (owned[name]) {
+                var parts = name.split(':');
+                var catKey = parts[0];
+                var skinName = parts.slice(1).join(':');
+                if ((hasRecipeSkins[catKey] || []).indexOf(skinName) !== -1) {
+                    owned[name + '_recipe'] = true;
+                }
+            }
             saveData();
             if (hasActiveFilter()) {
                 applySkinFilter();
