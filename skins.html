@@ -103,6 +103,101 @@
         .search:focus {
             border-color: #8cf;
         }
+        .filter-wrap {
+            position: relative;
+        }
+        .filter-btn {
+            height: 36px;
+            padding: 0 14px;
+            border: 1px solid #555;
+            border-radius: 10px;
+            background: #2a2a3a;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .filter-btn:hover {
+            background: #33334a;
+            color: #fff;
+        }
+        .filter-btn.active {
+            border-color: #8cf;
+            color: #8cf;
+        }
+        .filter-btn svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+        .filter-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            z-index: 25;
+        }
+        .filter-dropdown.open {
+            display: block;
+        }
+        .filter-row {
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .filter-row:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .filter-label {
+            color: #ccc;
+            font-size: 0.82rem;
+            flex: 1;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .filter-tbtns {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .filter-tbtn {
+            width: 24px;
+            height: 22px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background: #1a1a2a;
+            color: #666;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            line-height: 1;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .filter-tbtn.plus.on {
+            background: #2e7d32;
+            border-color: #43a047;
+            color: #fff;
+        }
+        .filter-tbtn.minus.on {
+            background: #c62828;
+            border-color: #e53935;
+            color: #fff;
+        }
+        .filter-tbtn:hover {
+            opacity: 0.85;
+        }
         .categories {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -173,6 +268,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            flex-shrink: 0;
         }
         .sub-back:hover {
             background: #33334a;
@@ -200,6 +296,11 @@
             margin: 0;
             color: #fff;
             -webkit-text-stroke: 0.5px #000;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .sub-list {
             display: grid;
@@ -396,6 +497,28 @@
     <h1>Скины</h1>
     <div class="toolbar">
         <input class="search" id="searchInput" type="text" placeholder="Поиск скина..." oninput="filterBySearch()" autocomplete="off">
+        <div class="filter-wrap">
+            <button class="filter-btn" id="filterBtn" onclick="toggleFilterDropdown()">
+                <svg viewBox="0 0 16 16" fill="none">
+                    <rect x="2" y="3" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/>
+                    <rect x="2" y="7" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/>
+                    <rect x="2" y="11" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/>
+                    <circle cx="5" cy="4" r="1.5" fill="currentColor"/>
+                    <circle cx="10" cy="8" r="1.5" fill="currentColor"/>
+                    <circle cx="7" cy="12" r="1.5" fill="currentColor"/>
+                </svg>
+                <span>Фильтр</span>
+            </button>
+            <div class="filter-dropdown" id="filterDropdown">
+                <div class="filter-row">
+                    <span class="filter-label">Полученные</span>
+                    <div class="filter-tbtns">
+                        <button class="filter-tbtn plus" data-filter="owned" data-val="1" onclick="toggleFilterBtn(this)">+</button>
+                        <button class="filter-tbtn minus" data-filter="owned" data-val="-1" onclick="toggleFilterBtn(this)">-</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="categories" id="categoriesView"></div>
@@ -578,17 +701,129 @@
             document.getElementById('categoriesView').style.display = 'none';
             document.getElementById('subView').classList.add('active');
             document.getElementById('subTitle').textContent = categories[key].name;
-            renderSubSkins();
+            if (hasActiveFilter()) {
+                renderSubSkins();
+            } else {
+                renderSubSkins();
+            }
         }
 
         function backToCategories() {
             currentCat = '';
-            document.getElementById('categoriesView').style.display = '';
             document.getElementById('subView').classList.remove('active');
             document.getElementById('searchResults').classList.remove('active');
             document.getElementById('searchInput').value = '';
-            renderCategories();
+            if (hasActiveFilter()) {
+                categoriesView = document.getElementById('categoriesView');
+                categoriesView.style.display = 'none';
+                document.getElementById('searchResults').classList.add('active');
+                renderGlobalFilterResults(getFilterState('owned'));
+            } else {
+                document.getElementById('categoriesView').style.display = '';
+                renderCategories();
+            }
         }
+
+        function toggleFilterBtn(btn) {
+            var siblings = btn.parentElement.querySelectorAll('.filter-tbtn');
+            if (btn.classList.contains('on')) {
+                btn.classList.remove('on');
+            } else {
+                siblings.forEach(function(s) { s.classList.remove('on'); });
+                btn.classList.add('on');
+            }
+            applySkinFilter();
+        }
+        function getFilterState(filterName) {
+            var btn = document.querySelector('.filter-tbtn[data-filter="' + filterName + '"].on');
+            if (!btn) return 0;
+            return parseInt(btn.dataset.val);
+        }
+        function hasActiveFilter() {
+            return getFilterState('owned') !== 0;
+        }
+        function applySkinFilter() {
+            var ownedState = getFilterState('owned');
+            var categoriesView = document.getElementById('categoriesView');
+            var subView = document.getElementById('subView');
+            var searchResults = document.getElementById('searchResults');
+            var searchList = document.getElementById('searchList');
+            var filterBtn = document.getElementById('filterBtn');
+
+            filterBtn.classList.toggle('active', ownedState !== 0);
+
+            if (ownedState === 0) {
+                searchResults.classList.remove('active');
+                if (currentCat) {
+                    subView.classList.add('active');
+                    categoriesView.style.display = 'none';
+                    renderSubSkins();
+                } else {
+                    categoriesView.style.display = '';
+                    subView.classList.remove('active');
+                    renderCategories();
+                }
+                return;
+            }
+
+            if (currentCat) {
+                subView.classList.add('active');
+                categoriesView.style.display = 'none';
+                searchResults.classList.remove('active');
+                renderSubSkins();
+            } else {
+                categoriesView.style.display = 'none';
+                subView.classList.remove('active');
+                searchResults.classList.add('active');
+                searchList.innerHTML = '';
+                renderGlobalFilterResults(ownedState);
+            }
+        }
+
+        function renderGlobalFilterResults(ownedState) {
+            var searchList = document.getElementById('searchList');
+            Object.keys(categories).forEach(function(key) {
+                var cat = categories[key];
+                var isDouble = cat.double;
+                cat.skins.forEach(function(skin) {
+                    var owKey = key + ':' + skin.name;
+                    var isOwned = owned[owKey] === true;
+                    if (ownedState === 1 && !isOwned) return;
+                    if (ownedState === -1 && isOwned) return;
+                    var hasRecipe = (hasRecipeSkins[key] || []).indexOf(skin.name) !== -1;
+                    var recipeOwned = owned[owKey + '_recipe'] === true;
+                    var isDisabled = disabledSkins.indexOf(skin.name) !== -1;
+                    var div = document.createElement('div');
+                    div.className = 'skin-item' + (isOwned ? ' owned' : '');
+                    div.dataset.name = skin.name;
+                    var imgHtml = '';
+                    if (isDouble && skin.img1) {
+                        imgHtml = '<div class="double-img"><img src="' + skin.img1 + '" alt="' + skin.name + '" onerror="this.style.display=\'none\'"><img src="' + skin.img2 + '" alt="' + skin.name + '" onerror="this.style.display=\'none\'"></div>';
+                    } else {
+                        imgHtml = '<img src="' + skin.img + '" alt="' + skin.name + '" onerror="this.style.display=\'none\'">';
+                    }
+                    var btns = '';
+                    if (isDisabled) {
+                        btns = '<button class="own-btn disabled" disabled>Недоступен</button>';
+                    } else if (hasRecipe) {
+                        btns = '<div class="btn-row">' +
+                            '<button class="recipe-btn' + (recipeOwned ? ' has-recipe' : '') + '" onclick="toggleRecipe(event, \'' + owKey + '\')">' + (recipeOwned ? '✓ Рецепт' : 'Рецепт') + '</button>' +
+                            '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + owKey + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>' +
+                            '</div>';
+                    } else {
+                        btns = '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + owKey + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
+                    }
+                    div.innerHTML = '<span class="cat-label">' + cat.name + '</span>' + imgHtml + '<h3>' + skin.name + '</h3>' + btns;
+                    searchList.appendChild(div);
+                });
+            });
+        }
+        function toggleFilterDropdown() {
+            document.getElementById('filterDropdown').classList.toggle('open');
+        }
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.filter-wrap')) document.getElementById('filterDropdown').classList.remove('open');
+        });
 
         var hasRecipeSkins = {
             aura: ["Апельсиновая Сода", "Яркий Жёлтый", "Солнечный Жёлтый", "Слаймовый Зелёный", "Зелёная Ящерица", "Синие Джинсы", "Пухлый Фиолетовый", "Огненная Роза", "Волна Тепла", "Абсолютный Ноль", "Снежный Белый", "Чистый Красный", "Зимнее Небо", "Кицунэ", "Дракон"],
@@ -617,6 +852,9 @@
                 var hasRecipe = (hasRecipeSkins[currentCat] || []).indexOf(skin.name) !== -1;
                 var recipeOwned = owned[owKey + '_recipe'] === true;
                 var isDisabled = disabledSkins.indexOf(skin.name) !== -1;
+                var ownedState = getFilterState('owned');
+                if (ownedState === 1 && !isOwned) return;
+                if (ownedState === -1 && isOwned) return;
                 var div = document.createElement('div');
                 div.className = 'skin-item' + (isOwned ? ' owned' : '');
                 div.dataset.name = skin.name;
@@ -647,7 +885,11 @@
             if (!requireAuth()) return;
             owned[name] = !owned[name];
             saveData();
-            if (currentCat) renderSubSkins();
+            if (hasActiveFilter()) {
+                applySkinFilter();
+            } else if (currentCat) {
+                renderSubSkins();
+            }
         }
 
         function toggleRecipe(e, name) {
@@ -655,7 +897,11 @@
             if (!requireAuth()) return;
             owned[name + '_recipe'] = !owned[name + '_recipe'];
             saveData();
-            if (currentCat) renderSubSkins();
+            if (hasActiveFilter()) {
+                applySkinFilter();
+            } else if (currentCat) {
+                renderSubSkins();
+            }
         }
 
         function filterBySearch() {
