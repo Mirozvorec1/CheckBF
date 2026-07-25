@@ -115,6 +115,7 @@
         }
         .o1 { width: 180px; height: 100px; top: 5%; left: 2%; }
         .o5 { width: 180px; height: 100px; top: 5%; left: 22%; }
+        .o10 { width: 180px; height: 100px; top: 5%; left: 42%; }
         .o7 { width: 180px; height: 100px; top: 5%; right: 22%; }
         .o8 { width: 180px; height: 100px; top: 5%; right: 2%; }
         .o4 { width: 180px; height: 100px; top: 40%; left: 2%; }
@@ -317,6 +318,9 @@
         <div class="oval o5" onclick="location.href='skins.html'">
             <h2>Скины</h2>
         </div>
+        <div class="oval o10" onclick="location.href='mutations.html'">
+            <h2>Мутации</h2>
+        </div>
         <div class="oval o7 dim">
             <h2>Удочки</h2>
         </div>
@@ -356,6 +360,7 @@
             var o7 = document.querySelector('.o7');
             var o8 = document.querySelector('.o8');
             var o9 = document.querySelector('.o9');
+            var o10 = document.querySelector('.o10');
             var r1 = o1.getBoundingClientRect();
             var r2 = o2.getBoundingClientRect();
             var r3 = o3.getBoundingClientRect();
@@ -365,6 +370,7 @@
             var r7 = o7.getBoundingClientRect();
             var r8 = o8.getBoundingClientRect();
             var r9 = o9.getBoundingClientRect();
+            var r10 = o10.getBoundingClientRect();
 
             var lines = '';
             var defs = '<defs><marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#fff"/></marker></defs>';
@@ -383,7 +389,7 @@
                 lines += '<line x1="' + sx + '" y1="' + sy + '" x2="' + ex + '" y2="' + ey + '" stroke="#fff" stroke-width="' + (width || 1.5) + '" marker-end="url(#ah)" opacity="' + (opacity || 0.6) + '"/>';
             }
 
-            [r1, r2, r3, r4, r5, r6, r7, r8, r9].forEach(function(r) {
+            [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10].forEach(function(r) {
                 arrowFromTo(cx, cy, r.left + r.width / 2, r.top + r.height / 2, {width: avRect.width, height: avRect.height}, {width: r.width, height: r.height});
             });
 

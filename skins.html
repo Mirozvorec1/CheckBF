@@ -452,12 +452,17 @@
         .sync-indicator {
             display: none;
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #2a2a3a;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
             border: 1px solid #43a047;
             border-radius: 10px;
             padding: 6px 12px;
+            color: #43a047;
+            font-size: 0.7rem;
+            z-index: 30;
+        }
             color: #43a047;
             font-size: 0.7rem;
             z-index: 30;
@@ -577,7 +582,6 @@
                 { name: "Кровавая Луна", img1: "assets/skins/dragon/Dragon_29_Blood_Moon.webp", img2: "assets/skins/dragon/Dragon_29_Blood_Moon2.webp" }
             ]},
             kitsune: { name: "Кицунэ", skins: [
-                { name: "Багряный (Эмпирей)", img: "assets/skins/Empyrean_Fruit.webp" },
                 { name: "Галактический (Эмпирей)", img: "assets/skins/Empyrean_Fruit_29.webp" }
             ]},
             pain: { name: "Боль", skins: [
@@ -619,12 +623,6 @@
                 { name: "Термитная", img: "assets/skins/Thermite_Bomb_Fruit.webp" },
                 { name: "Лазурная", img: "assets/skins/Azura_Bomb_Fruit.webp" },
                 { name: "Праздничная", img: "assets/skins/Celebration_Bomb_Fruit.webp" }
-            ]},
-            tiger: { name: "Тигр", skins: [
-                { name: "Оборотень", img: "assets/skins/Werewolf_Fruit.webp" }
-            ]},
-            yeti: { name: "Йети", skins: [
-                { name: "Бес", img: "assets/skins/Fiend_Fruit.webp" }
             ]},
             darkblade: { name: "Тёмный Клинок", skins: [
                 { name: "Убийца Богов", img: "assets/skins/Title_Slayer_of_God.webp" }
@@ -669,8 +667,6 @@
             diamond: "assets/fruits/DiamondB.webp",
             eagle: "assets/fruits/EagleB.webp",
             bomb: "assets/fruits/BombB.webp",
-            tiger: "assets/fruits/TigerB.webp",
-            yeti: "assets/fruits/YetiFruitB.webp",
             darkblade: "assets/swords/Dark_Blade.webp"
         };
 
@@ -835,8 +831,6 @@
             diamond: [],
             eagle: ["Бархат", "Сокол", "Золотой Мох", "Синее Небо", "Оранжевый Крем"],
             bomb: [],
-            tiger: [],
-            yeti: [],
             darkblade: []
         };
         var disabledSkins = ["Хакер", "Белый", "Лиловая Ночь", "Небесный Феникс", "Кровавая Луна"];
@@ -998,10 +992,13 @@
         function showSync() {
             var el = document.getElementById('syncIndicator');
             el.classList.add('active');
-            setTimeout(function() { el.classList.remove('active'); }, 1500);
+            clearTimeout(el._hideTimer);
+            el._hideTimer = setTimeout(function() { el.classList.remove('active'); }, 1500);
         }
         function hideSync() {
-            document.getElementById('syncIndicator').classList.remove('active');
+            var el = document.getElementById('syncIndicator');
+            clearTimeout(el._hideTimer);
+            el._hideTimer = setTimeout(function() { el.classList.remove('active'); }, 500);
         }
 
         function resetToDefaults() {

@@ -567,12 +567,17 @@
         .sync-indicator {
             display: none;
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #2a2a3a;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
             border: 1px solid #43a047;
             border-radius: 10px;
             padding: 6px 12px;
+            color: #43a047;
+            font-size: 0.7rem;
+            z-index: 30;
+        }
             color: #43a047;
             font-size: 0.7rem;
             z-index: 30;
@@ -1171,10 +1176,13 @@
         function showSync() {
             var el = document.getElementById('syncIndicator');
             el.classList.add('active');
-            setTimeout(function() { el.classList.remove('active'); }, 1500);
+            clearTimeout(el._hideTimer);
+            el._hideTimer = setTimeout(function() { el.classList.remove('active'); }, 1500);
         }
         function hideSync() {
-            document.getElementById('syncIndicator').classList.remove('active');
+            var el = document.getElementById('syncIndicator');
+            clearTimeout(el._hideTimer);
+            el._hideTimer = setTimeout(function() { el.classList.remove('active'); }, 500);
         }
 
         function resetToDefaults() {

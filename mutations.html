@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мутации — CheckBF</title>
+    <script src="lib/firebase-app-compat.js"></script>
+    <script src="lib/firebase-auth-compat.js"></script>
+    <script src="lib/firebase-firestore-compat.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            height: 100vh;
+            overflow: hidden;
+            background-color: #1a1a1a;
+            color: #c900c9;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            isolation: isolate;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+        }
+        body.gradient-bg::before {
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d1b4e 30%, #1a0a2e 60%, #0a0a0a 100%);
+            filter: none;
+        }
+        body.gradient-bg {
+            background-color: transparent;
+        }
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle ease-in-out infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.1; transform: translateY(0); }
+            50% { opacity: 0.8; transform: translateY(-20px); }
+        }
+        .back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1rem;
+            border: 1px solid #555;
+            border-radius: 16px;
+            padding: 6px 16px;
+            background: #2a2a3a;
+            z-index: 20;
+        }
+        .back:hover {
+            background: #33334a;
+        }
+        .main {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            width: 100%;
+            padding: 0;
+            padding-top: 60px;
+            z-index: 1;
+        }
+        .main h1 {
+            font-size: 1.4rem;
+            color: #8cf;
+            -webkit-text-stroke: 0.5px #000;
+            margin: 0;
+            padding: 16px 16px 10px;
+        }
+        .list {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+            width: 100%;
+            padding: 0 16px 16px;
+            overflow-y: auto;
+            flex: 1;
+            align-content: start;
+        }
+        .item {
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 110px;
+            padding: 10px 4px 28px;
+            gap: 0;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .item.max-mastery {
+            border-color: #ffc107;
+            box-shadow: 0 0 8px rgba(255,193,7,0.3);
+        }
+        .item:hover {
+            background: #33334a;
+        }
+        .item img {
+            width: 36px;
+            height: 36px;
+            margin: 0 0 4px 0;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+        .item .info {
+            padding: 0 2px;
+            align-items: center;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+        }
+        .item h3 {
+            font-size: 0.7rem;
+            font-weight: 600;
+            line-height: 1.15;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+            color: #fff;
+            background: rgba(239,83,80,0.35);
+            margin: 0;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .item p {
+            font-size: 0.6rem;
+            margin-top: 1px;
+            color: #bbb;
+        }
+        .item .eat-icon {
+            position: absolute;
+            bottom: 4px;
+            left: 4%;
+            width: 92%;
+            height: 24px;
+            font-size: 0.7rem;
+            border-radius: 5px;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.05);
+            color: #666;
+        }
+        .item .eat-icon:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .item .eat-icon.eaten {
+            background: #2e7d32;
+            color: #4caf50;
+        }
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 30;
+            align-items: center;
+            justify-content: center;
+        }
+        .popup-overlay.active {
+            display: flex;
+        }
+        .popup {
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 14px;
+            padding: 30px 40px;
+            min-width: 280px;
+        }
+        .popup h2 {
+            font-size: 1.4rem;
+            color: #8cf;
+            -webkit-text-stroke: 0.5px #000;
+            margin: 0;
+        }
+        .popup-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .popup-header img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+        .popup .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .popup .label {
+            color: #999;
+            font-size: 0.9rem;
+        }
+        .popup .value {
+            color: #fff;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-bottom: 1px dashed #666;
+            padding: 0 4px;
+            min-width: 40px;
+            text-align: center;
+        }
+        .popup .value:hover {
+            border-bottom-color: #aaa;
+        }
+        .popup .value-input {
+            color: #fff;
+            font-size: 0.9rem;
+            background: #1a1a2a;
+            border: 1px solid #555;
+            border-radius: 6px;
+            padding: 4px 8px;
+            width: 60px;
+            text-align: center;
+            outline: none;
+        }
+        .popup .controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ctrl-btn {
+            width: 30px;
+            height: 28px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background: #1a1a2a;
+            color: #ccc;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ctrl-btn:hover {
+            background: #33334a;
+            border-color: #8cf;
+            color: #fff;
+        }
+        .popup .close {
+            margin-top: 18px;
+            background: none;
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 12px;
+            padding: 6px 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .popup .close:hover {
+            background: #33334a;
+        }
+        .auth-bar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .auth-bar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            padding: 6px 14px;
+            color: #ccc;
+            font-size: 0.8rem;
+        }
+        .auth-bar .user-info img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+        }
+        .auth-bar .user-info span {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .auth-bar .logout-btn {
+            background: none;
+            border: 1px solid #c62828;
+            color: #c62828;
+            border-radius: 6px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .auth-bar .logout-btn:hover {
+            background: #c62828;
+            color: #fff;
+        }
+        .auth-bar .login-btn {
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            padding: 8px 18px;
+            color: #8cf;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .auth-bar .login-btn:hover {
+            background: #33334a;
+            border-color: #8cf;
+        }
+        .sync-indicator {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            border: 1px solid #43a047;
+            border-radius: 10px;
+            padding: 6px 12px;
+            color: #43a047;
+            font-size: 0.7rem;
+            z-index: 30;
+        }
+        .sync-indicator.active { display: block; }
+        .auth-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 50;
+            justify-content: center;
+            align-items: center;
+        }
+        .auth-overlay.active { display: flex; }
+        .auth-modal {
+            background: #1e1e2e;
+            border: 1px solid #555;
+            border-radius: 16px;
+            padding: 30px;
+            width: 340px;
+            text-align: center;
+        }
+        .auth-modal h2 { color: #8cf; margin: 0 0 20px; font-size: 1.3rem; }
+        .auth-modal input {
+            width: 100%; padding: 10px 14px; margin-bottom: 12px;
+            border: 1px solid #555; border-radius: 8px;
+            background: #2a2a3a; color: #fff; font-size: 0.9rem; box-sizing: border-box;
+        }
+        .auth-modal input:focus { outline: none; border-color: #8cf; }
+        .auth-modal .auth-submit {
+            width: 100%; padding: 10px; border: none; border-radius: 8px;
+            background: #5c6bc0; color: #fff; font-size: 0.9rem; cursor: pointer; margin-bottom: 10px;
+        }
+        .auth-modal .auth-submit:hover { background: #7986cb; }
+        .auth-modal .google-btn {
+            width: 100%; padding: 10px; border: 1px solid #555; border-radius: 8px;
+            background: #2a2a3a; color: #ccc; font-size: 0.9rem; cursor: pointer; margin-bottom: 12px;
+        }
+        .auth-modal .google-btn:hover { background: #33334a; border-color: #8cf; }
+        .auth-modal .switch-link { color: #8cf; cursor: pointer; font-size: 0.8rem; }
+        .auth-modal .error-msg { color: #c62828; font-size: 0.8rem; margin-bottom: 10px; min-height: 1.2em; }
+    </style>
+</head>
+<body class="gradient-bg">
+    <div class="particles" id="particles"></div>
+    <div class="auth-bar" id="authBar"></div>
+    <div class="sync-indicator" id="syncIndicator">Синхронизация...</div>
+    <a class="back" href="index.html">&larr; Назад</a>
+    <div class="main">
+        <h1>Мутации</h1>
+        <div class="list">
+            <div class="item" data-name="Эмпирей (Багрянный)" data-mastery="0/600" data-eaten="false" data-rarity="mythical">
+                <img src="assets/mutations/Empyrean_Fruit.webp" alt="Empyrean">
+                <div class="info"><h3>Эмпирей (Багрянный)</h3><p>0/600</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+            </div>
+            <div class="item" data-name="Бес" data-mastery="0/600" data-eaten="false" data-rarity="mythical">
+                <img src="assets/mutations/Fiend_Fruit.webp" alt="Besa">
+                <div class="info"><h3>Бес</h3><p>0/600</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+            </div>
+            <div class="item" data-name="Оборотень" data-mastery="0/600" data-eaten="false" data-rarity="mythical">
+                <img src="assets/mutations/Werewolf_Fruit.webp" alt="Werewolf">
+                <div class="info"><h3>Оборотень</h3><p>0/600</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+            </div>
+        </div>
+    </div>
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup">
+            <div class="popup-header">
+                <img id="popupIcon" src="" alt="">
+                <h2 id="popupName"></h2>
+            </div>
+            <div class="row">
+                <span class="label">Мастерство:</span>
+                <div class="controls">
+                    <button class="ctrl-btn" onmousedown="startChange('mastery',-10)" onmouseup="stopChange()" onmouseleave="stopChange()">−</button>
+                    <span class="value" id="popupMastery"></span>
+                    <button class="ctrl-btn" onmousedown="startChange('mastery',10)" onmouseup="stopChange()" onmouseleave="stopChange()">+</button>
+                </div>
+            </div>
+            <button class="close" onclick="document.getElementById('popupOverlay').classList.remove('active')">Закрыть</button>
+        </div>
+    </div>
+    <script>
+        var currentItem = null;
+        var holdTimer = null;
+        var holdInterval = null;
+
+        function requireAuth() {
+            if (window.checkbfAuth && window.checkbfAuth.requireAuth) return window.checkbfAuth.requireAuth();
+            return false;
+        }
+
+        function toggleEaten(e, el) {
+            e.stopPropagation();
+            if (!requireAuth()) return;
+            var item = el.closest('.item');
+            var val = item.dataset.eaten === 'true' ? 'false' : 'true';
+            item.dataset.eaten = val;
+            el.textContent = val === 'true' ? '✓' : '⊘';
+            el.classList.toggle('eaten', val === 'true');
+            saveData();
+        }
+
+        function saveData() {
+            var data = {};
+            document.querySelectorAll('.item').forEach(function(item) {
+                data[item.dataset.name] = { mastery: item.dataset.mastery, eaten: item.dataset.eaten };
+            });
+            localStorage.setItem('checkbf_mutations', JSON.stringify(data));
+            if (window.checkbfAuth && window.checkbfAuth.user) {
+                showSync();
+                window.checkbfAuth.saveToDB('mutations', data).then(hideSync);
+            }
+        }
+
+        function updateItemText(item) {
+            var p = item.querySelector('p');
+            p.textContent = item.dataset.mastery;
+            var mastery = parseInt(item.dataset.mastery.split('/')[0]) || 0;
+            item.classList.toggle('max-mastery', mastery >= 600);
+        }
+
+        function loadData() {
+            var raw = localStorage.getItem('checkbf_mutations');
+            if (!raw) return;
+            var data = JSON.parse(raw);
+            document.querySelectorAll('.item').forEach(function(item) {
+                var saved = data[item.dataset.name];
+                if (saved) {
+                    item.dataset.mastery = saved.mastery;
+                    if (saved.eaten) {
+                        item.dataset.eaten = saved.eaten;
+                        var eatEl = item.querySelector('.eat-icon');
+                        if (eatEl) {
+                            eatEl.textContent = saved.eaten === 'true' ? '✓' : '⊘';
+                            eatEl.classList.toggle('eaten', saved.eaten === 'true');
+                        }
+                    }
+                    updateItemText(item);
+                }
+            });
+        }
+
+        loadData();
+
+        document.querySelectorAll('.item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                currentItem = item;
+                document.getElementById('popupName').textContent = item.dataset.name;
+                document.getElementById('popupMastery').textContent = item.dataset.mastery;
+                var img = item.querySelector('img');
+                document.getElementById('popupIcon').src = img ? img.src : '';
+                document.getElementById('popupOverlay').classList.add('active');
+            });
+        });
+
+        function enableMasteryEdit() {
+            if (!requireAuth()) return;
+            var el = document.getElementById('popupMastery');
+            if (el.tagName === 'INPUT') return;
+            var current = parseInt(el.textContent.split('/')[0]) || 0;
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'value-input';
+            input.value = current;
+            input.maxLength = 3;
+            input.autocomplete = 'off';
+            el.parentNode.replaceChild(input, el);
+            input.focus();
+            input.select();
+            function finishEdit() {
+                var val = parseInt(input.value) || 0;
+                val = Math.max(0, Math.min(600, val));
+                var span = document.createElement('span');
+                span.className = 'value';
+                span.id = 'popupMastery';
+                span.textContent = val + '/600';
+                span.onclick = enableMasteryEdit;
+                input.parentNode.replaceChild(span, input);
+                if (currentItem) {
+                    currentItem.dataset.mastery = val + '/600';
+                    updateItemText(currentItem);
+                    saveData();
+                }
+            }
+            input.addEventListener('blur', finishEdit);
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') input.blur();
+                if (e.key === 'Escape') { input.value = current; input.blur(); }
+            });
+            input.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (parseInt(this.value) > 600) this.value = '600';
+            });
+        }
+        document.getElementById('popupMastery').onclick = enableMasteryEdit;
+
+        function changeMastery(step) {
+            if (!requireAuth()) return;
+            var el = document.getElementById('popupMastery');
+            var parts = el.textContent.split('/');
+            var val = Math.max(0, Math.min(600, parseInt(parts[0]) + step));
+            el.textContent = val + '/600';
+            if (currentItem) {
+                currentItem.dataset.mastery = val + '/600';
+                updateItemText(currentItem);
+                saveData();
+            }
+        }
+        function startChange(type, step) {
+            if (type === 'mastery') changeMastery(step);
+            holdTimer = setTimeout(function() {
+                holdInterval = setInterval(function() {
+                    if (type === 'mastery') changeMastery(step);
+                }, 50);
+            }, 400);
+        }
+        function stopChange() {
+            clearTimeout(holdTimer);
+            clearInterval(holdInterval);
+        }
+        document.getElementById('popupOverlay').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+
+        function createParticles() {
+            var container = document.getElementById('particles');
+            container.innerHTML = '';
+            for (var i = 0; i < 60; i++) {
+                var p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.animationDuration = (Math.random() * 4 + 3) + 's';
+                p.style.animationDelay = (Math.random() * 3) + 's';
+                var size = Math.random() * 3 + 1;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                container.appendChild(p);
+            }
+        }
+        createParticles();
+
+        function showSync() {
+            var el = document.getElementById('syncIndicator');
+            el.classList.add('active');
+            clearTimeout(el._hideTimer);
+            el._hideTimer = setTimeout(function() { el.classList.remove('active'); }, 1500);
+        }
+        function hideSync() {
+            var el = document.getElementById('syncIndicator');
+            clearTimeout(el._hideTimer);
+            el._hideTimer = setTimeout(function() { el.classList.remove('active'); }, 500);
+        }
+
+        function resetToDefaults() {
+            localStorage.removeItem('checkbf_mutations');
+            document.querySelectorAll('.item').forEach(function(item) {
+                item.dataset.mastery = '0/600';
+                item.dataset.eaten = 'false';
+                var eatEl = item.querySelector('.eat-icon');
+                if (eatEl) { eatEl.textContent = '⊘'; eatEl.classList.remove('eaten'); }
+                updateItemText(item);
+            });
+        }
+
+        function updateAuthBar(user) {
+            var bar = document.getElementById('authBar');
+            if (user) {
+                var photo = user.photoURL || '';
+                bar.innerHTML = '<div class="user-info"><img src="' + photo + '" alt=""><span>' + (user.email || 'Google') + '</span></div>' +
+                    '<button class="logout-btn" id="logoutBtn">Выйти</button>';
+                document.getElementById('logoutBtn').onclick = function() {
+                    if (window.checkbfAuth) window.checkbfAuth.logout();
+                };
+            } else {
+                bar.innerHTML = '<button class="login-btn" onclick="openAuthModal()">Войти</button>';
+                resetToDefaults();
+            }
+        }
+
+        async function syncFromDB() {
+            if (!window.checkbfAuth || !window.checkbfAuth.user) return;
+            var dbData = await window.checkbfAuth.loadFromDB('mutations');
+            var localData = null;
+            var raw = localStorage.getItem('checkbf_mutations');
+            if (raw) {
+                try { localData = JSON.parse(raw); } catch(e) {}
+            }
+            if (dbData && Object.keys(dbData).length > 0) {
+                localStorage.setItem('checkbf_mutations', JSON.stringify(dbData));
+                loadData();
+                showSync();
+            } else if (localData && Object.keys(localData).length > 0) {
+                await window.checkbfAuth.saveToDB('mutations', localData);
+                showSync();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.checkbfAuth) {
+                window.checkbfAuth.onAuthChange(function(user) {
+                    updateAuthBar(user);
+                    if (user) syncFromDB();
+                });
+            }
+        });
+    </script>
+    <script>
+        firebase.initializeApp({
+            apiKey: "AIzaSyC10fTA0O6vpghuEanI52Yiyrtlkpmd8Nc",
+            authDomain: "checkbf-d1a2d.firebaseapp.com",
+            projectId: "checkbf-d1a2d",
+            storageBucket: "checkbf-d1a2d.firebasestorage.app",
+            messagingSenderId: "79682535947",
+            appId: "1:79682535947:web:714e3f81408d7a0d0dbd0e"
+        });
+    </script>
+    <script src="auth.js"></script>
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-modal">
+            <h2 id="authTitle">Вход</h2>
+            <div class="error-msg" id="authError"></div>
+            <input type="email" id="authEmail" placeholder="Email" autocomplete="off">
+            <input type="password" id="authPass" placeholder="Пароль" autocomplete="new-password">
+            <button class="auth-submit" id="authSubmit" onclick="handleAuth()">Войти</button>
+            <button class="google-btn" onclick="handleGoogleAuth()">Войти через Google</button>
+            <span class="switch-link" id="authSwitch" onclick="toggleAuthMode()">Нет аккаунта? Регистрация</span>
+            <br><br>
+            <span class="switch-link" onclick="closeAuthModal()">Позже</span>
+        </div>
+    </div>
+    <script>
+        var isRegisterMode = false;
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('authTitle').textContent = isRegisterMode ? 'Регистрация' : 'Вход';
+            document.getElementById('authSubmit').textContent = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
+            document.getElementById('authSwitch').textContent = isRegisterMode ? 'Есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
+            document.getElementById('authError').textContent = '';
+        }
+        function openAuthModal() {
+            document.getElementById('authOverlay').classList.add('active');
+        }
+        function closeAuthModal() {
+            document.getElementById('authOverlay').classList.remove('active');
+        }
+        document.getElementById('authOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeAuthModal();
+        });
+        function handleAuth() {
+            var email = document.getElementById('authEmail').value.trim();
+            var pass = document.getElementById('authPass').value;
+            var errEl = document.getElementById('authError');
+            errEl.textContent = '';
+            if (!email || !pass) { errEl.textContent = 'Заполните все поля'; return; }
+            if (email === 'test' && pass === 'test') {
+                window.checkbfAuth.enterTestMode();
+                closeAuthModal();
+                return;
+            }
+            var a = firebase.auth();
+            var method = isRegisterMode
+                ? a.createUserWithEmailAndPassword(email, pass)
+                : a.signInWithEmailAndPassword(email, pass);
+            method.then(function() { closeAuthModal(); }).catch(function(e) {
+                var msg = e.code === 'auth/email-already-in-use' ? 'Email уже зарегистрирован' :
+                          e.code === 'auth/wrong-password' ? 'Неверный пароль' :
+                          e.code === 'auth/user-not-found' ? 'Пользователь не найден' :
+                          e.code === 'auth/weak-password' ? 'Пароль минимум 6 символов' :
+                          e.code === 'auth/invalid-email' ? 'Некорректный email' :
+                          'Ошибка: ' + e.message;
+                errEl.textContent = msg;
+            });
+        }
+        function handleGoogleAuth() {
+            var provider = new firebase.auth.GoogleAuthProvider();
+            firebase.auth().signInWithPopup(provider).then(function() {
+                closeAuthModal();
+            }).catch(function(e) {
+                document.getElementById('authError').textContent = 'Ошибка: ' + e.message;
+            });
+        }
+    </script>
+</body>
+</html>
