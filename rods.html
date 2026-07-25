@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Удочки — CheckBF</title>
+    <script src="lib/firebase-app-compat.js"></script>
+    <script src="lib/firebase-auth-compat.js"></script>
+    <script src="lib/firebase-firestore-compat.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            height: 100vh;
+            background-color: #1a1a1a;
+            color: #c900c9;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            isolation: isolate;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+        }
+        body.gradient-bg::before {
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d1b4e 30%, #1a0a2e 60%, #0a0a0a 100%);
+            filter: none;
+        }
+        body.gradient-bg {
+            background-color: transparent;
+        }
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle ease-in-out infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.1; transform: translateY(0); }
+            50% { opacity: 0.8; transform: translateY(-20px); }
+        }
+        .back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1rem;
+            border: 1px solid #555;
+            border-radius: 16px;
+            padding: 6px 16px;
+            background: #2a2a3a;
+            z-index: 20;
+        }
+        .back:hover {
+            background: #33334a;
+        }
+        .sidebar {
+            width: 180px;
+            background: rgba(30,30,40,0.85);
+            border-right: 1px solid #444;
+            display: flex;
+            flex-direction: column;
+            padding: 60px 0 20px 0;
+            flex-shrink: 0;
+        }
+        .sidebar button {
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 0.85rem;
+            padding: 10px 20px;
+            text-align: left;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+        .sidebar button:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+        }
+        .sidebar button.active {
+            color: #8cf;
+            border-left-color: #8cf;
+            background: rgba(100,180,255,0.08);
+        }
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 40px;
+            overflow: hidden;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin: 0 0 12px 0;
+            color: #fff;
+            -webkit-text-stroke: 1px #000;
+            text-align: center;
+        }
+        .search {
+            flex: 1;
+            max-width: 400px;
+            padding: 8px 16px;
+            border: 1px solid #555;
+            border-radius: 20px;
+            background: #2a2a3a;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .search::placeholder {
+            color: #777;
+        }
+        .search:focus {
+            border-color: #8cf;
+        }
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .sort-wrap {
+            position: relative;
+        }
+        .sort-btn {
+            height: 36px;
+            padding: 0 14px;
+            border: 1px solid #555;
+            border-radius: 10px;
+            background: #2a2a3a;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .sort-btn:hover {
+            background: #33334a;
+            color: #fff;
+        }
+        .sort-btn svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+        .sort-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 25;
+            min-width: 180px;
+        }
+        .sort-dropdown.open {
+            display: block;
+        }
+        .sort-dropdown button {
+            width: 100%;
+            padding: 10px 16px;
+            border: none;
+            background: none;
+            color: #ccc;
+            font-size: 0.85rem;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sort-dropdown button:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+        .sort-dropdown button.active {
+            color: #8cf;
+        }
+        .sort-dropdown .icon {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+        .filter-wrap {
+            position: relative;
+        }
+        .filter-btn {
+            height: 36px;
+            padding: 0 14px;
+            border: 1px solid #555;
+            border-radius: 10px;
+            background: #2a2a3a;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .filter-btn:hover {
+            background: #33334a;
+            color: #fff;
+        }
+        .filter-btn.active {
+            border-color: #8cf;
+            color: #8cf;
+        }
+        .filter-btn svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+        .filter-dropdown {
+            display: none;
+            position: absolute;
+            top: 42px;
+            right: 0;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            z-index: 25;
+        }
+        .filter-dropdown.open {
+            display: block;
+        }
+        .filter-row {
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .filter-row:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .filter-label {
+            color: #ccc;
+            font-size: 0.82rem;
+            flex: 1;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .filter-tbtns {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .filter-tbtn {
+            width: 24px;
+            height: 22px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background: #1a1a2a;
+            color: #666;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            line-height: 1;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .filter-tbtn.plus.on {
+            background: #2e7d32;
+            border-color: #43a047;
+            color: #fff;
+        }
+        .filter-tbtn.minus.on {
+            background: #c62828;
+            border-color: #e53935;
+            color: #fff;
+        }
+        .filter-tbtn:hover {
+            opacity: 0.85;
+        }
+        .list {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+            width: 100%;
+            padding: 0 10px;
+            overflow-y: auto;
+            flex: 1;
+            align-content: start;
+        }
+        .item {
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 10px 4px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 140px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: border-color 0.2s;
+            position: relative;
+            gap: 0;
+        }
+        .item.max-mastery {
+            border-color: #ffc107;
+            box-shadow: 0 0 8px rgba(255,193,7,0.3);
+        }
+        .item:hover {
+            background: #33334a;
+        }
+        .item img {
+            width: 70px;
+            height: 70px;
+            margin: 0 0 4px 0;
+            border-radius: 6px;
+        }
+        .item .info {
+            padding: 0 2px;
+            align-items: center;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+        }
+        .item h3 {
+            font-size: 0.7rem;
+            font-weight: 600;
+            line-height: 1.15;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+            color: #eee;
+            margin: 0;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .item[data-rarity="common"] h3 { background: rgba(255,255,255,0.15); }
+        .item[data-rarity="uncommon"] h3 { background: rgba(76,175,80,0.35); }
+        .item[data-rarity="rare"] h3 { background: rgba(66,165,245,0.35); }
+        .item[data-rarity="legendary"] h3 { background: rgba(244,143,177,0.35); }
+        .item p {
+            font-size: 0.6rem;
+            margin-top: 1px;
+            color: #bbb;
+        }
+        .item .eat-icon,
+        .item .fav-icon {
+            position: absolute;
+            bottom: 4px;
+            width: 48%;
+            height: 24px;
+            font-size: 0.7rem;
+            border-radius: 5px;
+        }
+        .item .eat-icon { left: 2%; }
+        .item .fav-icon { right: 2%; }
+        .item .eat-icon {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.05);
+            color: #888;
+        }
+        .item .eat-icon:hover { background: rgba(255,255,255,0.1); }
+        .item .eat-icon.eaten { background: #2e7d32; color: #4caf50; }
+        .item .eat-icon:not(.eaten) { color: #666; }
+        .item .fav-icon {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.05);
+            color: #555;
+        }
+        .item .fav-icon:hover { background: rgba(255,255,255,0.1); }
+        .item .fav-icon.faved { background: #e6a800; color: #ffc107; }
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 30;
+            align-items: center;
+            justify-content: center;
+        }
+        .popup-overlay.active { display: flex; }
+        .popup {
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 14px;
+            padding: 30px 40px;
+            min-width: 280px;
+        }
+        .popup h2 {
+            font-size: 1.4rem;
+            color: #8cf;
+            -webkit-text-stroke: 0.5px #000;
+            margin: 0;
+        }
+        .popup-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .popup-header img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+        .popup .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .popup .label { color: #999; font-size: 0.9rem; }
+        .popup .value {
+            color: #fff;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-bottom: 1px dashed #666;
+            padding: 0 4px;
+            min-width: 40px;
+            text-align: center;
+        }
+        .popup .value:hover { border-bottom-color: #aaa; }
+        .popup .value-input {
+            color: #fff;
+            font-size: 0.9rem;
+            background: #1a1a1a;
+            border: 1px solid #4caf50;
+            border-radius: 4px;
+            padding: 0 4px;
+            width: 50px;
+            text-align: center;
+            outline: none;
+        }
+        .popup .controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .popup .ctrl-btn {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #555;
+            background: #2a2a3a;
+            color: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .popup .ctrl-btn:hover { background: #33334a; }
+        .popup .close {
+            margin-top: 18px;
+            background: none;
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 10px;
+            padding: 6px 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .popup .close:hover { background: #33334a; }
+        .auth-bar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .auth-bar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            padding: 5px 12px;
+            color: #ccc;
+            font-size: 0.75rem;
+        }
+        .auth-bar .user-info img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+        .auth-bar .logout-btn {
+            background: none;
+            border: 1px solid #c62828;
+            color: #c62828;
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        .auth-bar .logout-btn:hover { background: #c62828; color: #fff; }
+        .sync-indicator {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            border: 1px solid #43a047;
+            border-radius: 10px;
+            padding: 6px 12px;
+            color: #43a047;
+            font-size: 0.7rem;
+            z-index: 30;
+        }
+        .sync-indicator.active { display: block; }
+        .auth-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 50;
+            justify-content: center;
+            align-items: center;
+        }
+        .auth-overlay.active { display: flex; }
+        .auth-modal {
+            background: #1e1e2e;
+            border: 1px solid #555;
+            border-radius: 16px;
+            padding: 30px;
+            width: 340px;
+            text-align: center;
+        }
+        .auth-modal h2 { color: #8cf; margin: 0 0 20px; font-size: 1.3rem; }
+        .auth-modal input {
+            width: 100%; padding: 10px 14px; margin-bottom: 12px;
+            border: 1px solid #555; border-radius: 8px;
+            background: #2a2a3a; color: #fff; font-size: 0.9rem; box-sizing: border-box;
+        }
+        .auth-modal input:focus { outline: none; border-color: #8cf; }
+        .auth-modal .auth-submit {
+            width: 100%; padding: 10px; border: none; border-radius: 8px;
+            background: #5c6bc0; color: #fff; font-size: 0.9rem; cursor: pointer; margin-bottom: 10px;
+        }
+        .auth-modal .auth-submit:hover { background: #7986cb; }
+        .auth-modal .google-btn {
+            width: 100%; padding: 10px; border: 1px solid #555; border-radius: 8px;
+            background: #2a2a3a; color: #ccc; font-size: 0.9rem; cursor: pointer; margin-bottom: 12px;
+        }
+        .auth-modal .google-btn:hover { background: #33334a; border-color: #8cf; }
+        .auth-modal .switch-link { color: #8cf; cursor: pointer; font-size: 0.8rem; }
+        .auth-modal .error-msg { color: #c62828; font-size: 0.8rem; margin-bottom: 10px; min-height: 1.2em; }
+    </style>
+</head>
+<body class="gradient-bg">
+    <div class="particles" id="particles"></div>
+    <div class="auth-bar" id="authBar"></div>
+    <div class="sync-indicator" id="syncIndicator">Синхронизация...</div>
+    <a class="back" href="index.html">&larr; Назад</a>
+    <div class="sidebar">
+        <button class="active" data-filter="all">Все</button>
+        <button data-filter="favourite">★ Избранное</button>
+        <hr style="border:none;border-top:1px solid #555;margin:6px 16px;">
+        <button data-filter="common">Обычные</button>
+        <button data-filter="uncommon">Необычные</button>
+        <button data-filter="rare">Редкие</button>
+        <button data-filter="legendary">Легендарные</button>
+    </div>
+    <div class="main">
+        <h1>Удочки</h1>
+        <div class="toolbar">
+            <input class="search" type="text" placeholder="Поиск по названию..." id="searchInput" oninput="filterBySearch()" autocomplete="off">
+            <div class="sort-wrap">
+                <button class="sort-btn" id="sortBtn" onclick="toggleSortDropdown()">
+                    <svg viewBox="0 0 16 16" fill="none">
+                        <path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span id="sortLabel">По редкости</span>
+                </button>
+                <div class="sort-dropdown" id="sortDropdown">
+                    <button data-sort="default" class="active" onclick="setSort('default', this)">
+                        <svg class="icon" viewBox="0 0 16 16" fill="none">
+                            <rect x="1" y="2" width="14" height="3" rx="1" fill="currentColor" opacity="0.3"/>
+                            <rect x="1" y="6.5" width="14" height="3" rx="1" fill="currentColor" opacity="0.3"/>
+                            <rect x="1" y="11" width="14" height="3" rx="1" fill="currentColor" opacity="0.3"/>
+                        </svg>
+                        По редкости
+                    </button>
+                    <button data-sort="name" onclick="setSort('name', this)">
+                        <svg class="icon" viewBox="0 0 16 16" fill="none">
+                            <text x="1" y="12" font-size="11" font-weight="700" fill="currentColor">A</text>
+                            <text x="8" y="12" font-size="11" font-weight="700" fill="currentColor">Z</text>
+                        </svg>
+                        По алфавиту
+                    </button>
+                    <button data-sort="mastery" onclick="setSort('mastery', this)">
+                        <svg class="icon" viewBox="0 0 16 16" fill="none">
+                            <rect x="1" y="10" width="3" height="5" rx="0.5" fill="currentColor" opacity="0.4"/>
+                            <rect x="5.5" y="6" width="3" height="9" rx="0.5" fill="currentColor" opacity="0.6"/>
+                            <rect x="10" y="2" width="3" height="13" rx="0.5" fill="currentColor"/>
+                        </svg>
+                        По мастерству
+                    </button>
+                </div>
+            </div>
+            <div class="filter-wrap">
+                <button class="filter-btn" id="filterBtn" onclick="toggleFilterDropdown()">
+                    <svg viewBox="0 0 16 16" fill="none">
+                        <rect x="2" y="3" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/>
+                        <rect x="2" y="7" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/>
+                        <rect x="2" y="11" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/>
+                        <circle cx="5" cy="4" r="1.5" fill="currentColor"/>
+                        <circle cx="10" cy="8" r="1.5" fill="currentColor"/>
+                        <circle cx="7" cy="12" r="1.5" fill="currentColor"/>
+                    </svg>
+                    <span>Фильтр</span>
+                </button>
+                <div class="filter-dropdown" id="filterDropdown">
+                    <div class="filter-row">
+                        <span class="filter-label">Идеальный</span>
+                        <div class="filter-tbtns">
+                            <button class="filter-tbtn plus" data-filter="perfect" data-val="1" onclick="toggleFilterBtn(this)">+</button>
+                            <button class="filter-tbtn minus" data-filter="perfect" data-val="-1" onclick="toggleFilterBtn(this)">-</button>
+                        </div>
+                    </div>
+                    <div class="filter-row">
+                        <span class="filter-label">Полученный</span>
+                        <div class="filter-tbtns">
+                            <button class="filter-tbtn plus" data-filter="obtained" data-val="1" onclick="toggleFilterBtn(this)">+</button>
+                            <button class="filter-tbtn minus" data-filter="obtained" data-val="-1" onclick="toggleFilterBtn(this)">-</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="list">
+            <div class="item" data-name="Рыбацкая Удочка" data-mastery="0/100" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/rods/FishingRodQ.webp" alt="FishingRod">
+                <div class="info"><h3>Рыбацкая Удочка</h3><p>0/100</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Золотая Удочка" data-mastery="0/100" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/rods/GoldRodQ.webp" alt="GoldRod">
+                <div class="info"><h3>Золотая Удочка</h3><p>0/100</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Акулья Удочка" data-mastery="0/100" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/rods/SharkRodQ.webp" alt="SharkRod">
+                <div class="info"><h3>Акулья Удочка</h3><p>0/100</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Ракушечная Удочка" data-mastery="0/100" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/rods/ShellRodQ.webp" alt="ShellRod">
+                <div class="info"><h3>Ракушечная Удочка</h3><p>0/100</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Сокровищная Удочка" data-mastery="0/100" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/rods/TreasureRodQ.webp" alt="TreasureRod">
+                <div class="info"><h3>Сокровищная Удочка</h3><p>0/100</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Осквернённая Акулья Удочка" data-mastery="0/100" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/rods/CorruptedSharkRodQ.webp" alt="CorruptedSharkRod">
+                <div class="info"><h3>Осквернённая Акулья Удочка</h3><p>0/100</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-name="Небесная Ракушечная Удочка" data-mastery="0/100" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/rods/CelestialShellRodQ.webp" alt="CelestialShellRod">
+                <div class="info"><h3>Небесная Ракушечная Удочка</h3><p>0/100</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+        </div>
+    </div>
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup">
+            <div class="popup-header">
+                <img id="popupIcon" src="" alt="">
+                <h2 id="popupName"></h2>
+            </div>
+            <div class="row">
+                <span class="label">Мастерство:</span>
+                <div class="controls">
+                    <button class="ctrl-btn" onmousedown="startChange('mastery',-10)" onmouseup="stopChange()" onmouseleave="stopChange()">−</button>
+                    <span class="value" id="popupMastery"></span>
+                    <button class="ctrl-btn" onmousedown="startChange('mastery',10)" onmouseup="stopChange()" onmouseleave="stopChange()">+</button>
+                </div>
+            </div>
+            <button class="close" onclick="document.getElementById('popupOverlay').classList.remove('active')">Закрыть</button>
+        </div>
+    </div>
+    <script>
+        var currentItem = null;
+        var holdTimer = null;
+        var holdInterval = null;
+
+        function requireAuth() {
+            if (window.checkbfAuth && window.checkbfAuth.requireAuth) return window.checkbfAuth.requireAuth();
+            return false;
+        }
+
+        function toggleEaten(e, el) {
+            e.stopPropagation();
+            if (!requireAuth()) return;
+            var item = el.closest('.item');
+            var val = item.dataset.eaten === 'true' ? 'false' : 'true';
+            item.dataset.eaten = val;
+            el.textContent = val === 'true' ? '✓' : '⊘';
+            el.classList.toggle('eaten', val === 'true');
+            saveData();
+        }
+        function toggleFav(e, el) {
+            e.stopPropagation();
+            if (!requireAuth()) return;
+            var item = el.closest('.item');
+            var val = item.dataset.fav === 'true' ? 'false' : 'true';
+            item.dataset.fav = val;
+            el.textContent = val === 'true' ? '★' : '☆';
+            el.classList.toggle('faved', val === 'true');
+            saveData();
+        }
+
+        function saveData() {
+            var data = {};
+            document.querySelectorAll('.item').forEach(function(item) {
+                data[item.dataset.name] = { mastery: item.dataset.mastery, eaten: item.dataset.eaten, fav: item.dataset.fav };
+            });
+            localStorage.setItem('checkbf_rods', JSON.stringify(data));
+            var u = (window.checkbfAuth && window.checkbfAuth.user) || firebase.auth().currentUser;
+            if (u) {
+                showSync();
+                window.checkbfAuth.saveToDB('rods', data).then(hideSync);
+            }
+        }
+
+        function updateItemText(item) {
+            var p = item.querySelector('p');
+            if (p && !p.style.color) p.textContent = item.dataset.mastery;
+            var mastery = parseInt(item.dataset.mastery.split('/')[0]) || 0;
+            item.classList.toggle('max-mastery', mastery >= 100);
+        }
+
+        function loadData() {
+            var raw = localStorage.getItem('checkbf_rods');
+            if (!raw) return;
+            var data = JSON.parse(raw);
+            document.querySelectorAll('.item').forEach(function(item) {
+                var saved = data[item.dataset.name];
+                if (saved) {
+                    item.dataset.mastery = saved.mastery;
+                    if (saved.eaten) {
+                        item.dataset.eaten = saved.eaten;
+                        var eatEl = item.querySelector('.eat-icon');
+                        if (eatEl) {
+                            eatEl.textContent = saved.eaten === 'true' ? '✓' : '⊘';
+                            eatEl.classList.toggle('eaten', saved.eaten === 'true');
+                        }
+                    }
+                    if (saved.fav) {
+                        item.dataset.fav = saved.fav;
+                        var favEl = item.querySelector('.fav-icon');
+                        if (favEl) {
+                            favEl.textContent = saved.fav === 'true' ? '★' : '☆';
+                            favEl.classList.toggle('faved', saved.fav === 'true');
+                        }
+                    }
+                    updateItemText(item);
+                }
+            });
+        }
+
+        loadData();
+
+        function filterBySearch() {
+            var q = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.item').forEach(function(item) {
+                var name = item.dataset.name.toLowerCase();
+                item.style.display = name.indexOf(q) !== -1 ? '' : 'none';
+            });
+        }
+
+        document.querySelectorAll('.item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                currentItem = item;
+                document.getElementById('popupName').textContent = item.dataset.name;
+                document.getElementById('popupMastery').textContent = item.dataset.mastery;
+                var img = item.querySelector('img');
+                document.getElementById('popupIcon').src = img ? img.src : '';
+                document.getElementById('popupOverlay').classList.add('active');
+            });
+        });
+
+        function enableMasteryEdit() {
+            if (!requireAuth()) return;
+            var el = document.getElementById('popupMastery');
+            if (el.tagName === 'INPUT') return;
+            var current = parseInt(el.textContent.split('/')[0]) || 0;
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'value-input';
+            input.value = current;
+            input.maxLength = 3;
+            input.autocomplete = 'off';
+            el.parentNode.replaceChild(input, el);
+            input.focus();
+            input.select();
+            function finishEdit() {
+                var val = parseInt(input.value) || 0;
+                val = Math.max(0, Math.min(100, val));
+                var span = document.createElement('span');
+                span.className = 'value';
+                span.id = 'popupMastery';
+                span.textContent = val + '/100';
+                span.onclick = enableMasteryEdit;
+                input.parentNode.replaceChild(span, input);
+                if (currentItem) {
+                    currentItem.dataset.mastery = val + '/100';
+                    updateItemText(currentItem);
+                    saveData();
+                }
+            }
+            input.addEventListener('blur', finishEdit);
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') input.blur();
+                if (e.key === 'Escape') { input.value = current; input.blur(); }
+            });
+            input.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (parseInt(this.value) > 100) this.value = '100';
+            });
+        }
+        document.getElementById('popupMastery').onclick = enableMasteryEdit;
+
+        function changeMastery(step) {
+            if (!requireAuth()) return;
+            var el = document.getElementById('popupMastery');
+            var parts = el.textContent.split('/');
+            var val = Math.max(0, Math.min(100, parseInt(parts[0]) + step));
+            el.textContent = val + '/100';
+            if (currentItem) {
+                currentItem.dataset.mastery = val + '/100';
+                updateItemText(currentItem);
+                saveData();
+            }
+        }
+        function startChange(type, step) {
+            if (type === 'mastery') changeMastery(step);
+            holdTimer = setTimeout(function() {
+                holdInterval = setInterval(function() {
+                    if (type === 'mastery') changeMastery(step);
+                }, 50);
+            }, 400);
+        }
+        function stopChange() {
+            clearTimeout(holdTimer);
+            clearInterval(holdInterval);
+        }
+        document.getElementById('popupOverlay').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+
+        document.querySelectorAll('.sidebar button').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.sidebar button').forEach(function(b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                applyAllVisibility();
+            });
+        });
+
+        var currentSort = 'default';
+        var rarityOrder = { common: 0, uncommon: 1, rare: 2, legendary: 3 };
+        var originalOrder = {};
+        document.querySelectorAll('.item').forEach(function(item, i) {
+            originalOrder[item.dataset.name] = i;
+        });
+
+        function toggleSortDropdown() {
+            document.getElementById('sortDropdown').classList.toggle('open');
+        }
+        function setSort(type, btn) {
+            currentSort = type;
+            document.querySelectorAll('#sortDropdown button').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            document.getElementById('sortDropdown').classList.remove('open');
+            var labels = { default: 'По редкости', name: 'По алфавиту', mastery: 'По мастерству' };
+            document.getElementById('sortLabel').textContent = labels[type] || 'По редкости';
+            applySort();
+            localStorage.setItem('checkbf_rods_sort', type);
+        }
+        function applySort() {
+            var list = document.querySelector('.list');
+            var items = Array.from(list.querySelectorAll('.item'));
+            if (currentSort === 'default') {
+                items.sort(function(a, b) {
+                    var ra = rarityOrder[a.dataset.rarity] || 0;
+                    var rb = rarityOrder[b.dataset.rarity] || 0;
+                    if (ra !== rb) return ra - rb;
+                    return (originalOrder[a.dataset.name] || 0) - (originalOrder[b.dataset.name] || 0);
+                });
+            } else if (currentSort === 'name') {
+                items.sort(function(a, b) { return a.dataset.name.localeCompare(b.dataset.name); });
+            } else if (currentSort === 'mastery') {
+                items.sort(function(a, b) {
+                    var ma = parseInt(a.dataset.mastery.split('/')[0]) || 0;
+                    var mb = parseInt(b.dataset.mastery.split('/')[0]) || 0;
+                    return mb - ma;
+                });
+            }
+            items.forEach(function(item) { list.appendChild(item); });
+            applyAllVisibility();
+        }
+
+        function getSidebarFilter() {
+            var active = document.querySelector('.sidebar button.active');
+            return active ? active.dataset.filter : 'all';
+        }
+        function getMasteryVal(item) {
+            var m = item.dataset.mastery || '0/100';
+            return parseInt(m.split('/')[0]) || 0;
+        }
+        function toggleFilterBtn(btn) {
+            var siblings = btn.parentElement.querySelectorAll('.filter-tbtn');
+            if (btn.classList.contains('on')) {
+                btn.classList.remove('on');
+            } else {
+                siblings.forEach(function(s) { s.classList.remove('on'); });
+                btn.classList.add('on');
+            }
+            applyAllVisibility();
+            saveFilters();
+        }
+        function getFilterState(filterName) {
+            var btn = document.querySelector('.filter-tbtn[data-filter="' + filterName + '"].on');
+            if (!btn) return 0;
+            return parseInt(btn.dataset.val);
+        }
+        function saveFilters() {
+            var state = {};
+            ['perfect','obtained'].forEach(function(f) {
+                state[f] = getFilterState(f);
+            });
+            localStorage.setItem('checkbf_rods_filters', JSON.stringify(state));
+        }
+        function loadFilters() {
+            var saved = localStorage.getItem('checkbf_rods_filters');
+            if (!saved) return;
+            try {
+                var state = JSON.parse(saved);
+                Object.keys(state).forEach(function(f) {
+                    if (state[f] !== 0) {
+                        var btn = document.querySelector('.filter-tbtn[data-filter="' + f + '"][data-val="' + state[f] + '"]');
+                        if (btn) btn.classList.add('on');
+                    }
+                });
+            } catch(e) {}
+        }
+        function applyAllVisibility() {
+            var sidebarFilter = getSidebarFilter();
+            var perfectState = getFilterState('perfect');
+            var obtainedState = getFilterState('obtained');
+            var anyActive = perfectState !== 0 || obtainedState !== 0;
+            document.getElementById('filterBtn').classList.toggle('active', anyActive);
+            document.querySelectorAll('.list .item').forEach(function(item) {
+                var showSidebar = false;
+                if (sidebarFilter === 'all') showSidebar = true;
+                else if (sidebarFilter === 'favourite') showSidebar = item.dataset.fav === 'true';
+                else showSidebar = item.dataset.rarity === sidebarFilter;
+                var showFilter = true;
+                if (perfectState === 1 && getMasteryVal(item) < 100) showFilter = false;
+                if (perfectState === -1 && getMasteryVal(item) >= 100) showFilter = false;
+                if (obtainedState === 1 && item.dataset.eaten === 'false') showFilter = false;
+                if (obtainedState === -1 && item.dataset.eaten !== 'false') showFilter = false;
+                item.style.display = (showSidebar && showFilter) ? '' : 'none';
+            });
+        }
+
+        function toggleFilterDropdown() {
+            document.getElementById('filterDropdown').classList.toggle('open');
+        }
+        function applyFilters() {
+            applyAllVisibility();
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.sort-wrap')) document.getElementById('sortDropdown').classList.remove('open');
+            if (!e.target.closest('.filter-wrap')) document.getElementById('filterDropdown').classList.remove('open');
+        });
+
+        (function() {
+            var saved = localStorage.getItem('checkbf_rods_sort');
+            if (saved) {
+                var btn = document.querySelector('#sortDropdown button[data-sort="' + saved + '"]');
+                if (btn) setSort(saved, btn);
+            }
+            loadFilters();
+            applyAllVisibility();
+        })();
+
+        function createParticles() {
+            var container = document.getElementById('particles');
+            container.innerHTML = '';
+            for (var i = 0; i < 60; i++) {
+                var p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.animationDuration = (Math.random() * 4 + 3) + 's';
+                p.style.animationDelay = (Math.random() * 3) + 's';
+                var size = Math.random() * 3 + 1;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                container.appendChild(p);
+            }
+        }
+        createParticles();
+
+        function showSync() {
+            var el = document.getElementById('syncIndicator');
+            el.classList.add('active');
+            clearTimeout(el._hideTimer);
+            el._hideTimer = setTimeout(function() { el.classList.remove('active'); }, 1500);
+        }
+        function hideSync() {
+            var el = document.getElementById('syncIndicator');
+            clearTimeout(el._hideTimer);
+            el._hideTimer = setTimeout(function() { el.classList.remove('active'); }, 500);
+        }
+
+        function resetToDefaults() {
+            localStorage.removeItem('checkbf_rods');
+            document.querySelectorAll('.item').forEach(function(item) {
+                item.dataset.mastery = '0/100';
+                item.dataset.eaten = 'false';
+                item.dataset.fav = 'false';
+                var eatEl = item.querySelector('.eat-icon');
+                if (eatEl) { eatEl.textContent = '⊘'; eatEl.classList.remove('eaten'); }
+                var favEl = item.querySelector('.fav-icon');
+                if (favEl) { favEl.textContent = '☆'; favEl.classList.remove('faved'); }
+                updateItemText(item);
+            });
+        }
+
+        function updateAuthBar(user) {
+            var bar = document.getElementById('authBar');
+            if (user) {
+                var photo = user.photoURL || '';
+                bar.innerHTML = '<div class="user-info"><img src="' + photo + '" alt=""><span>' + (user.email || 'Google') + '</span></div>' +
+                    '<button class="logout-btn" id="logoutBtn">Выйти</button>';
+                document.getElementById('logoutBtn').onclick = function() {
+                    if (window.checkbfAuth) window.checkbfAuth.logout();
+                };
+            } else {
+                bar.innerHTML = '<button class="login-btn" onclick="openAuthModal()" style="position:static;font-size:0.75rem;">Войти</button>';
+                resetToDefaults();
+            }
+        }
+
+        async function syncFromDB() {
+            if (!window.checkbfAuth || !window.checkbfAuth.user) return;
+            var dbData = await window.checkbfAuth.loadFromDB('rods');
+            var localData = null;
+            var raw = localStorage.getItem('checkbf_rods');
+            if (raw) { try { localData = JSON.parse(raw); } catch(e) {} }
+            if (dbData && Object.keys(dbData).length > 0) {
+                localStorage.setItem('checkbf_rods', JSON.stringify(dbData));
+                loadData();
+                showSync();
+            } else if (localData && Object.keys(localData).length > 0) {
+                await window.checkbfAuth.saveToDB('rods', localData);
+                showSync();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.checkbfAuth) {
+                window.checkbfAuth.onAuthChange(function(user) {
+                    updateAuthBar(user);
+                    if (user) syncFromDB();
+                });
+            }
+        });
+    </script>
+    <script>
+        firebase.initializeApp({
+            apiKey: "AIzaSyC10fTA0O6vpghuEanI52Yiyrtlkpmd8Nc",
+            authDomain: "checkbf-d1a2d.firebaseapp.com",
+            projectId: "checkbf-d1a2d",
+            storageBucket: "checkbf-d1a2d.firebasestorage.app",
+            messagingSenderId: "79682535947",
+            appId: "1:79682535947:web:714e3f81408d7a0d0dbd0e"
+        });
+    </script>
+    <script src="auth.js"></script>
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-modal">
+            <h2 id="authTitle">Вход</h2>
+            <div class="error-msg" id="authError"></div>
+            <input type="email" id="authEmail" placeholder="Email" autocomplete="off">
+            <input type="password" id="authPass" placeholder="Пароль" autocomplete="new-password">
+            <button class="auth-submit" id="authSubmit" onclick="handleAuth()">Войти</button>
+            <button class="google-btn" onclick="handleGoogleAuth()">Войти через Google</button>
+            <span class="switch-link" id="authSwitch" onclick="toggleAuthMode()">Нет аккаунта? Регистрация</span>
+            <br><br>
+            <span class="switch-link" onclick="closeAuthModal()">Позже</span>
+        </div>
+    </div>
+    <script>
+        var isRegisterMode = false;
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('authTitle').textContent = isRegisterMode ? 'Регистрация' : 'Вход';
+            document.getElementById('authSubmit').textContent = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
+            document.getElementById('authSwitch').textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
+            document.getElementById('authError').textContent = '';
+        }
+        function handleAuth() {
+            var email = document.getElementById('authEmail').value.trim();
+            var pass = document.getElementById('authPass').value;
+            var errEl = document.getElementById('authError');
+            errEl.textContent = '';
+            if (!email || !pass) { errEl.textContent = 'Заполните все поля'; return; }
+            if (email === 'test' && pass === 'test') {
+                window.checkbfAuth.enterTestMode();
+                closeAuthModal();
+                return;
+            }
+            var a = firebase.auth();
+            var method = isRegisterMode
+                ? a.createUserWithEmailAndPassword(email, pass)
+                : a.signInWithEmailAndPassword(email, pass);
+            method.then(function() { closeAuthModal(); }).catch(function(e) {
+                var msg = e.code === 'auth/email-already-in-use' ? 'Email уже зарегистрирован' :
+                          e.code === 'auth/wrong-password' ? 'Неверный пароль' :
+                          e.code === 'auth/user-not-found' ? 'Пользователь не найден' :
+                          e.code === 'auth/weak-password' ? 'Пароль минимум 6 символов' :
+                          e.code === 'auth/invalid-email' ? 'Некорректный email' :
+                          'Ошибка: ' + e.message;
+                errEl.textContent = msg;
+            });
+        }
+        function handleGoogleAuth() {
+            var a = firebase.auth();
+            var p = new firebase.auth.GoogleAuthProvider();
+            a.signInWithPopup(p).then(function() { closeAuthModal(); }).catch(function(e) {
+                document.getElementById('authError').textContent = 'Ошибка Google: ' + e.message;
+            });
+        }
+        function openAuthModal() { document.getElementById('authOverlay').classList.add('active'); }
+        function closeAuthModal() { document.getElementById('authOverlay').classList.remove('active'); document.getElementById('authError').textContent = ''; }
+    </script>
+</body>
+</html>
