@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расы — CheckBF</title>
+    <script src="lib/firebase-app-compat.js"></script>
+    <script src="lib/firebase-auth-compat.js"></script>
+    <script src="lib/firebase-firestore-compat.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            height: 100vh;
+            background-color: #1a1a1a;
+            color: #c900c9;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            isolation: isolate;
+            padding: 20px 30px 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+        }
+        body.gradient-bg::before {
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d1b4e 30%, #1a0a2e 60%, #0a0a0a 100%);
+            filter: none;
+        }
+        body.gradient-bg {
+            background-color: transparent;
+        }
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle ease-in-out infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.1; transform: translateY(0); }
+            50% { opacity: 0.8; transform: translateY(-20px); }
+        }
+        .back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1rem;
+            border: 1px solid #555;
+            border-radius: 16px;
+            padding: 6px 16px;
+            background: #2a2a3a;
+            z-index: 20;
+        }
+        .back:hover {
+            background: #33334a;
+        }
+        h1 {
+            font-size: 2rem;
+            margin: 0 0 16px 0;
+            color: #fff;
+            -webkit-text-stroke: 1px #000;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .races-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 14px;
+            flex: 1;
+            overflow-y: auto;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 10px 20px;
+            align-content: start;
+        }
+        .race-card {
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            padding: 12px 8px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .race-card:hover {
+            background: #33334a;
+        }
+        .race-card.owned {
+            border-color: #4caf50;
+            box-shadow: 0 0 8px rgba(76,175,80,0.3);
+        }
+        .race-card img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+        }
+        .race-card h3 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #fff;
+            margin: 0 0 8px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.1);
+            line-height: 1.2;
+        }
+        .race-card[data-owned="true"] h3 {
+            background: rgba(76,175,80,0.35);
+        }
+        .version-btns {
+            display: flex;
+            gap: 3px;
+            margin-bottom: 6px;
+        }
+        .ver {
+            width: 30px;
+            height: 22px;
+            border: 1px solid #555;
+            background: #1a1a1a;
+            color: #888;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ver:hover {
+            background: #2a2a3a;
+        }
+        .ver.active {
+            background: #4caf50;
+            color: #fff;
+            border-color: #4caf50;
+        }
+        .awakening-bar {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-bottom: 6px;
+        }
+        .awakening-bar .seg {
+            width: 12px;
+            height: 8px;
+            background: #c62828;
+            border-radius: 1px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .awakening-bar .seg.filled {
+            background: #43a047;
+        }
+        .awakening-bar .seg:hover {
+            opacity: 0.8;
+        }
+        .awakening-bar .divider {
+            width: 1px;
+            height: 12px;
+            background: #555;
+            margin: 0 1px;
+        }
+        .eat-icon {
+            font-size: 0.8rem;
+            cursor: pointer;
+            user-select: none;
+            width: 100%;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.05);
+            color: #666;
+            transition: all 0.2s;
+        }
+        .eat-icon:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .eat-icon.owned {
+            background: #2e7d32;
+            color: #fff;
+        }
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 30;
+            align-items: center;
+            justify-content: center;
+        }
+        .popup-overlay.active {
+            display: flex;
+        }
+        .popup {
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 14px;
+            padding: 24px 30px;
+            min-width: 260px;
+        }
+        .popup h2 {
+            font-size: 1.2rem;
+            color: #8cf;
+            margin: 0;
+        }
+        .popup-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .popup-header img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+        .popup .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .popup .label {
+            color: #999;
+            font-size: 0.85rem;
+        }
+        .popup .value {
+            color: #fff;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-bottom: 1px dashed #666;
+            padding: 0 4px;
+            min-width: 40px;
+            text-align: center;
+        }
+        .popup .value:hover {
+            border-bottom-color: #aaa;
+        }
+        .popup .controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .popup .controls .ver {
+            width: 28px;
+            height: 22px;
+        }
+        .popup .close {
+            margin-top: 14px;
+            background: none;
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 10px;
+            padding: 6px 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            width: 100%;
+        }
+        .popup .close:hover {
+            background: #33334a;
+        }
+        .popup-bar {
+            display: flex;
+            gap: 0;
+            padding: 4px 6px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            background: #1a1a1a;
+            cursor: pointer;
+            align-items: center;
+        }
+        .popup-bar .seg {
+            width: 20px;
+            height: 12px;
+            border-radius: 2px;
+            background: #c62828;
+            transition: background 0.15s;
+            cursor: pointer;
+        }
+        .popup-bar .seg.filled {
+            background: #43a047;
+        }
+        .popup-bar .seg:hover {
+            opacity: 0.8;
+        }
+        .popup-bar .divider {
+            width: 1px;
+            height: 16px;
+            background: #555;
+            margin: 0 2px;
+        }
+        .auth-bar {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .auth-bar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            padding: 5px 12px;
+            color: #ccc;
+            font-size: 0.75rem;
+        }
+        .auth-bar .user-info img {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+        .auth-bar .logout-btn {
+            background: none;
+            border: 1px solid #c62828;
+            color: #c62828;
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+        .auth-bar .logout-btn:hover {
+            background: #c62828;
+            color: #fff;
+        }
+        .auth-bar .login-btn {
+            background: #2a2a3a; border: 1px solid #555; border-radius: 10px;
+            padding: 8px 18px; color: #8cf; font-size: 0.85rem; cursor: pointer;
+        }
+        .auth-bar .login-btn:hover { background: #33334a; border-color: #8cf; }
+        .sync-indicator {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            border: 1px solid #43a047;
+            border-radius: 10px;
+            padding: 6px 12px;
+            color: #43a047;
+            font-size: 0.7rem;
+            z-index: 30;
+        }
+        .sync-indicator.active { display: block; }
+        .auth-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); z-index: 50; justify-content: center; align-items: center;
+        }
+        .auth-overlay.active { display: flex; }
+        .auth-modal {
+            background: #1e1e2e; border: 1px solid #555; border-radius: 16px; padding: 30px; width: 340px; text-align: center;
+        }
+        .auth-modal h2 { color: #8cf; margin: 0 0 20px; font-size: 1.3rem; }
+        .auth-modal input {
+            width: 100%; padding: 10px 14px; margin-bottom: 12px; border: 1px solid #555; border-radius: 8px;
+            background: #2a2a3a; color: #fff; font-size: 0.9rem; box-sizing: border-box;
+        }
+        .auth-modal input:focus { outline: none; border-color: #8cf; }
+        .auth-modal .auth-submit {
+            width: 100%; padding: 10px; border: none; border-radius: 8px; background: #5c6bc0; color: #fff; font-size: 0.9rem; cursor: pointer; margin-bottom: 10px;
+        }
+        .auth-modal .auth-submit:hover { background: #7986cb; }
+        .auth-modal .google-btn {
+            width: 100%; padding: 10px; border: 1px solid #555; border-radius: 8px; background: #2a2a3a; color: #ccc; font-size: 0.9rem; cursor: pointer; margin-bottom: 12px;
+        }
+        .auth-modal .google-btn:hover { background: #33334a; border-color: #8cf; }
+        .auth-modal .switch-link { color: #8cf; cursor: pointer; font-size: 0.8rem; }
+        .auth-modal .error-msg { color: #c62828; font-size: 0.8rem; margin-bottom: 10px; min-height: 1.2em; }
+    </style>
+</head>
+<body class="gradient-bg">
+    <div class="particles" id="particles"></div>
+    <div class="auth-bar" id="authBar"></div>
+    <div class="sync-indicator" id="syncIndicator">Синхронизация...</div>
+    <a class="back" href="index.html">&larr; Назад</a>
+    <h1>Расы</h1>
+
+    <div class="races-grid">
+        <div class="race-card" data-race="Человек" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
+            <img src="assets/races/HumanIcon.webp" alt="Человек">
+            <h3>Человек</h3>
+            <div class="version-btns">
+                <button class="ver active" data-ver="v1">v1</button>
+                <button class="ver" data-ver="v2">v2</button>
+                <button class="ver" data-ver="v3">v3</button>
+                <button class="ver" data-ver="v4">v4</button>
+            </div>
+            <div class="awakening-bar" style="display:none"></div>
+        </div>
+
+        <div class="race-card" data-race="Акула" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
+            <img src="assets/races/SharkIcon.webp" alt="Акула">
+            <h3>Акула</h3>
+            <div class="version-btns">
+                <button class="ver active" data-ver="v1">v1</button>
+                <button class="ver" data-ver="v2">v2</button>
+                <button class="ver" data-ver="v3">v3</button>
+                <button class="ver" data-ver="v4">v4</button>
+            </div>
+            <div class="awakening-bar" style="display:none"></div>
+        </div>
+
+        <div class="race-card" data-race="Кролик" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
+            <img src="assets/races/RabbitIcon.webp" alt="Кролик">
+            <h3>Кролик</h3>
+            <div class="version-btns">
+                <button class="ver active" data-ver="v1">v1</button>
+                <button class="ver" data-ver="v2">v2</button>
+                <button class="ver" data-ver="v3">v3</button>
+                <button class="ver" data-ver="v4">v4</button>
+            </div>
+            <div class="awakening-bar" style="display:none"></div>
+        </div>
+
+        <div class="race-card" data-race="Ангел" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
+            <img src="assets/races/AngelIcon.webp" alt="Ангел">
+            <h3>Ангел</h3>
+            <div class="version-btns">
+                <button class="ver active" data-ver="v1">v1</button>
+                <button class="ver" data-ver="v2">v2</button>
+                <button class="ver" data-ver="v3">v3</button>
+                <button class="ver" data-ver="v4">v4</button>
+            </div>
+            <div class="awakening-bar" style="display:none"></div>
+        </div>
+
+        <div class="race-card" data-race="Киборг" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
+            <img src="assets/races/CyborgIcon.webp" alt="Киборг">
+            <h3>Киборг</h3>
+            <div class="version-btns">
+                <button class="ver active" data-ver="v1">v1</button>
+                <button class="ver" data-ver="v2">v2</button>
+                <button class="ver" data-ver="v3">v3</button>
+                <button class="ver" data-ver="v4">v4</button>
+            </div>
+            <div class="awakening-bar" style="display:none"></div>
+            <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
+        </div>
+
+        <div class="race-card" data-race="Гуль" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
+            <img src="assets/races/GhoulIcon.webp" alt="Гуль">
+            <h3>Гуль</h3>
+            <div class="version-btns">
+                <button class="ver active" data-ver="v1">v1</button>
+                <button class="ver" data-ver="v2">v2</button>
+                <button class="ver" data-ver="v3">v3</button>
+                <button class="ver" data-ver="v4">v4</button>
+            </div>
+            <div class="awakening-bar" style="display:none"></div>
+            <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
+        </div>
+
+        <div class="race-card" data-race="Драко" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
+            <img src="assets/races/DracoIcon.webp" alt="Драко">
+            <h3>Драко</h3>
+            <div class="version-btns">
+                <button class="ver active" data-ver="v1">v1</button>
+                <button class="ver" data-ver="v2">v2</button>
+                <button class="ver" data-ver="v3">v3</button>
+                <button class="ver" data-ver="v4">v4</button>
+            </div>
+            <div class="awakening-bar" style="display:none"></div>
+            <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
+        </div>
+    </div>
+
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup">
+            <div class="popup-header">
+                <img id="popupIcon" src="" alt="">
+                <h2 id="popupName"></h2>
+            </div>
+            <div class="row">
+                <span class="label">Версия:</span>
+                <div class="controls" id="popupVersions">
+                    <button class="ver" data-ver="v1">v1</button>
+                    <button class="ver" data-ver="v2">v2</button>
+                    <button class="ver" data-ver="v3">v3</button>
+                    <button class="ver" data-ver="v4">v4</button>
+                </div>
+            </div>
+            <div class="row" id="popupAwakeningRow" style="display:none">
+                <span class="label">Пробуждение:</span>
+                <div class="popup-bar" id="popupAwakeningBar"></div>
+            </div>
+            <div class="row" id="popupOwnedRow" style="display:none">
+                <span class="label">Наличие:</span>
+                <span class="value" id="popupOwned">нет</span>
+            </div>
+            <button class="close" onclick="document.getElementById('popupOverlay').classList.remove('active')">Закрыть</button>
+        </div>
+    </div>
+
+    <script>
+        var currentNode = null;
+
+        function requireAuth() {
+            if (window.checkbfAuth && window.checkbfAuth.requireAuth) return window.checkbfAuth.requireAuth();
+            return false;
+        }
+
+        var RACES_WITH_OWNED = ['Киборг', 'Гуль', 'Драко'];
+
+        function buildAwakeningBar(container, count, filled) {
+            container.innerHTML = '';
+            var segs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+            var dividersAfter = [1, 2, 5];
+            segs.forEach(function(val) {
+                var seg = document.createElement('span');
+                seg.className = 'seg' + (val <= filled ? ' filled' : '');
+                seg.dataset.val = val;
+                container.appendChild(seg);
+                if (dividersAfter.indexOf(val) !== -1) {
+                    var div = document.createElement('span');
+                    div.className = 'divider';
+                    container.appendChild(div);
+                }
+            });
+        }
+
+        function renderAwakeningBar(card) {
+            var val = parseInt(card.dataset.awakening.split('/')[0]) || 0;
+            var bar = card.querySelector('.awakening-bar');
+            if (bar.style.display === 'none') return;
+            buildAwakeningBar(bar, 10, val);
+        }
+
+        function renderAllAwakeningBars() {
+            document.querySelectorAll('.race-card').forEach(function(card) {
+                if (card.dataset.version === 'v4') {
+                    card.querySelector('.awakening-bar').style.display = '';
+                    renderAwakeningBar(card);
+                } else {
+                    card.querySelector('.awakening-bar').style.display = 'none';
+                }
+            });
+        }
+
+        function renderVersionBtns(card) {
+            var ver = card.dataset.version || 'v1';
+            card.querySelectorAll('.version-btns .ver').forEach(function(btn) {
+                btn.classList.toggle('active', btn.dataset.ver === ver);
+            });
+            if (ver === 'v4') {
+                card.querySelector('.awakening-bar').style.display = '';
+                renderAwakeningBar(card);
+            } else {
+                card.querySelector('.awakening-bar').style.display = 'none';
+            }
+        }
+
+        document.querySelectorAll('.version-btns').forEach(function(container) {
+            container.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var btn = e.target.closest('.ver');
+                if (!btn) return;
+                if (!requireAuth()) return;
+                var card = container.closest('.race-card');
+                card.dataset.version = btn.dataset.ver;
+                renderVersionBtns(card);
+                saveData();
+            });
+        });
+
+        document.querySelectorAll('.awakening-bar').forEach(function(bar) {
+            bar.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var seg = e.target.closest('.seg');
+                if (!seg) return;
+                if (!requireAuth()) return;
+                var card = bar.closest('.race-card');
+                var val = parseInt(seg.dataset.val);
+                var current = parseInt(card.dataset.awakening.split('/')[0]) || 0;
+                if (val === current) val = val - 1;
+                val = Math.max(0, Math.min(10, val));
+                card.dataset.awakening = val + '/10';
+                buildAwakeningBar(bar, 10, val);
+                saveData();
+            });
+        });
+
+        function toggleOwned(e, el) {
+            e.stopPropagation();
+            if (!requireAuth()) return;
+            var card = el.closest('.race-card');
+            var val = card.dataset.owned === 'true' ? 'false' : 'true';
+            card.dataset.owned = val;
+            el.textContent = val === 'true' ? '✓' : '⊘';
+            el.classList.toggle('owned', val === 'true');
+            card.classList.toggle('owned', val === 'true');
+            saveData();
+        }
+
+        function openRacePopup(card) {
+            currentNode = card;
+            document.getElementById('popupName').textContent = card.dataset.race;
+            var img = card.querySelector('img');
+            document.getElementById('popupIcon').src = img ? img.src : '';
+
+            var ver = card.dataset.version || 'v1';
+            document.querySelectorAll('#popupVersions .ver').forEach(function(btn) {
+                btn.classList.toggle('active', btn.dataset.ver === ver);
+            });
+
+            var awRow = document.getElementById('popupAwakeningRow');
+            if (ver === 'v4') {
+                awRow.style.display = '';
+                var val = parseInt(card.dataset.awakening.split('/')[0]) || 0;
+                buildAwakeningBar(document.getElementById('popupAwakeningBar'), 10, val);
+            } else {
+                awRow.style.display = 'none';
+            }
+
+            var ownRow = document.getElementById('popupOwnedRow');
+            if (RACES_WITH_OWNED.indexOf(card.dataset.race) !== -1) {
+                ownRow.style.display = '';
+                document.getElementById('popupOwned').textContent = card.dataset.owned === 'true' ? 'есть' : 'нет';
+                document.getElementById('popupOwned').style.color = card.dataset.owned === 'true' ? '#4caf50' : '#c62828';
+            } else {
+                ownRow.style.display = 'none';
+            }
+
+            document.getElementById('popupOverlay').classList.add('active');
+        }
+
+        document.querySelectorAll('#popupVersions .ver').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                if (!currentNode || !requireAuth()) return;
+                currentNode.dataset.version = btn.dataset.ver;
+                document.querySelectorAll('#popupVersions .ver').forEach(function(b) {
+                    b.classList.toggle('active', b.dataset.ver === btn.dataset.ver);
+                });
+                var awRow = document.getElementById('popupAwakeningRow');
+                if (btn.dataset.ver === 'v4') {
+                    awRow.style.display = '';
+                    var val = parseInt(currentNode.dataset.awakening.split('/')[0]) || 0;
+                    buildAwakeningBar(document.getElementById('popupAwakeningBar'), 10, val);
+                } else {
+                    awRow.style.display = 'none';
+                }
+                renderVersionBtns(currentNode);
+                saveData();
+            });
+        });
+
+        document.getElementById('popupAwakeningBar').addEventListener('click', function(e) {
+            var seg = e.target.closest('.seg');
+            if (!seg || !currentNode || !requireAuth()) return;
+            var val = parseInt(seg.dataset.val);
+            var current = parseInt(currentNode.dataset.awakening.split('/')[0]) || 0;
+            if (val === current) val = val - 1;
+            val = Math.max(0, Math.min(10, val));
+            currentNode.dataset.awakening = val + '/10';
+            buildAwakeningBar(this, 10, val);
+            var cardBar = currentNode.querySelector('.awakening-bar');
+            buildAwakeningBar(cardBar, 10, val);
+            saveData();
+        });
+
+        document.getElementById('popupOwned').addEventListener('click', function() {
+            if (!currentNode || !requireAuth()) return;
+            var val = currentNode.dataset.owned === 'true' ? 'false' : 'true';
+            currentNode.dataset.owned = val;
+            this.textContent = val === 'true' ? 'есть' : 'нет';
+            this.style.color = val === 'true' ? '#4caf50' : '#c62828';
+            var eatEl = currentNode.querySelector('.eat-icon');
+            if (eatEl) {
+                eatEl.textContent = val === 'true' ? '✓' : '⊘';
+                eatEl.classList.toggle('owned', val === 'true');
+            }
+            currentNode.classList.toggle('owned', val === 'true');
+            saveData();
+        });
+
+        function saveData() {
+            var data = {};
+            document.querySelectorAll('.race-card').forEach(function(card) {
+                data[card.dataset.race] = {
+                    owned: card.dataset.owned,
+                    version: card.dataset.version,
+                    awakening: card.dataset.awakening
+                };
+            });
+            localStorage.setItem('checkbf_races', JSON.stringify(data));
+            if (window.checkbfAuth && window.checkbfAuth.user) {
+                showSync();
+                window.checkbfAuth.saveToDB('races', data).then(hideSync);
+            }
+        }
+
+        function loadData() {
+            var raw = localStorage.getItem('checkbf_races');
+            if (!raw) return;
+            var data = JSON.parse(raw);
+            document.querySelectorAll('.race-card').forEach(function(card) {
+                var saved = data[card.dataset.race];
+                if (saved) {
+                    card.dataset.owned = saved.owned || 'false';
+                    card.dataset.version = saved.version || 'v1';
+                    card.dataset.awakening = saved.awakening || '0/10';
+                    var eatEl = card.querySelector('.eat-icon');
+                    if (eatEl) {
+                        eatEl.textContent = saved.owned === 'true' ? '✓' : '⊘';
+                        eatEl.classList.toggle('owned', saved.owned === 'true');
+                    }
+                    card.classList.toggle('owned', saved.owned === 'true');
+                    renderVersionBtns(card);
+                }
+            });
+            renderAllAwakeningBars();
+        }
+
+        loadData();
+
+        document.getElementById('popupOverlay').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+
+        function resetToDefaults() {
+            localStorage.removeItem('checkbf_races');
+            document.querySelectorAll('.race-card').forEach(function(card) {
+                card.dataset.owned = 'false';
+                card.dataset.version = 'v1';
+                card.dataset.awakening = '0/10';
+                card.classList.remove('owned');
+                var eatEl = card.querySelector('.eat-icon');
+                if (eatEl) { eatEl.textContent = '⊘'; eatEl.classList.remove('owned'); }
+                renderVersionBtns(card);
+            });
+            renderAllAwakeningBars();
+        }
+
+        function createParticles() {
+            var container = document.getElementById('particles');
+            container.innerHTML = '';
+            for (var i = 0; i < 60; i++) {
+                var p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.animationDuration = (Math.random() * 4 + 3) + 's';
+                p.style.animationDelay = (Math.random() * 3) + 's';
+                var size = Math.random() * 3 + 1;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                container.appendChild(p);
+            }
+        }
+        createParticles();
+
+        function showSync() {
+            var el = document.getElementById('syncIndicator');
+            el.classList.add('active');
+            clearTimeout(el._hideTimer);
+            el._hideTimer = setTimeout(function() { el.classList.remove('active'); }, 1500);
+        }
+        function hideSync() {
+            var el = document.getElementById('syncIndicator');
+            clearTimeout(el._hideTimer);
+            el._hideTimer = setTimeout(function() { el.classList.remove('active'); }, 500);
+        }
+
+        function updateAuthBar(user) {
+            var bar = document.getElementById('authBar');
+            if (user) {
+                var photo = user.photoURL || '';
+                bar.innerHTML = '<div class="user-info"><img src="' + photo + '" alt=""><span>' + (user.email || 'Google') + '</span></div>' +
+                    '<button class="logout-btn" id="logoutBtn">Выйти</button>';
+                document.getElementById('logoutBtn').onclick = function() {
+                    if (window.checkbfAuth) window.checkbfAuth.logout();
+                };
+            } else {
+                bar.innerHTML = '<button class="login-btn" onclick="openAuthModal()" style="position:static;font-size:0.75rem;">Войти</button>';
+                resetToDefaults();
+            }
+        }
+
+        async function syncFromDB() {
+            if (!window.checkbfAuth || !window.checkbfAuth.user) return;
+            var dbData = await window.checkbfAuth.loadFromDB('races');
+            var localData = null;
+            var raw = localStorage.getItem('checkbf_races');
+            if (raw) { try { localData = JSON.parse(raw); } catch(e) {} }
+            if (dbData && Object.keys(dbData).length > 0) {
+                localStorage.setItem('checkbf_races', JSON.stringify(dbData));
+                loadData();
+                showSync();
+            } else if (localData && Object.keys(localData).length > 0) {
+                await window.checkbfAuth.saveToDB('races', localData);
+                showSync();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.checkbfAuth) {
+                window.checkbfAuth.onAuthChange(function(user) {
+                    updateAuthBar(user);
+                    if (user) syncFromDB();
+                });
+            }
+        });
+    </script>
+    <script>
+        firebase.initializeApp({
+            apiKey: "AIzaSyC10fTA0O6vpghuEanI52Yiyrtlkpmd8Nc",
+            authDomain: "checkbf-d1a2d.firebaseapp.com",
+            projectId: "checkbf-d1a2d",
+            storageBucket: "checkbf-d1a2d.firebasestorage.app",
+            messagingSenderId: "79682535947",
+            appId: "1:79682535947:web:714e3f81408d7a0d0dbd0e"
+        });
+    </script>
+    <script src="auth.js"></script>
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-modal">
+            <h2 id="authTitle">Вход</h2>
+            <div class="error-msg" id="authError"></div>
+            <input type="email" id="authEmail" placeholder="Email" autocomplete="off">
+            <input type="password" id="authPass" placeholder="Пароль" autocomplete="new-password">
+            <button class="auth-submit" id="authSubmit" onclick="handleAuth()">Войти</button>
+            <button class="google-btn" onclick="handleGoogleAuth()">Войти через Google</button>
+            <span class="switch-link" id="authSwitch" onclick="toggleAuthMode()">Нет аккаунта? Регистрация</span>
+            <br><br>
+            <span class="switch-link" onclick="closeAuthModal()">Позже</span>
+        </div>
+    </div>
+    <script>
+        var isRegisterMode = false;
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('authTitle').textContent = isRegisterMode ? 'Регистрация' : 'Вход';
+            document.getElementById('authSubmit').textContent = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
+            document.getElementById('authSwitch').textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
+            document.getElementById('authError').textContent = '';
+        }
+        function handleAuth() {
+            var email = document.getElementById('authEmail').value.trim();
+            var pass = document.getElementById('authPass').value;
+            var errEl = document.getElementById('authError');
+            errEl.textContent = '';
+            if (!email || !pass) { errEl.textContent = 'Заполните все поля'; return; }
+            if (email === 'test' && pass === 'test') {
+                window.checkbfAuth.enterTestMode();
+                closeAuthModal();
+                return;
+            }
+            var a = firebase.auth();
+            var method = isRegisterMode
+                ? a.createUserWithEmailAndPassword(email, pass)
+                : a.signInWithEmailAndPassword(email, pass);
+            method.then(function() { closeAuthModal(); }).catch(function(e) {
+                var msg = e.code === 'auth/email-already-in-use' ? 'Email уже зарегистрирован' :
+                          e.code === 'auth/wrong-password' ? 'Неверный пароль' :
+                          e.code === 'auth/user-not-found' ? 'Пользователь не найден' :
+                          e.code === 'auth/weak-password' ? 'Пароль минимум 6 символов' :
+                          e.code === 'auth/invalid-email' ? 'Некорректный email' :
+                          'Ошибка: ' + e.message;
+                errEl.textContent = msg;
+            });
+        }
+        function handleGoogleAuth() {
+            var a = firebase.auth();
+            var p = new firebase.auth.GoogleAuthProvider();
+            a.signInWithPopup(p).then(function() { closeAuthModal(); }).catch(function(e) {
+                document.getElementById('authError').textContent = 'Ошибка Google: ' + e.message;
+            });
+        }
+        function openAuthModal() { document.getElementById('authOverlay').classList.add('active'); }
+        function closeAuthModal() { document.getElementById('authOverlay').classList.remove('active'); document.getElementById('authError').textContent = ''; }
+    </script>
+</body>
+</html>
