@@ -5,9 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Стили боя — CheckBF</title>
     <link rel="stylesheet" href="css/filter.css">
+    <link rel="stylesheet" href="css/toolbar.css">
     <script src="lib/firebase-app-compat.js"></script>
     <script src="lib/firebase-auth-compat.js"></script>
     <script src="lib/firebase-firestore-compat.js"></script>
+    <script src="js/toolbar.js"></script>
+    <script src="js/filter.js"></script>
+    <script>
+        firebase.initializeApp({
+            apiKey: "AIzaSyC10fTA0O6vpghuEanI52Yiyrtlkpmd8Nc",
+            authDomain: "checkbf-d1a2d.firebaseapp.com",
+            projectId: "checkbf-d1a2d",
+            storageBucket: "checkbf-d1a2d.firebasestorage.app",
+            messagingSenderId: "79682535947",
+            appId: "1:79682535947:web:714e3f81408d7a0d0dbd0e"
+        });
+    </script>
+    <script src="js/auth.js"></script>
     <style>
         html, body {
             margin: 0;
@@ -354,68 +368,7 @@
         .popup-bar .seg:hover {
             opacity: 0.8;
         }
-        .auth-bar {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 30;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .auth-bar .user-info {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: #2a2a3a;
-            border: 1px solid #555;
-            border-radius: 10px;
-            padding: 5px 12px;
-            color: #ccc;
-            font-size: 0.75rem;
-        }
-        .auth-bar .user-info img {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-        }
-        .auth-bar .logout-btn {
-            background: none;
-            border: 1px solid #c62828;
-            color: #c62828;
-            border-radius: 6px;
-            padding: 4px 8px;
-            cursor: pointer;
-            font-size: 0.7rem;
-        }
-        .auth-bar .logout-btn:hover {
-            background: #c62828;
-            color: #fff;
-        }
-        .auth-bar .login-btn {
-            background: #2a2a3a; border: 1px solid #555; border-radius: 10px;
-            padding: 8px 18px; color: #8cf; font-size: 0.85rem; cursor: pointer;
-        }
-        .auth-bar .login-btn:hover { background: #33334a; border-color: #8cf; }
-        .sync-indicator {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1a1a2e;
-            border: 1px solid #43a047;
-            border-radius: 10px;
-            padding: 6px 12px;
-            color: #43a047;
-            font-size: 0.7rem;
-            z-index: 30;
-        }
-            color: #43a047;
-            font-size: 0.7rem;
-            z-index: 30;
-        }
-        .sync-indicator.active { display: block; }
+
         .auth-overlay {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.7); z-index: 50; justify-content: center; align-items: center;
@@ -733,8 +686,8 @@
             });
             localStorage.setItem('checkbf_styles', JSON.stringify(data));
             if (window.checkbfAuth && window.checkbfAuth.user) {
-                showSync();
-                window.checkbfAuth.saveToDB('fightingstyles', data).then(hideSync);
+                TB.showSync();
+                window.checkbfAuth.saveToDB('fightingstyles', data).then(TB.hideSync);
             }
         }
 
@@ -811,17 +764,7 @@
         }
         createParticles();
 
-        function showSync() {
-            var el = document.getElementById('syncIndicator');
-            el.classList.add('active');
-            clearTimeout(el._hideTimer);
-            el._hideTimer = setTimeout(function() { el.classList.remove('active'); }, 1500);
-        }
-        function hideSync() {
-            var el = document.getElementById('syncIndicator');
-            clearTimeout(el._hideTimer);
-            el._hideTimer = setTimeout(function() { el.classList.remove('active'); }, 500);
-        }
+
 
         function resetToDefaults() {
             localStorage.removeItem('checkbf_styles');
@@ -837,20 +780,7 @@
             });
         }
 
-        function updateAuthBar(user) {
-            var bar = document.getElementById('authBar');
-            if (user) {
-                var photo = user.photoURL || 'https://tr.rbxcdn.com/30DAY-AvatarHeadshot-1507DAB190B8A3C9CEA7A26EE1A69D31-Png/420/420/AvatarHeadshot/Png/noFilter';
-                bar.innerHTML = '<div class="user-info"><img src="' + photo + '" alt=""><span>' + (user.email || 'Google') + '</span></div>' +
-                    '<button class="logout-btn" id="logoutBtn">Выйти</button>';
-                document.getElementById('logoutBtn').onclick = function() {
-                    if (window.checkbfAuth) window.checkbfAuth.logout();
-                };
-            } else {
-                bar.innerHTML = '<button class="login-btn" onclick="openAuthModal()" style="position:static;font-size:0.75rem;">Войти</button>';
-                resetToDefaults();
-            }
-        }
+
 
         async function syncFromDB() {
             if (!window.checkbfAuth || !window.checkbfAuth.user) return;
@@ -867,34 +797,16 @@
                 document.querySelectorAll('[data-prokachka-bar]').forEach(function(bar) {
                     renderProkachkaBar(bar.closest('.tree-node'));
                 });
-                showSync();
+                TB.showSync();
             } else if (localData && Object.keys(localData).length > 0) {
                 for (var n in localData) { if (localData[n] && localData[n].mastery) { var mp = localData[n].mastery.split('/'); if (mp[0] === '0') localData[n].mastery = '1/' + mp[1]; } }
                 await window.checkbfAuth.saveToDB('fightingstyles', localData);
-                showSync();
+                TB.showSync();
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            if (window.checkbfAuth) {
-                window.checkbfAuth.onAuthChange(function(user) {
-                    updateAuthBar(user);
-                    if (user) syncFromDB();
-                });
-            }
-        });
+        TB.init();
     </script>
-    <script>
-        firebase.initializeApp({
-            apiKey: "AIzaSyC10fTA0O6vpghuEanI52Yiyrtlkpmd8Nc",
-            authDomain: "checkbf-d1a2d.firebaseapp.com",
-            projectId: "checkbf-d1a2d",
-            storageBucket: "checkbf-d1a2d.firebasestorage.app",
-            messagingSenderId: "79682535947",
-            appId: "1:79682535947:web:714e3f81408d7a0d0dbd0e"
-        });
-    </script>
-    <script src="js/auth.js"></script>
     <div class="auth-overlay" id="authOverlay">
         <div class="auth-modal">
             <h2 id="authTitle">Вход</h2>
@@ -949,9 +861,7 @@
                 document.getElementById('authError').textContent = 'Ошибка Google: ' + e.message;
             });
         }
-        function openAuthModal() { document.getElementById('authOverlay').classList.add('active'); }
         function closeAuthModal() { document.getElementById('authOverlay').classList.remove('active'); document.getElementById('authError').textContent = ''; }
     </script>
-    <script src="js/filter.js"></script>
 </body>
 </html>

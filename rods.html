@@ -5,9 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Удочки — CheckBF</title>
     <link rel="stylesheet" href="css/filter.css">
+    <link rel="stylesheet" href="css/toolbar.css">
     <script src="lib/firebase-app-compat.js"></script>
     <script src="lib/firebase-auth-compat.js"></script>
     <script src="lib/firebase-firestore-compat.js"></script>
+    <script src="js/toolbar.js"></script>
+    <script src="js/filter.js"></script>
+    <script>
+        firebase.initializeApp({
+            apiKey: "AIzaSyC10fTA0O6vpghuEanI52Yiyrtlkpmd8Nc",
+            authDomain: "checkbf-d1a2d.firebaseapp.com",
+            projectId: "checkbf-d1a2d",
+            storageBucket: "checkbf-d1a2d.firebasestorage.app",
+            messagingSenderId: "79682535947",
+            appId: "1:79682535947:web:714e3f81408d7a0d0dbd0e"
+        });
+    </script>
+    <script src="js/auth.js"></script>
     <style>
         html, body {
             margin: 0;
@@ -86,96 +100,6 @@
             color: #fff;
             -webkit-text-stroke: 1px #000;
             text-align: center;
-        }
-        .search {
-            flex: 1;
-            max-width: 400px;
-            padding: 8px 16px;
-            border: 1px solid #555;
-            border-radius: 20px;
-            background: #2a2a3a;
-            color: #fff;
-            font-size: 0.9rem;
-            outline: none;
-        }
-        .search::placeholder {
-            color: #777;
-        }
-        .search:focus {
-            border-color: #8cf;
-        }
-        .toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-        .sort-wrap {
-            position: relative;
-        }
-        .sort-btn {
-            height: 36px;
-            padding: 0 14px;
-            border: 1px solid #555;
-            border-radius: 10px;
-            background: #2a2a3a;
-            color: #ccc;
-            cursor: pointer;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-        .sort-btn:hover {
-            background: #33334a;
-            color: #fff;
-        }
-        .sort-btn svg {
-            width: 14px;
-            height: 14px;
-            flex-shrink: 0;
-        }
-        .sort-dropdown {
-            display: none;
-            position: absolute;
-            top: 42px;
-            right: 0;
-            background: #2a2a3a;
-            border: 1px solid #555;
-            border-radius: 10px;
-            overflow: hidden;
-            z-index: 25;
-            min-width: 180px;
-        }
-        .sort-dropdown.open {
-            display: block;
-        }
-        .sort-dropdown button {
-            width: 100%;
-            padding: 10px 16px;
-            border: none;
-            background: none;
-            color: #ccc;
-            font-size: 0.85rem;
-            text-align: left;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .sort-dropdown button:hover {
-            background: rgba(255,255,255,0.08);
-            color: #fff;
-        }
-        .sort-dropdown button.active {
-            color: #8cf;
-        }
-        .sort-dropdown .icon {
-            width: 14px;
-            height: 14px;
-            flex-shrink: 0;
         }
         .list {
             display: grid;
@@ -421,56 +345,6 @@
             font-size: 0.85rem;
         }
         .popup .close:hover { background: #33334a; }
-        .auth-bar {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 30;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .auth-bar .user-info {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: #2a2a3a;
-            border: 1px solid #555;
-            border-radius: 10px;
-            padding: 5px 12px;
-            color: #ccc;
-            font-size: 0.75rem;
-        }
-        .auth-bar .user-info img {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-        }
-        .auth-bar .logout-btn {
-            background: none;
-            border: 1px solid #c62828;
-            color: #c62828;
-            border-radius: 6px;
-            padding: 4px 8px;
-            cursor: pointer;
-            font-size: 0.7rem;
-        }
-        .auth-bar .logout-btn:hover { background: #c62828; color: #fff; }
-        .sync-indicator {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1a1a2e;
-            border: 1px solid #43a047;
-            border-radius: 10px;
-            padding: 6px 12px;
-            color: #43a047;
-            font-size: 0.7rem;
-            z-index: 30;
-        }
-        .sync-indicator.active { display: block; }
         .auth-overlay {
             display: none;
             position: fixed;
@@ -683,8 +557,8 @@
             localStorage.setItem('checkbf_rods', JSON.stringify(data));
             var u = (window.checkbfAuth && window.checkbfAuth.user) || firebase.auth().currentUser;
             if (u) {
-                showSync();
-                window.checkbfAuth.saveToDB('rods', data).then(hideSync);
+                TB.showSync();
+                window.checkbfAuth.saveToDB('rods', data).then(TB.hideSync);
             }
         }
 
@@ -824,9 +698,7 @@
             originalOrder[item.dataset.name] = i;
         });
 
-        function toggleSortDropdown() {
-            document.getElementById('sortDropdown').classList.toggle('open');
-        }
+        var toggleSortDropdown = TB.toggleSortDropdown;
         function setSort(type, btn) {
             currentSort = type;
             document.querySelectorAll('#sortDropdown button').forEach(function(b) { b.classList.remove('active'); });
@@ -889,10 +761,6 @@
             });
         }
 
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.sort-wrap')) document.getElementById('sortDropdown').classList.remove('open');
-        });
-
         (function() {
             var saved = localStorage.getItem('checkbf_rods_sort');
             if (saved) {
@@ -919,18 +787,6 @@
         }
         createParticles();
 
-        function showSync() {
-            var el = document.getElementById('syncIndicator');
-            el.classList.add('active');
-            clearTimeout(el._hideTimer);
-            el._hideTimer = setTimeout(function() { el.classList.remove('active'); }, 1500);
-        }
-        function hideSync() {
-            var el = document.getElementById('syncIndicator');
-            clearTimeout(el._hideTimer);
-            el._hideTimer = setTimeout(function() { el.classList.remove('active'); }, 500);
-        }
-
         function resetToDefaults() {
             localStorage.removeItem('checkbf_rods');
             document.querySelectorAll('.item').forEach(function(item) {
@@ -945,21 +801,6 @@
             });
         }
 
-        function updateAuthBar(user) {
-            var bar = document.getElementById('authBar');
-            if (user) {
-                var photo = user.photoURL || '';
-                bar.innerHTML = '<div class="user-info"><img src="' + photo + '" alt=""><span>' + (user.email || 'Google') + '</span></div>' +
-                    '<button class="logout-btn" id="logoutBtn">Выйти</button>';
-                document.getElementById('logoutBtn').onclick = function() {
-                    if (window.checkbfAuth) window.checkbfAuth.logout();
-                };
-            } else {
-                bar.innerHTML = '<button class="login-btn" onclick="openAuthModal()" style="position:static;font-size:0.75rem;">Войти</button>';
-                resetToDefaults();
-            }
-        }
-
         async function syncFromDB() {
             if (!window.checkbfAuth || !window.checkbfAuth.user) return;
             var dbData = await window.checkbfAuth.loadFromDB('rods');
@@ -971,34 +812,16 @@
                 localStorage.setItem('checkbf_rods', JSON.stringify(dbData));
         loadData();
         CBF.loadFilters();
-                showSync();
+                TB.showSync();
             } else if (localData && Object.keys(localData).length > 0) {
                 for (var n in localData) { if (localData[n] && localData[n].mastery) { var mp = localData[n].mastery.split('/'); if (mp[0] === '0') localData[n].mastery = '1/' + mp[1]; } }
                 await window.checkbfAuth.saveToDB('rods', localData);
-                showSync();
+                TB.showSync();
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            if (window.checkbfAuth) {
-                window.checkbfAuth.onAuthChange(function(user) {
-                    updateAuthBar(user);
-                    if (user) syncFromDB();
-                });
-            }
-        });
+        TB.init();
     </script>
-    <script>
-        firebase.initializeApp({
-            apiKey: "AIzaSyC10fTA0O6vpghuEanI52Yiyrtlkpmd8Nc",
-            authDomain: "checkbf-d1a2d.firebaseapp.com",
-            projectId: "checkbf-d1a2d",
-            storageBucket: "checkbf-d1a2d.firebasestorage.app",
-            messagingSenderId: "79682535947",
-            appId: "1:79682535947:web:714e3f81408d7a0d0dbd0e"
-        });
-    </script>
-    <script src="js/auth.js"></script>
     <div class="auth-overlay" id="authOverlay">
         <div class="auth-modal">
             <h2 id="authTitle">Вход</h2>
@@ -1053,7 +876,6 @@
                 document.getElementById('authError').textContent = 'Ошибка Google: ' + e.message;
             });
         }
-        function openAuthModal() { document.getElementById('authOverlay').classList.add('active'); }
         function closeAuthModal() { document.getElementById('authOverlay').classList.remove('active'); document.getElementById('authError').textContent = ''; }
         document.querySelectorAll('.item .seasonal').forEach(function(el) {
             var tip = el.querySelector('.tooltip');
@@ -1078,7 +900,6 @@
             });
         });
     </script>
-    <script src="js/filter.js"></script>
     <script>CBF.init('checkbf_rods_filters');</script>
 </body>
 </html>
