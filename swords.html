@@ -672,6 +672,7 @@
             <div class="filter-group-header" onclick="toggleGroup(this)"><span class="arrow">▼</span> Прочее</div>
             <div class="filter-group-items">
                 <div class="filter-item"><span class="filter-item-label">Сезонный</span><div class="ft state-1" data-filter="seasonal" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Недоступный</span><div class="ft state-1" data-filter="unavailable" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
             </div>
         </div>
     </div>
@@ -1539,6 +1540,10 @@
                 var isSeasonal = !!item.querySelector('.seasonal');
                 if (seasonalState === 1 && !isSeasonal) showFilter = false;
                 if (seasonalState === -1 && isSeasonal) showFilter = false;
+                var isUnavailable = item.style.opacity === '0.4';
+                var unavailableState = getFilterState('unavailable');
+                if (unavailableState === 1 && !isUnavailable) showFilter = false;
+                if (unavailableState === -1 && isUnavailable) showFilter = false;
                 item.style.display = (showSidebar && showFilter) ? '' : 'none';
             });
         }
