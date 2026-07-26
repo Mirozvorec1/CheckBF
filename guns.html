@@ -263,42 +263,51 @@
             user-select: none;
             white-space: nowrap;
         }
-        .filter-tbtns {
-            display: flex;
-            gap: 4px;
-            flex-shrink: 0;
+        .filter-group { border-top: 1px solid #333; }
+        .filter-group-header {
+            padding: 8px 16px; font-size: 0.82rem; font-weight: 600; color: #aaa;
+            cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none;
         }
-        .filter-tbtn {
-            width: 24px;
-            height: 22px;
-            border: 1px solid #555;
-            border-radius: 6px;
-            background: #1a1a2a;
-            color: #666;
-            font-size: 0.8rem;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.15s;
-            line-height: 1;
-            padding: 0;
-            flex-shrink: 0;
+        .filter-group-header:hover { color: #fff; }
+        .filter-group-header .arrow {
+            font-size: 0.6rem; transition: transform 0.2s; color: #666;
         }
-        .filter-tbtn.plus.on {
-            background: #2e7d32;
-            border-color: #43a047;
-            color: #fff;
+        .filter-group.collapsed .filter-group-header .arrow { transform: rotate(-90deg); }
+        .filter-group.collapsed .filter-group-items { display: none; }
+        .filter-group-items { padding-bottom: 4px; }
+        .filter-item {
+            padding: 3px 8px 3px 12px; font-size: 0.78rem; color: #888;
+            display: flex; align-items: center; justify-content: space-between; gap: 4px; user-select: none;
         }
-        .filter-tbtn.minus.on {
-            background: #c62828;
-            border-color: #e53935;
-            color: #fff;
+        .filter-item-label { flex: 1; min-width: 0; line-height: 1.2; transition: color 0.15s; }
+        .ft {
+            position: relative; width: 60px; height: 26px;
+            background: #1a1a2a; border: 1px solid #444; border-radius: 13px;
+            cursor: pointer; flex-shrink: 0;
+            outline: none !important; user-select: none; -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent; touch-action: pan-y;
         }
-        .filter-tbtn:hover {
-            opacity: 0.85;
+        .ft:focus, .ft:focus-visible { outline: none !important; box-shadow: none !important; }
+        .ft:active { transform: none !important; }
+        .ft::-moz-focus-inner { border: 0; }
+        .ft-knob {
+            position: absolute; top: 3px; left: 3px;
+            width: 20px; height: 18px; border-radius: 9px;
+            background: #555; border: none;
+            transition: left 0.15s ease, background 0.15s ease;
+            pointer-events: none; z-index: 2;
+            display: flex; align-items: center; justify-content: center;
         }
+        .ft.dragging .ft-knob { transition: none; }
+        .ft-knob-icon {
+            font-size: 0.6rem; font-weight: 700; color: #fff; line-height: 1;
+            pointer-events: none;
+        }
+        .ft.state-0 .ft-knob { left: 3px; background: #2e7d32; }
+        .ft.state-1 .ft-knob { left: 20px; background: #555; }
+        .ft.state-2 .ft-knob { left: 37px; background: #c62828; }
+        .filter-item:has(.ft.state-0) .filter-item-label { color: #4caf50; }
+        .filter-item:has(.ft.state-2) .filter-item-label { color: #f44336; }
         .list {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
@@ -630,13 +639,26 @@
     <div class="sidebar">
         <button class="active" data-filter="all">Все</button>
         <button data-filter="favourite">★ Избранное</button>
-        <hr style="border:none;border-top:1px solid #555;margin:6px 16px;">
-        <button data-filter="common">Обычные</button>
-        <button data-filter="uncommon">Необычные</button>
-        <button data-filter="rare">Редкие</button>
-        <button data-filter="legendary">Легендарные</button>
-        <button data-filter="mythical">Мифические</button>
+        <div class="filter-group" data-group="rarity">
+            <div class="filter-group-header" onclick="toggleGroup(this)"><span class="arrow">▼</span> Редкость</div>
+            <div class="filter-group-items">
+                <div class="filter-item"><span class="filter-item-label">Обычные</span><div class="ft state-1" data-filter="common" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Необычные</span><div class="ft state-1" data-filter="uncommon" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Редкие</span><div class="ft state-1" data-filter="rare" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Легендарные</span><div class="ft state-1" data-filter="legendary" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Мифические</span><div class="ft state-1" data-filter="mythical" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+            </div>
+        </div>
+        <div class="filter-group" data-group="status">
+            <div class="filter-group-header" onclick="toggleGroup(this)"><span class="arrow">▼</span> Статус</div>
+            <div class="filter-group-items">
+                <div class="filter-item"><span class="filter-item-label">Улучшенный</span><div class="ft state-1" data-filter="upgraded" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Идеальный</span><div class="ft state-1" data-filter="perfect" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Наличие</span><div class="ft state-1" data-filter="obtained" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+            </div>
+        </div>
     </div>
+    <button onclick="resetAllFilters()" style="position:fixed;bottom:20px;left:20px;z-index:20;background:#2a2a3a;border:1px solid #555;color:#999;font-size:0.75rem;padding:6px 14px;cursor:pointer;border-radius:10px;">Сбросить фильтры</button>
     <div class="main">
         <h1>Оружие</h1>
         <div class="toolbar">
@@ -672,42 +694,6 @@
                         </svg>
                         По мастерству
                     </button>
-                </div>
-            </div>
-            <div class="filter-wrap">
-                <button class="filter-btn" id="filterBtn" onclick="toggleFilterDropdown()">
-                    <svg viewBox="0 0 16 16" fill="none">
-                        <rect x="2" y="3" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/>
-                        <rect x="2" y="7" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/>
-                        <rect x="2" y="11" width="12" height="2" rx="1" fill="currentColor" opacity="0.3"/>
-                        <circle cx="5" cy="4" r="1.5" fill="currentColor"/>
-                        <circle cx="10" cy="8" r="1.5" fill="currentColor"/>
-                        <circle cx="7" cy="12" r="1.5" fill="currentColor"/>
-                    </svg>
-                    <span>Фильтр</span>
-                </button>
-                <div class="filter-dropdown" id="filterDropdown">
-                    <div class="filter-row">
-                        <span class="filter-label">Улучшенный</span>
-                        <div class="filter-tbtns">
-                            <button class="filter-tbtn plus" data-filter="upgraded" data-val="1" onclick="toggleFilterBtn(this)">+</button>
-                            <button class="filter-tbtn minus" data-filter="upgraded" data-val="-1" onclick="toggleFilterBtn(this)">-</button>
-                        </div>
-                    </div>
-                    <div class="filter-row">
-                        <span class="filter-label">Идеальный</span>
-                        <div class="filter-tbtns">
-                            <button class="filter-tbtn plus" data-filter="perfect" data-val="1" onclick="toggleFilterBtn(this)">+</button>
-                            <button class="filter-tbtn minus" data-filter="perfect" data-val="-1" onclick="toggleFilterBtn(this)">-</button>
-                        </div>
-                    </div>
-                    <div class="filter-row">
-                        <span class="filter-label">Полученный</span>
-                        <div class="filter-tbtns">
-                            <button class="filter-tbtn plus" data-filter="obtained" data-val="1" onclick="toggleFilterBtn(this)">+</button>
-                            <button class="filter-tbtn minus" data-filter="obtained" data-val="-1" onclick="toggleFilterBtn(this)">-</button>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -928,6 +914,7 @@
         }
 
         loadData();
+        loadFilters();
 
         function filterBySearch() {
             var q = document.getElementById('searchInput').value.toLowerCase();
@@ -1076,26 +1063,118 @@
             var m = item.dataset.mastery || '1/600';
             return parseInt(m.split('/')[0]) || 0;
         }
-        function toggleFilterBtn(btn) {
-            var siblings = btn.parentElement.querySelectorAll('.filter-tbtn');
-            if (btn.classList.contains('on')) {
-                btn.classList.remove('on');
-            } else {
-                siblings.forEach(function(s) { s.classList.remove('on'); });
-                btn.classList.add('on');
-            }
+        function toggleGroup(header) {
+            header.parentElement.classList.toggle('collapsed');
+        }
+        var FILTER_ICONS = ['+', '—', '−'];
+        var FILTER_CLASSES = ['state-0', 'state-1', 'state-2'];
+        var FILTER_TITLES = ['Только эти', 'Не важно', 'Кроме этих'];
+        var KNOB_LEFTS = [3, 20, 37];
+        var KNOB_COLORS = ['#2e7d32', '#555', '#c62828'];
+
+        function setFilterState(btn, s) {
+            s = Math.max(0, Math.min(2, s));
+            btn.dataset.state = s;
+            btn.className = 'ft ' + FILTER_CLASSES[s];
+            var knob = btn.querySelector('.ft-knob');
+            knob.style.left = '';
+            knob.style.background = '';
+            btn.querySelector('.ft-knob-icon').textContent = FILTER_ICONS[s];
+            btn.title = FILTER_TITLES[s];
             applyAllVisibility();
             saveFilters();
         }
+
+        (function() {
+            var dragging = null, startX = 0, startState = 0, moved = false;
+            function preventSelect(e) { e.preventDefault(); }
+            function preventAll(e) { e.preventDefault(); e.stopPropagation(); }
+            function getX(e) { return e.touches ? e.touches[0].clientX : e.clientX; }
+
+            function onStart(e) {
+                var btn = (e.target || e.srcElement).closest('.ft');
+                if (!btn) return;
+                if (e.button && e.button !== 0) return;
+                e.preventDefault();
+                e.stopPropagation();
+                dragging = btn;
+                startX = getX(e);
+                startState = parseInt(btn.dataset.state);
+                moved = false;
+                btn.classList.add('dragging');
+                document.addEventListener('selectstart', preventSelect);
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onEnd);
+                document.addEventListener('touchmove', onMove, { passive: false });
+                document.addEventListener('touchend', onEnd);
+            }
+
+            function onMove(e) {
+                if (!dragging) return;
+                e.preventDefault();
+                var dx = getX(e) - startX;
+                if (Math.abs(dx) > 3) moved = true;
+                var step = 17;
+                var s = Math.round(dx / step);
+                var newState = Math.max(0, Math.min(2, startState + s));
+                dragging.dataset.state = newState;
+                dragging.querySelector('.ft-knob').style.left = KNOB_LEFTS[newState] + 'px';
+                dragging.querySelector('.ft-knob').style.background = KNOB_COLORS[newState];
+                dragging.querySelector('.ft-knob-icon').textContent = FILTER_ICONS[newState];
+                dragging.title = FILTER_TITLES[newState];
+            }
+
+            function onEnd(e) {
+                if (!dragging) return;
+                var btn = dragging;
+                var clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+                var dx = clientX - startX;
+                dragging.classList.remove('dragging');
+                dragging.querySelector('.ft-knob').style.left = '';
+                document.removeEventListener('selectstart', preventSelect);
+                if (moved) {
+                    var step = 17;
+                    var s = Math.round(dx / step);
+                    var newState = Math.max(0, Math.min(2, startState + s));
+                    setFilterState(btn, newState);
+                } else {
+                    var rect = btn.getBoundingClientRect();
+                    var x = clientX - rect.left;
+                    var w = rect.width;
+                    var newState = x < w / 3 ? 0 : x < w * 2 / 3 ? 1 : 2;
+                    setFilterState(btn, newState);
+                }
+                dragging = null;
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onEnd);
+                document.removeEventListener('touchmove', onMove);
+                document.removeEventListener('touchend', onEnd);
+            }
+
+            document.addEventListener('mousedown', function(e) {
+                var btn = e.target.closest('.ft');
+                if (btn) onStart(e);
+            });
+            document.addEventListener('touchstart', function(e) {
+                var btn = e.target.closest('.ft');
+                if (btn) onStart(e);
+            }, { passive: false });
+        })();
+
         function getFilterState(filterName) {
-            var btn = document.querySelector('.filter-tbtn[data-filter="' + filterName + '"].on');
+            var btn = document.querySelector('.ft[data-filter="' + filterName + '"]');
             if (!btn) return 0;
-            return parseInt(btn.dataset.val);
+            var s = parseInt(btn.dataset.state);
+            if (s === 0) return 1;
+            if (s === 2) return -1;
+            return 0;
         }
         function saveFilters() {
             var state = {};
-            ['upgraded','perfect','obtained'].forEach(function(f) {
-                state[f] = getFilterState(f);
+            document.querySelectorAll('.ft').forEach(function(btn) {
+                var s = parseInt(btn.dataset.state);
+                if (s === 0) state[btn.dataset.filter] = 1;
+                else if (s === 2) state[btn.dataset.filter] = -1;
             });
             localStorage.setItem('checkbf_guns_filters', JSON.stringify(state));
         }
@@ -1105,26 +1184,45 @@
             try {
                 var state = JSON.parse(saved);
                 Object.keys(state).forEach(function(f) {
-                    if (state[f] !== 0) {
-                        var btn = document.querySelector('.filter-tbtn[data-filter="' + f + '"][data-val="' + state[f] + '"]');
-                        if (btn) btn.classList.add('on');
-                    }
+                    if (state[f] === 0) return;
+                    var btn = document.querySelector('.ft[data-filter="' + f + '"]');
+                    if (!btn) return;
+                    var s = state[f] === 1 ? 0 : 2;
+                    setFilterState(btn, s);
                 });
             } catch(e) {}
         }
+        function resetAllFilters() {
+            localStorage.removeItem('checkbf_guns_filters');
+            document.querySelectorAll('.ft').forEach(function(btn) {
+                btn.dataset.state = 1;
+                btn.className = 'ft state-1';
+                var knob = btn.querySelector('.ft-knob');
+                knob.style.left = KNOB_LEFTS[1] + 'px';
+                knob.style.background = KNOB_COLORS[1];
+                btn.querySelector('.ft-knob-icon').textContent = '—';
+                btn.title = 'Не важно';
+            });
+            applyAllVisibility();
+        }
         function applyAllVisibility() {
             var sidebarFilter = getSidebarFilter();
+            var rarityFilters = ['common','uncommon','rare','legendary','mythical'];
+            var activeRarities = rarityFilters.filter(function(f) { return getFilterState(f) === 1; });
+            var excludedRarities = rarityFilters.filter(function(f) { return getFilterState(f) === -1; });
             var upgradedState = getFilterState('upgraded');
             var perfectState = getFilterState('perfect');
             var obtainedState = getFilterState('obtained');
-            var anyActive = upgradedState !== 0 || perfectState !== 0 || obtainedState !== 0;
-            document.getElementById('filterBtn').classList.toggle('active', anyActive);
             document.querySelectorAll('.list .item').forEach(function(item) {
                 var showSidebar = false;
                 if (sidebarFilter === 'all') showSidebar = true;
                 else if (sidebarFilter === 'favourite') showSidebar = item.dataset.fav === 'true';
                 else showSidebar = item.dataset.rarity === sidebarFilter;
                 var showFilter = true;
+                if (activeRarities.length > 0) {
+                    if (activeRarities.indexOf(item.dataset.rarity) === -1) showFilter = false;
+                }
+                if (excludedRarities.indexOf(item.dataset.rarity) !== -1) showFilter = false;
                 if (upgradedState === 1 && item.dataset.perm !== 'true') showFilter = false;
                 if (upgradedState === -1 && item.dataset.perm === 'true') showFilter = false;
                 if (perfectState === 1 && getMasteryVal(item) < 600) showFilter = false;
@@ -1135,16 +1233,8 @@
             });
         }
 
-        function toggleFilterDropdown() {
-            document.getElementById('filterDropdown').classList.toggle('open');
-        }
-        function applyFilters() {
-            applyAllVisibility();
-        }
-
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.sort-wrap')) document.getElementById('sortDropdown').classList.remove('open');
-            if (!e.target.closest('.filter-wrap')) document.getElementById('filterDropdown').classList.remove('open');
         });
 
         (function() {
@@ -1228,7 +1318,8 @@
             if (dbData && Object.keys(dbData).length > 0) {
                 for (var n in dbData) { if (dbData[n] && dbData[n].mastery) { var mp = dbData[n].mastery.split('/'); if (mp[0] === '0') dbData[n].mastery = '1/' + mp[1]; } }
                 localStorage.setItem('checkbf_guns', JSON.stringify(dbData));
-                loadData();
+        loadData();
+        loadFilters();
                 showSync();
             } else if (localData && Object.keys(localData).length > 0) {
                 for (var n in localData) { if (localData[n] && localData[n].mastery) { var mp = localData[n].mastery.split('/'); if (mp[0] === '0') localData[n].mastery = '1/' + mp[1]; } }
