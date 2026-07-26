@@ -410,19 +410,19 @@
     <div class="main">
         <h1>Мутации</h1>
         <div class="list">
-            <div class="item" data-name="Эмпирей (Багрянный)" data-mastery="0/600" data-eaten="false" data-rarity="mythical">
+            <div class="item" data-name="Эмпирей (Багрянный)" data-mastery="1/600" data-eaten="false" data-rarity="mythical">
                 <img src="assets/mutations/Empyrean_Fruit.webp" alt="Empyrean">
-                <div class="info"><h3>Эмпирей (Багрянный)</h3><p>0/600</p></div>
+                <div class="info"><h3>Эмпирей (Багрянный)</h3><p>1/600</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
             </div>
-            <div class="item" data-name="Бес" data-mastery="0/600" data-eaten="false" data-rarity="mythical">
+            <div class="item" data-name="Бес" data-mastery="1/600" data-eaten="false" data-rarity="mythical">
                 <img src="assets/mutations/Fiend_Fruit.webp" alt="Besa">
-                <div class="info"><h3>Бес</h3><p>0/600</p></div>
+                <div class="info"><h3>Бес</h3><p>1/600</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
             </div>
-            <div class="item" data-name="Оборотень" data-mastery="0/600" data-eaten="false" data-rarity="mythical">
+            <div class="item" data-name="Оборотень" data-mastery="1/600" data-eaten="false" data-rarity="mythical">
                 <img src="assets/mutations/Werewolf_Fruit.webp" alt="Werewolf">
-                <div class="info"><h3>Оборотень</h3><p>0/600</p></div>
+                <div class="info"><h3>Оборотень</h3><p>1/600</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
             </div>
         </div>
@@ -492,6 +492,8 @@
                 var saved = data[item.dataset.name];
                 if (saved) {
                     item.dataset.mastery = saved.mastery;
+                    var mParts = item.dataset.mastery.split('/');
+                    if (mParts[0] === '0') item.dataset.mastery = '1/' + mParts[1];
                     if (saved.eaten) {
                         item.dataset.eaten = saved.eaten;
                         var eatEl = item.querySelector('.eat-icon');
@@ -534,7 +536,7 @@
             input.select();
             function finishEdit() {
                 var val = parseInt(input.value) || 0;
-                val = Math.max(0, Math.min(600, val));
+                val = Math.max(1, Math.min(600, val));
                 var span = document.createElement('span');
                 span.className = 'value';
                 span.id = 'popupMastery';
@@ -563,7 +565,7 @@
             if (!requireAuth()) return;
             var el = document.getElementById('popupMastery');
             var parts = el.textContent.split('/');
-            var val = Math.max(0, Math.min(600, parseInt(parts[0]) + step));
+            var val = Math.max(1, Math.min(600, parseInt(parts[0]) + step));
             el.textContent = val + '/600';
             if (currentItem) {
                 currentItem.dataset.mastery = val + '/600';
@@ -620,7 +622,7 @@
         function resetToDefaults() {
             localStorage.removeItem('checkbf_mutations');
             document.querySelectorAll('.item').forEach(function(item) {
-                item.dataset.mastery = '0/600';
+                item.dataset.mastery = '1/600';
                 item.dataset.eaten = 'false';
                 var eatEl = item.querySelector('.eat-icon');
                 if (eatEl) { eatEl.textContent = '⊘'; eatEl.classList.remove('eaten'); }
@@ -652,10 +654,12 @@
                 try { localData = JSON.parse(raw); } catch(e) {}
             }
             if (dbData && Object.keys(dbData).length > 0) {
+                for (var n in dbData) { if (dbData[n] && dbData[n].mastery) { var mp = dbData[n].mastery.split('/'); if (mp[0] === '0') dbData[n].mastery = '1/' + mp[1]; } }
                 localStorage.setItem('checkbf_mutations', JSON.stringify(dbData));
                 loadData();
                 showSync();
             } else if (localData && Object.keys(localData).length > 0) {
+                for (var n in localData) { if (localData[n] && localData[n].mastery) { var mp = localData[n].mastery.split('/'); if (mp[0] === '0') localData[n].mastery = '1/' + mp[1]; } }
                 await window.checkbfAuth.saveToDB('mutations', localData);
                 showSync();
             }
