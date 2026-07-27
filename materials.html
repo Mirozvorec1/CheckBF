@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Материалы — CheckBF</title>
+    <script src="lib/firebase-app-compat.js"></script>
+    <script src="lib/firebase-auth-compat.js"></script>
+    <script src="lib/firebase-firestore-compat.js"></script>
+    <script src="js/toolbar.js"></script>
+    <script src="js/filter.js"></script>
+    <script>
+        firebase.initializeApp({
+            apiKey: "AIzaSyC10fTA0O6vpghuEanI52Yiyrtlkpmd8Nc",
+            authDomain: "checkbf-d1a2d.firebaseapp.com",
+            projectId: "checkbf-d1a2d",
+            storageBucket: "checkbf-d1a2d.firebasestorage.app",
+            messagingSenderId: "79682535947",
+            appId: "1:79682535947:web:714e3f81408d7a0d0dbd0e"
+        });
+    </script>
+    <script src="js/auth.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            height: 100vh;
+            background-color: #1a1a1a;
+            color: #c900c9;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            isolation: isolate;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+        }
+        body.gradient-bg::before {
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d1b4e 30%, #1a0a2e 60%, #0a0a0a 100%);
+            filter: none;
+        }
+        body.gradient-bg {
+            background-color: transparent;
+        }
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle ease-in-out infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.1; transform: translateY(0); }
+            50% { opacity: 0.8; transform: translateY(-20px); }
+        }
+        .back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1rem;
+            border: 1px solid #555;
+            border-radius: 16px;
+            padding: 6px 16px;
+            background: #2a2a3a;
+            z-index: 20;
+        }
+        .back:hover {
+            background: #33334a;
+        }
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 40px;
+            overflow: hidden;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin: 0 0 12px 0;
+            color: #fff;
+            -webkit-text-stroke: 1px #000;
+            text-align: center;
+        }
+        .list {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+            width: 100%;
+            padding: 0 10px;
+            overflow-y: auto;
+            flex: 1;
+            align-content: start;
+        }
+        .item {
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 10px 4px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 120px;
+            cursor: pointer;
+            overflow: visible;
+            transition: border-color 0.2s;
+            position: relative;
+            gap: 0;
+        }
+        .item:hover {
+            background: #33334a;
+            z-index: 1;
+        }
+        .item img {
+            width: 70px;
+            height: 70px;
+            margin: 0 0 4px 0;
+            border-radius: 6px;
+        }
+        .item .info {
+            padding: 0 2px;
+            align-items: center;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+        }
+        .item h3 {
+            font-size: 0.7rem;
+            font-weight: 600;
+            line-height: 1.15;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+            color: #eee;
+            margin: 0;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .item[data-rarity="common"] h3 { background: rgba(255,255,255,0.15); }
+        .item[data-rarity="uncommon"] h3 { background: rgba(76,175,80,0.35); }
+        .item[data-rarity="rare"] h3 { background: rgba(66,165,245,0.35); }
+        .item[data-rarity="legendary"] h3 { background: rgba(244,143,177,0.35); }
+        .item[data-rarity="mythical"] h3 { background: rgba(239,83,80,0.35); }
+        .item .counter {
+            font-size: 0.6rem;
+            color: #888;
+            margin-top: 2px;
+        }
+        .item .counter .filled {
+            color: #4caf50;
+        }
+        .item .fav-icon {
+            position: absolute;
+            bottom: 4px;
+            left: 4px;
+            right: 4px;
+            height: 24px;
+            font-size: 0.7rem;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.05);
+            color: #555;
+        }
+        .item .fav-icon:hover { background: rgba(255,255,255,0.1); }
+        .item .fav-icon.faved { background: #e6a800; color: #ffc107; }
+        .item .seasonal {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 18px;
+            height: 18px;
+            background: #e91e63;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+            z-index: 2;
+        }
+        .item .seasonal .tooltip {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            border: 1px solid #e91e63;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 0.72rem;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
+            font-weight: 400;
+            text-align: center;
+            margin-top: 6px;
+        }
+        .item .seasonal .tooltip.align-left {
+            left: 0;
+            transform: none;
+        }
+        .item .seasonal .tooltip.align-right {
+            left: 100%;
+            transform: translateX(-100%);
+        }
+        .item .seasonal:hover .tooltip {
+            display: block;
+        }
+        .auth-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 50;
+            justify-content: center;
+            align-items: center;
+        }
+        .auth-overlay.active { display: flex; }
+        .auth-modal {
+            background: #1e1e2e;
+            border: 1px solid #555;
+            border-radius: 16px;
+            padding: 30px;
+            width: 340px;
+            text-align: center;
+        }
+        .auth-modal h2 { color: #8cf; margin: 0 0 20px; font-size: 1.3rem; }
+        .auth-modal input {
+            width: 100%; padding: 10px 14px; margin-bottom: 12px;
+            border: 1px solid #555; border-radius: 8px;
+            background: #2a2a3a; color: #fff; font-size: 0.9rem; box-sizing: border-box;
+        }
+        .auth-modal input:focus { outline: none; border-color: #8cf; }
+        .auth-modal .auth-submit {
+            width: 100%; padding: 10px; border: none; border-radius: 8px;
+            background: #5c6bc0; color: #fff; font-size: 0.9rem; cursor: pointer; margin-bottom: 10px;
+        }
+        .auth-modal .auth-submit:hover { background: #7986cb; }
+        .auth-modal .google-btn {
+            width: 100%; padding: 10px; border: 1px solid #555; border-radius: 8px;
+            background: #2a2a3a; color: #ccc; font-size: 0.9rem; cursor: pointer; margin-bottom: 12px;
+        }
+        .auth-modal .google-btn:hover { background: #33334a; border-color: #8cf; }
+        .auth-modal .switch-link { color: #8cf; cursor: pointer; font-size: 0.8rem; }
+        .auth-modal .error-msg { color: #c62828; font-size: 0.8rem; margin-bottom: 10px; min-height: 1.2em; }
+    </style>
+    <link rel="stylesheet" href="css/filter.css">
+    <link rel="stylesheet" href="css/toolbar.css">
+</head>
+<body class="gradient-bg">
+    <div class="particles" id="particles"></div>
+    <div class="auth-bar" id="authBar"></div>
+    <div class="sync-indicator" id="syncIndicator">Синхронизация...</div>
+    <a class="back" href="index.html">&larr; Назад</a>
+    <div class="sidebar">
+        <button class="active" data-filter="all">Все</button>
+        <button data-filter="favourite" style="width:100%;">★ Избранное</button>
+        <div class="filter-group" data-group="rarity">
+            <div class="filter-group-header" onclick="CBF.toggleGroup(this)"><span class="arrow">▼</span> Редкость</div>
+            <div class="filter-group-items">
+                <div class="filter-item"><span class="filter-item-label">Обычные</span><div class="ft state-1" data-filter="common" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Необычные</span><div class="ft state-1" data-filter="uncommon" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Редкие</span><div class="ft state-1" data-filter="rare" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Легендарные</span><div class="ft state-1" data-filter="legendary" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Мифические</span><div class="ft state-1" data-filter="mythical" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+            </div>
+        </div>
+        <div class="filter-group" data-group="other">
+            <div class="filter-group-header" onclick="CBF.toggleGroup(this)"><span class="arrow">▼</span> Прочее</div>
+            <div class="filter-group-items">
+                <div class="filter-item"><span class="filter-item-label">Сезонный</span><div class="ft state-1" data-filter="seasonal" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+            </div>
+        </div>
+    </div>
+    <button onclick="CBF.resetAllFilters()" style="position:fixed;bottom:20px;left:20px;z-index:20;background:#2a2a3a;border:1px solid #555;color:#999;font-size:0.75rem;padding:6px 14px;cursor:pointer;border-radius:10px;">Сбросить фильтры</button>
+    <div class="main">
+        <h1>Материалы</h1>
+        <div class="toolbar">
+            <input class="search" type="text" placeholder="Поиск по названию..." id="searchInput" oninput="filterBySearch()" autocomplete="off">
+            <div class="sort-wrap">
+                <button class="sort-btn" id="sortBtn" onclick="toggleSortDropdown()">
+                    <svg viewBox="0 0 16 16" fill="none">
+                        <path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span id="sortLabel">По редкости</span>
+                </button>
+                <div class="sort-dropdown" id="sortDropdown">
+                    <button data-sort="default" class="active" onclick="setSort('default', this)">
+                        <svg class="icon" viewBox="0 0 16 16" fill="none">
+                            <rect x="1" y="2" width="14" height="3" rx="1" fill="currentColor" opacity="0.3"/>
+                            <rect x="1" y="6.5" width="14" height="3" rx="1" fill="currentColor" opacity="0.3"/>
+                            <rect x="1" y="11" width="14" height="3" rx="1" fill="currentColor" opacity="0.3"/>
+                        </svg>
+                        По редкости
+                    </button>
+                    <button data-sort="name" onclick="setSort('name', this)">
+                        <svg class="icon" viewBox="0 0 16 16" fill="none">
+                            <text x="1" y="12" font-size="11" font-weight="700" fill="currentColor">A</text>
+                            <text x="8" y="12" font-size="11" font-weight="700" fill="currentColor">Z</text>
+                        </svg>
+                        По алфавиту
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="list">
+            <div class="item" data-name="Ягода Красная Вишня" data-rarity="common" data-fav="false">
+                <img src="assets/materials/RedCherryBerryA.webp" alt="">
+                <div class="info"><h3>Ягода Красная Вишня</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Оранжевая Ягода" data-rarity="common" data-fav="false">
+                <img src="assets/materials/OrangeBerryA.webp" alt="">
+                <div class="info"><h3>Оранжевая Ягода</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Ягода Жёлтая Звезда" data-rarity="common" data-fav="false">
+                <img src="assets/materials/YellowStarBerryA.webp" alt="">
+                <div class="info"><h3>Ягода Жёлтая Звезда</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Ягода Зелёная Жаба" data-rarity="common" data-fav="false">
+                <img src="assets/materials/GreenToadBerryA.webp" alt="">
+                <div class="info"><h3>Ягода Зелёная Жаба</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Ягода Синяя Сосулька" data-rarity="common" data-fav="false">
+                <img src="assets/materials/BlueIcicleBerryA.webp" alt="">
+                <div class="info"><h3>Ягода Синяя Сосулька</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Ягода Фиолетовое Желе" data-rarity="common" data-fav="false">
+                <img src="assets/materials/PurpleJellyBerryA.webp" alt="">
+                <div class="info"><h3>Ягода Фиолетовое Желе</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Ягода Розовая Свинья" data-rarity="common" data-fav="false">
+                <img src="assets/materials/PinkPigBerryA.webp" alt="">
+                <div class="info"><h3>Ягода Розовая Свинья</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Ягода Белое Облако" data-rarity="common" data-fav="false">
+                <img src="assets/materials/WhiteCloudBerryA.webp" alt="">
+                <div class="info"><h3>Ягода Белое Облако</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Деревянная Доска" data-rarity="common" data-fav="false" data-collected="0" data-total="4">
+                <img src="assets/materials/WoodenPlankA.webp" alt="">
+                <div class="info"><h3>Деревянная Доска</h3><div class="counter"><span class="collected">0</span> / <span class="total">4</span></div></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Магматическая Руда" data-rarity="common" data-fav="false">
+                <img src="assets/materials/MagmaOreA.webp" alt="">
+                <div class="info"><h3>Магматическая Руда</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Кожа" data-rarity="common" data-fav="false">
+                <img src="assets/materials/LeatherA.webp" alt="">
+                <div class="info"><h3>Кожа</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Металлолом" data-rarity="common" data-fav="false" data-collected="0" data-total="3">
+                <img src="assets/materials/ScrapMetalA.webp" alt="">
+                <div class="info"><h3>Металлолом</h3><div class="counter"><span class="collected">0</span> / <span class="total">3</span></div></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Ангельские Крылья" data-rarity="common" data-fav="false">
+                <img src="assets/materials/AngelWingsA.webp" alt="">
+                <div class="info"><h3>Ангельские Крылья</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Мех Йети" data-rarity="common" data-fav="false">
+                <img src="assets/materials/YetiFurA.webp" alt="">
+                <div class="info"><h3>Мех Йети</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Данные Симуляции" data-rarity="common" data-fav="false">
+                <img src="assets/materials/SimulationDataA.webp" alt="">
+                <div class="info"><h3>Данные Симуляции</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Рыбий Хвост" data-rarity="uncommon" data-fav="false">
+                <img src="assets/materials/FishTailA.webp" alt="">
+                <div class="info"><h3>Рыбий Хвост</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Эктоплазма" data-rarity="uncommon" data-fav="false">
+                <img src="assets/materials/EctoplasmA.webp" alt="">
+                <div class="info"><h3>Эктоплазма</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Радиоактивный Материал" data-rarity="uncommon" data-fav="false">
+                <img src="assets/materials/RadioactiveMaterialA.webp" alt="">
+                <div class="info"><h3>Радиоактивный Материал</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Вампирский Клык" data-rarity="uncommon" data-fav="false">
+                <img src="assets/materials/VampireFangA.webp" alt="">
+                <div class="info"><h3>Вампирский Клык</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Мистическая Капля" data-rarity="uncommon" data-fav="false">
+                <img src="assets/materials/MysticDropletA.webp" alt="">
+                <div class="info"><h3>Мистическая Капля</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Кости" data-rarity="uncommon" data-fav="false">
+                <img src="assets/materials/BonesA.webp" alt="">
+                <div class="info"><h3>Кости</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Мини Бивень" data-rarity="uncommon" data-fav="false">
+                <img src="assets/materials/MiniTuskA.webp" alt="">
+                <div class="info"><h3>Мини Бивень</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Порох" data-rarity="uncommon" data-fav="false">
+                <img src="assets/materials/GunpowderA.webp" alt="">
+                <div class="info"><h3>Порох</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Золото Дураков" data-rarity="uncommon" data-fav="false">
+                <img src="assets/materials/FoolsGoldA.webp" alt="">
+                <div class="info"><h3>Золото Дураков</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Зуб Акулы" data-rarity="uncommon" data-fav="false">
+                <img src="assets/materials/SharkToothA.webp" alt="">
+                <div class="info"><h3>Зуб Акулы</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Горящий Уголёк" data-rarity="uncommon" data-fav="false">
+                <img src="assets/materials/BlazeEmberA.webp" alt="">
+                <div class="info"><h3>Горящий Уголёк</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Демонический Огонёк" data-rarity="rare" data-fav="false">
+                <img src="assets/materials/DemonicWispA.webp" alt="">
+                <div class="info"><h3>Демонический Огонёк</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Драконья Чешуя" data-rarity="rare" data-fav="false">
+                <img src="assets/materials/DragonScaleA.webp" alt="">
+                <div class="info"><h3>Драконья Чешуя</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Заколдованное Какао" data-rarity="rare" data-fav="false">
+                <img src="assets/materials/ConjuredCocoaA.webp" alt="">
+                <div class="info"><h3>Заколдованное Какао</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Электрическое Крыло" data-rarity="rare" data-fav="false">
+                <img src="assets/materials/ElectricWingA.webp" alt="">
+                <div class="info"><h3>Электрическое Крыло</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Зуб Мутанта" data-rarity="rare" data-fav="false">
+                <img src="assets/materials/MutantToothA.webp" alt="">
+                <div class="info"><h3>Зуб Мутанта</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Огненный Цветок" data-rarity="rare" data-fav="false">
+                <img src="assets/materials/FireFlowerA.webp" alt="">
+                <div class="info"><h3>Огненный Цветок</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Огненное Перо" data-rarity="rare" data-fav="false">
+                <img src="assets/materials/FireFeatherA.webp" alt="">
+                <div class="info"><h3>Огненное Перо</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Лунный Камень" data-rarity="rare" data-fav="false">
+                <img src="assets/materials/MoonstoneA.webp" alt="">
+                <div class="info"><h3>Лунный Камень</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Конфеты" data-rarity="rare" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/materials/CandyA.webp" alt="">
+                <div class="info"><h3>Конфеты</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Кенди Корн" data-rarity="rare" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/materials/CandyCornA.webp" alt="">
+                <div class="info"><h3>Кенди Корн</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Метеорит" data-rarity="legendary" data-fav="false">
+                <img src="assets/materials/MeteoriteA.webp" alt="">
+                <div class="info"><h3>Метеорит</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Глаза Ужаса" data-rarity="legendary" data-fav="false">
+                <img src="assets/materials/TerrorEyesA.webp" alt="">
+                <div class="info"><h3>Глаза Ужаса</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Чешуя Левиафана" data-rarity="legendary" data-fav="false">
+                <img src="assets/materials/LeviathanScaleA.webp" alt="">
+                <div class="info"><h3>Чешуя Левиафана</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Лазурный Уголёк" data-rarity="legendary" data-fav="false">
+                <img src="assets/materials/AzureEmberA.webp" alt="">
+                <div class="info"><h3>Лазурный Уголёк</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Кости Динозавра" data-rarity="legendary" data-fav="false">
+                <img src="assets/materials/DinosaurBonesA.webp" alt="">
+                <div class="info"><h3>Кости Динозавра</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Вольтовая Капсула" data-rarity="legendary" data-fav="false">
+                <img src="assets/materials/VoltCapsuleA.webp" alt="">
+                <div class="info"><h3>Вольтовая Капсула</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Летний Жетон" data-rarity="legendary" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/materials/SummerTokenA.webp" alt="">
+                <div class="info"><h3>Летний Жетон</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Жетон Они" data-rarity="legendary" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/materials/OniTokenA.webp" alt="">
+                <div class="info"><h3>Жетон Они</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Небесный Жетон" data-rarity="legendary" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/materials/CelestialTokenA.webp" alt="">
+                <div class="info"><h3>Небесный Жетон</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Сердечки" data-rarity="legendary" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/materials/HeartsA.webp" alt="">
+                <div class="info"><h3>Сердечки</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Тёмный Фрагмент" data-rarity="mythical" data-fav="false">
+                <img src="assets/materials/DarkFragmentA.webp" alt="">
+                <div class="info"><h3>Тёмный Фрагмент</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Фрагмент Алукарда" data-rarity="mythical" data-fav="false">
+                <img src="assets/materials/AlucardFragmentA.webp" alt="">
+                <div class="info"><h3>Фрагмент Алукарда</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Зеркальный Фрактал" data-rarity="mythical" data-fav="false">
+                <img src="assets/materials/MirrorFractalA.webp" alt="">
+                <div class="info"><h3>Зеркальный Фрактал</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Монстр Магнит" data-rarity="mythical" data-fav="false">
+                <img src="assets/materials/MonsterMagnetA.webp" alt="">
+                <div class="info"><h3>Монстр Магнит</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Сердце Левиафана" data-rarity="mythical" data-fav="false">
+                <img src="assets/materials/LeviathanHeartA.webp" alt="">
+                <div class="info"><h3>Сердце Левиафана</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Вулканический Магнит" data-rarity="mythical" data-fav="false">
+                <img src="assets/materials/VolcanicMagnetA.webp" alt="">
+                <div class="info"><h3>Вулканический Магнит</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Яйцо Дракона" data-rarity="mythical" data-fav="false">
+                <img src="assets/materials/DragonEggA.webp" alt="">
+                <div class="info"><h3>Яйцо Дракона</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Ловец Кошмаров" data-rarity="mythical" data-fav="false">
+                <img src="assets/materials/NightmareCatcherA.webp" alt="">
+                <div class="info"><h3>Ловец Кошмаров</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+            <div class="item" data-name="Конфетти" data-rarity="mythical" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/materials/ConfettiA.webp" alt="">
+                <div class="info"><h3>Конфетти</h3></div>
+
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+
+            </div>
+        </div>
+    </div>
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-modal">
+            <h2 id="authTitle">Вход</h2>
+            <div class="error-msg" id="authError"></div>
+            <input type="email" id="authEmail" placeholder="Email" autocomplete="off">
+            <input type="password" id="authPass" placeholder="Пароль" autocomplete="new-password">
+            <button class="auth-submit" id="authSubmit" onclick="handleAuth()">Войти</button>
+            <button class="google-btn" onclick="handleGoogleAuth()">Войти через Google</button>
+            <span class="switch-link" id="authSwitch" onclick="toggleAuthMode()">Нет аккаунта? Регистрация</span>
+            <br><br>
+            <span class="switch-link" onclick="closeAuthModal()">Позже</span>
+        </div>
+    </div>
+    <script>
+        var currentItem = null;
+
+        function requireAuth() {
+            if (window.checkbfAuth && window.checkbfAuth.requireAuth) return window.checkbfAuth.requireAuth();
+            return false;
+        }
+
+        function toggleFav(e, el) {
+            e.stopPropagation();
+            if (!requireAuth()) return;
+            var item = el.closest('.item');
+            var val = item.dataset.fav === 'true' ? 'false' : 'true';
+            item.dataset.fav = val;
+            el.textContent = val === 'true' ? '★' : '☆';
+            el.classList.toggle('faved', val === 'true');
+            saveData();
+        }
+
+        function saveData() {
+            var data = {};
+            document.querySelectorAll('.item').forEach(function(item) {
+                data[item.dataset.name] = { fav: item.dataset.fav };
+            });
+            localStorage.setItem('checkbf_materials', JSON.stringify(data));
+            var u = (window.checkbfAuth && window.checkbfAuth.user) || firebase.auth().currentUser;
+            if (u) {
+                TB.showSync();
+                window.checkbfAuth.saveToDB('materials', data).then(TB.hideSync);
+            }
+        }
+
+        function loadData() {
+            var raw = localStorage.getItem('checkbf_materials');
+            if (!raw) return;
+            var data = JSON.parse(raw);
+            document.querySelectorAll('.item').forEach(function(item) {
+                var saved = data[item.dataset.name];
+                if (saved) {
+                    if (saved.fav) {
+                        item.dataset.fav = saved.fav;
+                        var favEl = item.querySelector('.fav-icon');
+                        if (favEl) {
+                            favEl.textContent = saved.fav === 'true' ? '★' : '☆';
+                            favEl.classList.toggle('faved', saved.fav === 'true');
+                        }
+                    }
+                }
+            });
+        }
+
+        loadData();
+
+        function filterBySearch() {
+            var q = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.item').forEach(function(item) {
+                var name = item.dataset.name.toLowerCase();
+                item.style.display = name.indexOf(q) !== -1 ? '' : 'none';
+            });
+        }
+
+        document.querySelectorAll('.item').forEach(function(item) {
+            item.addEventListener('click', function() {
+                currentItem = item;
+                document.getElementById('popupOverlay').classList.add('active');
+            });
+        });
+
+        document.getElementById('popupOverlay').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+
+        var currentSort = 'default';
+        var rarityOrder = { common: 0, uncommon: 1, rare: 2, legendary: 3, mythical: 4 };
+        var originalOrder = {};
+        document.querySelectorAll('.item').forEach(function(item, i) {
+            originalOrder[item.dataset.name] = i;
+        });
+
+        var toggleSortDropdown = TB.toggleSortDropdown;
+        function setSort(type, btn) {
+            currentSort = type;
+            document.querySelectorAll('#sortDropdown button').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            document.getElementById('sortDropdown').classList.remove('open');
+            var labels = { default: 'По редкости', name: 'По алфавиту' };
+            document.getElementById('sortLabel').textContent = labels[type] || 'По редкости';
+            applySort();
+            localStorage.setItem('checkbf_materials_sort', type);
+        }
+        function applySort() {
+            var list = document.querySelector('.list');
+            var items = Array.from(list.querySelectorAll('.item'));
+            if (currentSort === 'default') {
+                items.sort(function(a, b) {
+                    var ra = rarityOrder[a.dataset.rarity] || 0;
+                    var rb = rarityOrder[b.dataset.rarity] || 0;
+                    if (ra !== rb) return ra - rb;
+                    return (originalOrder[a.dataset.name] || 0) - (originalOrder[b.dataset.name] || 0);
+                });
+            } else if (currentSort === 'name') {
+                items.sort(function(a, b) { return a.dataset.name.localeCompare(b.dataset.name); });
+            }
+            items.forEach(function(item) { list.appendChild(item); });
+            applyAllVisibility();
+        }
+
+        function applyAllVisibility() {
+            var sidebarFilter = CBF.getSidebarFilter();
+            var rarityFilters = ['common','uncommon','rare','legendary','mythical'];
+            var activeRarities = rarityFilters.filter(function(f) { return CBF.getFilterState(f) === 1; });
+            var excludedRarities = rarityFilters.filter(function(f) { return CBF.getFilterState(f) === -1; });
+            var seasonalState = CBF.getFilterState('seasonal');
+            document.querySelectorAll('.list .item').forEach(function(item) {
+                var showSidebar = false;
+                if (sidebarFilter === 'all') showSidebar = true;
+                else if (sidebarFilter === 'favourite') showSidebar = item.dataset.fav === 'true';
+                else showSidebar = item.dataset.rarity === sidebarFilter;
+                var showFilter = true;
+                if (activeRarities.length > 0) {
+                    if (activeRarities.indexOf(item.dataset.rarity) === -1) showFilter = false;
+                }
+                if (excludedRarities.indexOf(item.dataset.rarity) !== -1) showFilter = false;
+                var isSeasonal = !!item.querySelector('.seasonal');
+                if (seasonalState === 1 && !isSeasonal) showFilter = false;
+                if (seasonalState === -1 && isSeasonal) showFilter = false;
+                item.style.display = (showSidebar && showFilter) ? '' : 'none';
+            });
+        }
+
+        function createParticles() {
+            var container = document.getElementById('particles');
+            container.innerHTML = '';
+            for (var i = 0; i < 60; i++) {
+                var p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.animationDuration = (Math.random() * 4 + 3) + 's';
+                p.style.animationDelay = (Math.random() * 3) + 's';
+                var size = Math.random() * 3 + 1;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                container.appendChild(p);
+            }
+        }
+        createParticles();
+
+        function resetToDefaults() {
+            localStorage.removeItem('checkbf_materials');
+            document.querySelectorAll('.item').forEach(function(item) {
+                item.dataset.fav = 'false';
+                var favEl = item.querySelector('.fav-icon');
+                if (favEl) { favEl.textContent = '☆'; favEl.classList.remove('faved'); }
+            });
+        }
+
+        async function syncFromDB() {
+            if (!window.checkbfAuth || !window.checkbfAuth.user) return;
+            var dbData = await window.checkbfAuth.loadFromDB('materials');
+            var localData = null;
+            var raw = localStorage.getItem('checkbf_materials');
+            if (raw) { try { localData = JSON.parse(raw); } catch(e) {} }
+            if (dbData && Object.keys(dbData).length > 0) {
+                localStorage.setItem('checkbf_materials', JSON.stringify(dbData));
+        loadData();
+
+        var allRecipes = {
+            "Металлолом": 3,
+            "Деревянная Доска": 4
+        };
+        function updateMaterialsCounters() {
+            var usage = {};
+            try { usage = JSON.parse(localStorage.getItem('checkbf_materials_usage')) || {}; } catch(e) {}
+            document.querySelectorAll('.item').forEach(function(item) {
+                var name = item.dataset.name;
+                var collected = usage[name] || 0;
+                var total = allRecipes[name] || 0;
+                item.dataset.collected = collected;
+                item.dataset.total = total;
+                var collectedEl = item.querySelector('.collected');
+                var totalEl = item.querySelector('.total');
+                if (collectedEl) collectedEl.textContent = collected;
+                if (totalEl) totalEl.textContent = total;
+                if (collectedEl) collectedEl.classList.toggle('filled', collected >= total && total > 0);
+            });
+        }
+        updateMaterialsCounters();
+
+        document.querySelectorAll('.item').forEach(function(item) {
+            if (!item.querySelector('.counter')) {
+                var info = item.querySelector('.info');
+                if (info) {
+                    var counter = document.createElement('div');
+                    counter.className = 'counter';
+                    counter.innerHTML = '<span class="collected">0</span> / <span class="total">0</span>';
+                    info.appendChild(counter);
+                }
+            }
+            if (!item.dataset.collected) item.dataset.collected = '0';
+            if (!item.dataset.total) item.dataset.total = '0';
+        });
+                TB.showSync();
+            } else if (localData && Object.keys(localData).length > 0) {
+                await window.checkbfAuth.saveToDB('materials', localData);
+                TB.showSync();
+            }
+        }
+
+        TB.init();
+    </script>
+    <script>CBF.init('checkbf_materials_filters');</script>
+    <script>
+        (function() {
+            var saved = localStorage.getItem('checkbf_materials_sort');
+            if (saved) {
+                var btn = document.querySelector('#sortDropdown button[data-sort="' + saved + '"]');
+                if (btn) setSort(saved, btn);
+            }
+        })();
+    </script>
+    <script>
+        document.querySelectorAll('.item .seasonal').forEach(function(el) {
+            var tip = el.querySelector('.tooltip');
+            if (!tip) return;
+            el.addEventListener('mouseenter', function() {
+                var item = el.closest('.item');
+                var grid = item ? item.parentElement : null;
+                tip.classList.remove('align-left', 'align-right');
+                if (grid) {
+                    var top = item.offsetTop;
+                    var siblings = grid.querySelectorAll('.item');
+                    var minLeft = Infinity, maxLeft = -Infinity;
+                    siblings.forEach(function(s) {
+                        if (Math.abs(s.offsetTop - top) < 5) {
+                            if (s.offsetLeft < minLeft) minLeft = s.offsetLeft;
+                            if (s.offsetLeft > maxLeft) maxLeft = s.offsetLeft;
+                        }
+                    });
+                    if (item.offsetLeft <= minLeft) tip.classList.add('align-left');
+                    else if (item.offsetLeft >= maxLeft) tip.classList.add('align-right');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

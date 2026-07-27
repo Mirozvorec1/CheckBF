@@ -461,7 +461,7 @@
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
                 <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
             </div>
-            <div class="item" data-name="Золотая Удочка" data-mastery="1/100" data-rarity="uncommon" data-eaten="false" data-fav="false">
+            <div class="item" data-name="Золотая Удочка" data-mastery="1/100" data-rarity="uncommon" data-eaten="false" data-fav="false" data-recipe='{"Металлолом":3,"Деревянная Доска":4}'>
                 <img src="assets/rods/GoldRodQ.webp" alt="GoldRod">
                 <div class="info"><h3>Золотая Удочка</h3><p>1/100</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
@@ -537,6 +537,7 @@
             el.textContent = val === 'true' ? '✓' : '⊘';
             el.classList.toggle('eaten', val === 'true');
             saveData();
+            updateMaterialsUsage();
         }
         function toggleFav(e, el) {
             e.stopPropagation();
@@ -547,6 +548,19 @@
             el.textContent = val === 'true' ? '★' : '☆';
             el.classList.toggle('faved', val === 'true');
             saveData();
+        }
+        function updateMaterialsUsage() {
+            var usage = {};
+            document.querySelectorAll('.item[data-recipe]').forEach(function(item) {
+                if (item.dataset.eaten !== 'true') return;
+                try {
+                    var recipe = JSON.parse(item.dataset.recipe);
+                    for (var mat in recipe) {
+                        usage[mat] = (usage[mat] || 0) + recipe[mat];
+                    }
+                } catch(e) {}
+            });
+            localStorage.setItem('checkbf_materials_usage', JSON.stringify(usage));
         }
 
         function saveData() {
@@ -601,6 +615,7 @@
         }
 
         loadData();
+        updateMaterialsUsage();
 
         function filterBySearch() {
             var q = document.getElementById('searchInput').value.toLowerCase();
