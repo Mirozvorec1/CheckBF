@@ -64,81 +64,53 @@
             z-index: 15;
             pointer-events: none;
         }
-        .avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 2px solid #555;
-            object-fit: cover;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+            margin-top: 140px;
             z-index: 10;
         }
-        .grid {
-            position: relative;
-            width: 100%;
-            max-width: 1100px;
-            min-height: 700px;
-            margin-top: 80px;
-        }
-        .oval {
-            position: absolute;
-            border-radius: 50%;
+        .menu-btn {
+            display: flex;
+            align-items: center;
+            gap: 16px;
             background: #2a2a3a;
             border: 1px solid #555;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
+            border-radius: 16px;
+            padding: 20px 24px;
             cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
         }
-        .oval:hover {
+        .menu-btn:hover {
             background: #33334a;
+            border-color: #8cf;
         }
-        .oval.dim {
+        .menu-btn.dim {
             background: #1f1f2a;
             border-color: #3a3a4a;
             opacity: 0.5;
+            cursor: default;
         }
-        .oval.dim:hover {
-            background: #252535;
-            opacity: 0.7;
+        .menu-btn.dim:hover {
+            background: #1f1f2a;
+            border-color: #3a3a4a;
         }
-        .oval h2 {
+        .menu-btn img {
+            width: 52px;
+            height: 52px;
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+        .menu-btn span {
             font-size: 1.1rem;
             color: #8cf;
-            margin: 0;
-            -webkit-text-stroke: 0.5px #000;
-            letter-spacing: 0.5px;
+            font-weight: 600;
         }
-        .oval p {
-            font-size: 0.8rem;
-            color: #999;
-            line-height: 1.3;
-        }
-        .o1 { width: 180px; height: 100px; top: 5%; left: 2%; }
-        .o5 { width: 180px; height: 100px; top: 5%; left: 22%; }
-        .o10 { width: 180px; height: 100px; top: 5%; left: 42%; }
-        .o7 { width: 180px; height: 100px; top: 5%; right: 22%; }
-        .o8 { width: 180px; height: 100px; top: 5%; right: 2%; }
-        .o4 { width: 180px; height: 100px; top: 40%; left: 2%; }
-        .o6 { width: 180px; height: 100px; top: 40%; right: 2%; }
-        .o2 { width: 180px; height: 100px; bottom: 5%; left: 2%; }
-        .o3 { width: 180px; height: 100px; bottom: 5%; left: 22%; }
-        .o9 { width: 180px; height: 100px; bottom: 5%; right: 2%; }
-        .o11 { width: 180px; height: 100px; bottom: 5%; left: 42%; }
-        .o12 { width: 180px; height: 100px; top: 40%; left: 22%; }
-        svg.arrows {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 5;
+        .menu-btn.dim span {
+            color: #666;
         }
         .auth-bar {
             position: fixed;
@@ -316,106 +288,58 @@
         </div>
     </div>
     <div class="sync-indicator" id="syncIndicator">Синхронизация...</div>
-    <svg class="arrows" id="arrows"></svg>
-    <img class="avatar" id="avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 150'%3E%3Crect fill='%23333' width='150' height='150' rx='75'/%3E%3Ccircle fill='%23555' cx='75' cy='60' r='25'/%3E%3Cellipse fill='%23555' cx='75' cy='130' rx='40' ry='30'/%3E%3C/svg%3E" alt="Avatar">
     <img class="logo" src="assets/logo.png" alt="CheckBF">
     <div class="grid">
-        <div class="oval o1" onclick="location.href='fruit.html'">
-            <h2>Фрукты</h2>
+        <div class="menu-btn" onclick="location.href='fruit.html'">
+            <img src="assets/fruits/FlameB.webp" alt="">
+            <span>Фрукты</span>
         </div>
-        <div class="oval o5" onclick="location.href='skins.html'">
-            <h2>Скины</h2>
+        <div class="menu-btn" onclick="location.href='skins.html'">
+            <img src="assets/skins/Red_Lightning_Fruit.webp" alt="">
+            <span>Скины</span>
         </div>
-        <div class="oval o10" onclick="location.href='mutations.html'">
-            <h2>Мутации</h2>
+        <div class="menu-btn" onclick="location.href='mutations.html'">
+            <img src="assets/mutations/Empyrean_Fruit.webp" alt="">
+            <span>Мутации</span>
         </div>
-        <div class="oval o7" onclick="location.href='rods.html'">
-            <h2>Удочки</h2>
+        <div class="menu-btn" onclick="location.href='rods.html'">
+            <img src="assets/rods/GoldRodQ.webp" alt="">
+            <span>Удочки</span>
         </div>
-        <div class="oval o8 dim">
-            <h2>Рыбы</h2>
+        <div class="menu-btn dim">
+            <img src="assets/materials/DarkFragmentA.webp" alt="">
+            <span>Рыбы</span>
         </div>
-        <div class="oval o4" onclick="location.href='fightingstyles.html'">
-            <h2>Стили боя</h2>
+        <div class="menu-btn" onclick="location.href='fightingstyles.html'">
+            <img src="assets/fighting/GodhumanA.webp" alt="">
+            <span>Стили боя</span>
         </div>
-        <div class="oval o6" onclick="location.href='accessories.html'">
-            <h2>Аксессуары</h2>
+        <div class="menu-btn" onclick="location.href='accessories.html'">
+            <img src="assets/accessories/ValkyrieHelmetQ.webp" alt="">
+            <span>Аксессуары</span>
         </div>
-        <div class="oval o2" onclick="location.href='swords.html'">
-            <h2>Мечи</h2>
+        <div class="menu-btn" onclick="location.href='swords.html'">
+            <img src="assets/swords/Dark_Blade.webp" alt="">
+            <span>Мечи</span>
         </div>
-        <div class="oval o3" onclick="location.href='guns.html'">
-            <h2>Оружие</h2>
+        <div class="menu-btn" onclick="location.href='guns.html'">
+            <img src="assets/guns/DragonstormQ.webp" alt="">
+            <span>Оружие</span>
         </div>
-        <div class="oval o9" onclick="location.href='materials.html'">
-            <h2>Материалы</h2>
+        <div class="menu-btn" onclick="location.href='materials.html'">
+            <img src="assets/materials/DarkFragmentA.webp" alt="">
+            <span>Материалы</span>
         </div>
-        <div class="oval o11" onclick="location.href='races.html'">
-            <h2>Расы</h2>
+        <div class="menu-btn" onclick="location.href='races.html'">
+            <img src="assets/races/HumanIcon.webp" alt="">
+            <span>Расы</span>
         </div>
-        <div class="oval o12 dim">
-            <h2>Общее</h2>
+        <div class="menu-btn dim">
+            <img src="assets/materials/Stone.webp" alt="">
+            <span>Общее</span>
         </div>
     </div>
     <script>
-        function drawArrows() {
-            var svg = document.getElementById('arrows');
-            var avatar = document.getElementById('avatar');
-            var avRect = avatar.getBoundingClientRect();
-            var cx = avRect.left + avRect.width / 2;
-            var cy = avRect.top + avRect.height / 2;
-
-            var o1 = document.querySelector('.o1');
-            var o2 = document.querySelector('.o2');
-            var o3 = document.querySelector('.o3');
-            var o4 = document.querySelector('.o4');
-            var o5 = document.querySelector('.o5');
-            var o6 = document.querySelector('.o6');
-            var o7 = document.querySelector('.o7');
-            var o8 = document.querySelector('.o8');
-            var o9 = document.querySelector('.o9');
-            var o10 = document.querySelector('.o10');
-            var o11 = document.querySelector('.o11');
-            var o12 = document.querySelector('.o12');
-            var r1 = o1.getBoundingClientRect();
-            var r2 = o2.getBoundingClientRect();
-            var r3 = o3.getBoundingClientRect();
-            var r4 = o4.getBoundingClientRect();
-            var r5 = o5.getBoundingClientRect();
-            var r6 = o6.getBoundingClientRect();
-            var r7 = o7.getBoundingClientRect();
-            var r8 = o8.getBoundingClientRect();
-            var r9 = o9.getBoundingClientRect();
-            var r10 = o10.getBoundingClientRect();
-            var r11 = o11.getBoundingClientRect();
-            var r12 = o12.getBoundingClientRect();
-
-            var lines = '';
-            var defs = '<defs><marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#fff"/></marker></defs>';
-
-            function arrowFromTo(x1, y1, x2, y2, el1, el2, width, opacity) {
-                var dx = x2 - x1;
-                var dy = y2 - y1;
-                var len = Math.sqrt(dx * dx + dy * dy);
-                if (len === 0) return;
-                var ux = dx / len;
-                var uy = dy / len;
-                var sx = x1 + ux * (el1.width / 2 + 2);
-                var sy = y1 + uy * (el1.height / 2 + 2);
-                var ex = x2 - ux * (el2.width / 2 + 2);
-                var ey = y2 - uy * (el2.height / 2 + 2);
-                lines += '<line x1="' + sx + '" y1="' + sy + '" x2="' + ex + '" y2="' + ey + '" stroke="#fff" stroke-width="' + (width || 1.5) + '" marker-end="url(#ah)" opacity="' + (opacity || 0.6) + '"/>';
-            }
-
-            [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12].forEach(function(r) {
-                arrowFromTo(cx, cy, r.left + r.width / 2, r.top + r.height / 2, {width: avRect.width, height: avRect.height}, {width: r.width, height: r.height});
-            });
-
-            svg.innerHTML = defs + lines;
-        }
-        drawArrows();
-        window.addEventListener('resize', drawArrows);
-
         function createParticles() {
             var container = document.getElementById('particles');
             container.innerHTML = '';
@@ -442,36 +366,7 @@
             document.getElementById('authError').textContent = '';
         };
 
-        var ROBLOX_PROFILES = {
-            'mirozvorec42@gmail.com': 2630155094,
-            'alex.i.08@mail.ru': 3910707676
-        };
-        var DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 150'%3E%3Crect fill='%23333' width='150' height='150' rx='75'/%3E%3Ccircle fill='%23555' cx='75' cy='60' r='25'/%3E%3Cellipse fill='%23555' cx='75' cy='130' rx='40' ry='30'/%3E%3C/svg%3E";
 
-        async function fetchAvatarByUserId(userId) {
-            try {
-                var proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=' + userId + '&size=150x150&format=Png&isCircular=false&isPlaceholder=false');
-                var thumb = await fetch(proxyUrl);
-                var tjson = await thumb.json();
-                if (tjson.data && tjson.data[0] && tjson.data[0].imageUrl) {
-                    return tjson.data[0].imageUrl;
-                }
-            } catch(e) { console.error('Avatar fetch error:', e); }
-            return '';
-        }
-
-        async function loadRobloxProfile(email) {
-            var avatar = document.getElementById('avatar');
-            var userId = ROBLOX_PROFILES[email];
-            var avatarUrl = DEFAULT_AVATAR;
-            if (userId) {
-                var freshAvatar = await fetchAvatarByUserId(userId);
-                avatarUrl = freshAvatar ? freshAvatar + '&t=' + Date.now() : DEFAULT_AVATAR;
-            }
-            avatar.src = avatarUrl;
-            var barImg = document.querySelector('.auth-bar .user-info img');
-            if (barImg) barImg.src = avatarUrl;
-        }
     </script>
     <script>
         var firebaseConfig = {
@@ -558,7 +453,6 @@
             if (window.checkbfAuth && window.checkbfAuth.testMode) {
                 window.checkbfAuth.logout().then(function() {
                     updateAuthBar(null);
-                    document.getElementById('avatar').src = DEFAULT_AVATAR;
                 });
             } else {
                 auth.signOut();
@@ -568,26 +462,15 @@
         auth.onAuthStateChanged(function(user) {
             if (window.checkbfAuth && window.checkbfAuth.testMode) return;
             updateAuthBar(user);
-            if (user) {
-                loadRobloxProfile(user.email);
-            } else {
-                document.getElementById('avatar').src = DEFAULT_AVATAR;
-            }
         });
 
         window.checkbfAuth.onAuthChange(function(user) {
             if (!window.checkbfAuth.testMode) return;
             updateAuthBar(user);
-            if (user) {
-                loadRobloxProfile(user.email);
-            } else {
-                document.getElementById('avatar').src = DEFAULT_AVATAR;
-            }
         });
 
         if (window.checkbfAuth.testMode) {
             updateAuthBar(window.checkbfAuth.user);
-            loadRobloxProfile(window.checkbfAuth.user.email);
         }
     </script>
 </body>
