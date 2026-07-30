@@ -826,6 +826,7 @@
                 for (var n in dbData) { if (dbData[n] && dbData[n].mastery) { var mp = dbData[n].mastery.split('/'); if (mp[0] === '0') dbData[n].mastery = '1/' + mp[1]; } }
                 localStorage.setItem('checkbf_rods', JSON.stringify(dbData));
         loadData();
+        updateMaterialsUsage();
         CBF.loadFilters();
                 TB.showSync();
             } else if (localData && Object.keys(localData).length > 0) {

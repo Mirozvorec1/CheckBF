@@ -800,17 +800,6 @@
             });
         }
 
-        document.querySelectorAll('.item').forEach(function(item) {
-            item.addEventListener('click', function() {
-                currentItem = item;
-                document.getElementById('popupOverlay').classList.add('active');
-            });
-        });
-
-        document.getElementById('popupOverlay').addEventListener('click', function(e) {
-            if (e.target === this) this.classList.remove('active');
-        });
-
         var currentSort = 'default';
         var rarityOrder = { common: 0, uncommon: 1, rare: 2, legendary: 3, mythical: 4 };
         var originalOrder = {};
@@ -896,20 +885,11 @@
             });
         }
 
-        async function syncFromDB() {
-            if (!window.checkbfAuth || !window.checkbfAuth.user) return;
-            var dbData = await window.checkbfAuth.loadFromDB('materials');
-            var localData = null;
-            var raw = localStorage.getItem('checkbf_materials');
-            if (raw) { try { localData = JSON.parse(raw); } catch(e) {} }
-            if (dbData && Object.keys(dbData).length > 0) {
-                localStorage.setItem('checkbf_materials', JSON.stringify(dbData));
-        loadData();
-
         var allRecipes = {
             "Металлолом": 3,
             "Деревянная Доска": 4
         };
+
         function updateMaterialsCounters() {
             var usage = {};
             try { usage = JSON.parse(localStorage.getItem('checkbf_materials_usage')) || {}; } catch(e) {}
@@ -926,7 +906,6 @@
                 if (collectedEl) collectedEl.classList.toggle('filled', collected >= total && total > 0);
             });
         }
-        updateMaterialsCounters();
 
         document.querySelectorAll('.item').forEach(function(item) {
             if (!item.querySelector('.counter')) {
@@ -941,6 +920,18 @@
             if (!item.dataset.collected) item.dataset.collected = '0';
             if (!item.dataset.total) item.dataset.total = '0';
         });
+        updateMaterialsCounters();
+
+        async function syncFromDB() {
+            if (!window.checkbfAuth || !window.checkbfAuth.user) return;
+            var dbData = await window.checkbfAuth.loadFromDB('materials');
+            var localData = null;
+            var raw = localStorage.getItem('checkbf_materials');
+            if (raw) { try { localData = JSON.parse(raw); } catch(e) {} }
+            if (dbData && Object.keys(dbData).length > 0) {
+                localStorage.setItem('checkbf_materials', JSON.stringify(dbData));
+                loadData();
+                updateMaterialsCounters();
                 TB.showSync();
             } else if (localData && Object.keys(localData).length > 0) {
                 await window.checkbfAuth.saveToDB('materials', localData);

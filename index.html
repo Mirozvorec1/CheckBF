@@ -112,6 +112,9 @@
         .menu-btn.dim span {
             color: #666;
         }
+        .menu-btn.full-width {
+            grid-column: 1 / -1;
+        }
         .auth-bar {
             position: fixed;
             top: 20px;
@@ -290,6 +293,10 @@
     <div class="sync-indicator" id="syncIndicator">Синхронизация...</div>
     <img class="logo" src="assets/logo.png" alt="CheckBF">
     <div class="grid">
+        <div class="menu-btn dim full-width">
+            <img src="assets/materials/Stone.webp" alt="">
+            <span>Общее</span>
+        </div>
         <div class="menu-btn" onclick="location.href='fruit.html'">
             <img src="assets/fruits/FlameB.webp" alt="">
             <span>Фрукты</span>
@@ -336,7 +343,7 @@
         </div>
         <div class="menu-btn dim">
             <img src="assets/materials/Stone.webp" alt="">
-            <span>Общее</span>
+            <span>Титулы</span>
         </div>
     </div>
     <script>
