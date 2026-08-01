@@ -20,6 +20,7 @@
         });
     </script>
     <script src="js/auth.js"></script>
+    <script src="js/materials-sync.js"></script>
     <style>
         html, body {
             margin: 0;
@@ -271,6 +272,38 @@
         .auth-modal .google-btn:hover { background: #33334a; border-color: #8cf; }
         .auth-modal .switch-link { color: #8cf; cursor: pointer; font-size: 0.8rem; }
         .auth-modal .error-msg { color: #c62828; font-size: 0.8rem; margin-bottom: 10px; min-height: 1.2em; }
+        .recipe-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); z-index: 30; justify-content: center; align-items: center;
+        }
+        .recipe-overlay.active { display: flex; }
+        .recipe-popup {
+            background: #2a2a3a; border: 1px solid #555; border-radius: 14px;
+            padding: 24px 28px; min-width: 300px; max-width: 400px; max-height: 70vh; overflow-y: auto;
+        }
+        .recipe-popup h2 { font-size: 1.1rem; color: #8cf; margin: 0 0 16px; text-align: center; }
+        .recipe-item {
+            display: flex; align-items: center; gap: 12px;
+            background: #1e1e2e; border: 1px solid #444; border-radius: 10px;
+            padding: 10px 14px; margin-bottom: 8px;
+        }
+        .recipe-item img { width: 40px; height: 40px; border-radius: 6px; flex-shrink: 0; }
+        .recipe-item .ri-info { flex: 1; }
+        .recipe-item .ri-info h4 { font-size: 0.85rem; color: #fff; margin: 0 0 2px; }
+        .recipe-item .ri-info p { font-size: 0.75rem; color: #999; margin: 0; }
+        .recipe-item .ri-qty { font-size: 0.9rem; color: #8cf; font-weight: 600; white-space: nowrap; }
+        .recipe-empty { text-align: center; color: #666; font-size: 0.85rem; padding: 20px 0; }
+        .recipe-popup .close { margin-top: 12px; background: none; border: 1px solid #555; color: #fff;
+            border-radius: 10px; padding: 6px 20px; cursor: pointer; font-size: 0.85rem; width: 100%; }
+        .recipe-popup .close:hover { background: #33334a; }
+        .recipe-check {
+            font-size: 1rem; cursor: pointer; user-select: none; flex-shrink: 0;
+            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; background: rgba(255,255,255,0.05); color: #666;
+            transition: all 0.2s;
+        }
+        .recipe-check:hover { background: rgba(255,255,255,0.1); }
+        .recipe-check.checked { background: #2e7d32; color: #fff; }
     </style>
     <link rel="stylesheet" href="css/filter.css">
     <link rel="stylesheet" href="css/toolbar.css">
@@ -726,6 +759,13 @@
             </div>
         </div>
     </div>
+    <div class="recipe-overlay" id="recipeOverlay">
+        <div class="recipe-popup">
+            <h2 id="recipeTitle"></h2>
+            <div id="recipeList"></div>
+            <button class="close" onclick="document.getElementById('recipeOverlay').classList.remove('active')">Закрыть</button>
+        </div>
+    </div>
     <div class="auth-overlay" id="authOverlay">
         <div class="auth-modal">
             <h2 id="authTitle">Вход</h2>
@@ -878,32 +918,11 @@
 
         function resetToDefaults() {
             localStorage.removeItem('checkbf_materials');
+            localStorage.removeItem('checkbf_recipe_checked');
             document.querySelectorAll('.item').forEach(function(item) {
                 item.dataset.fav = 'false';
                 var favEl = item.querySelector('.fav-icon');
                 if (favEl) { favEl.textContent = '☆'; favEl.classList.remove('faved'); }
-            });
-        }
-
-        var allRecipes = {
-            "Металлолом": 3,
-            "Деревянная Доска": 4
-        };
-
-        function updateMaterialsCounters() {
-            var usage = {};
-            try { usage = JSON.parse(localStorage.getItem('checkbf_materials_usage')) || {}; } catch(e) {}
-            document.querySelectorAll('.item').forEach(function(item) {
-                var name = item.dataset.name;
-                var collected = usage[name] || 0;
-                var total = allRecipes[name] || 0;
-                item.dataset.collected = collected;
-                item.dataset.total = total;
-                var collectedEl = item.querySelector('.collected');
-                var totalEl = item.querySelector('.total');
-                if (collectedEl) collectedEl.textContent = collected;
-                if (totalEl) totalEl.textContent = total;
-                if (collectedEl) collectedEl.classList.toggle('filled', collected >= total && total > 0);
             });
         }
 
@@ -920,7 +939,18 @@
             if (!item.dataset.collected) item.dataset.collected = '0';
             if (!item.dataset.total) item.dataset.total = '0';
         });
-        updateMaterialsCounters();
+        MS.updateMaterialsCounters();
+
+        document.getElementById('recipeOverlay').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+
+        document.querySelectorAll('.item').forEach(function(item) {
+            item.addEventListener('click', function(e) {
+                if (e.target.closest('.fav-icon')) return;
+                MS.openRecipePopup(item.dataset.name);
+            });
+        });
 
         async function syncFromDB() {
             if (!window.checkbfAuth || !window.checkbfAuth.user) return;
@@ -931,7 +961,8 @@
             if (dbData && Object.keys(dbData).length > 0) {
                 localStorage.setItem('checkbf_materials', JSON.stringify(dbData));
                 loadData();
-                updateMaterialsCounters();
+        MS.updateMaterialsCounters();
+        MS.autoCheckRecipes();
                 TB.showSync();
             } else if (localData && Object.keys(localData).length > 0) {
                 await window.checkbfAuth.saveToDB('materials', localData);

@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рыбы — CheckBF</title>
+    <link rel="stylesheet" href="css/filter.css">
+    <link rel="stylesheet" href="css/toolbar.css">
+    <script src="lib/firebase-app-compat.js"></script>
+    <script src="lib/firebase-auth-compat.js"></script>
+    <script src="lib/firebase-firestore-compat.js"></script>
+    <script src="js/toolbar.js"></script>
+    <script src="js/filter.js"></script>
+    <script>
+        firebase.initializeApp({
+            apiKey: "AIzaSyC10fTA0O6vpghuEanI52Yiyrtlkpmd8Nc",
+            authDomain: "checkbf-d1a2d.firebaseapp.com",
+            projectId: "checkbf-d1a2d",
+            storageBucket: "checkbf-d1a2d.firebasestorage.app",
+            messagingSenderId: "79682535947",
+            appId: "1:79682535947:web:714e3f81408d7a0d0dbd0e"
+        });
+    </script>
+    <script src="js/auth.js"></script>
+    <style>
+        html, body { margin: 0; padding: 0; box-sizing: border-box; overflow-x: hidden; }
+        body {
+            height: 100vh; background-color: #1a1a1a; color: #c900c9;
+            font-family: 'Segoe UI', Arial, sans-serif; display: flex; isolation: isolate;
+        }
+        body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; }
+        body.gradient-bg::before { background: linear-gradient(135deg, #0a0a0a 0%, #2d1b4e 30%, #1a0a2e 60%, #0a0a0a 100%); }
+        body.gradient-bg { background-color: transparent; }
+        .particles { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0; overflow: hidden; }
+        .particle { position: absolute; width: 3px; height: 3px; background: #fff; border-radius: 50%; animation: twinkle ease-in-out infinite; }
+        @keyframes twinkle { 0%, 100% { opacity: 0.1; transform: translateY(0); } 50% { opacity: 0.8; transform: translateY(-20px); } }
+        .back {
+            position: fixed; top: 20px; left: 20px; color: #fff; text-decoration: none;
+            font-size: 1rem; border: 1px solid #555; border-radius: 16px; padding: 6px 16px;
+            background: #2a2a3a; z-index: 20;
+        }
+        .back:hover { background: #33334a; }
+        .main { flex: 1; display: flex; flex-direction: column; padding: 20px 40px; overflow: hidden; min-width: 0; }
+        h1 { font-size: 2.5rem; margin: 0 0 12px 0; color: #fff; -webkit-text-stroke: 1px #000; text-align: center; }
+        .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-shrink: 0; }
+        .search-box {
+            flex: 1; max-width: 260px; padding: 8px 14px; border: 1px solid #555; border-radius: 10px;
+            background: #2a2a3a; color: #fff; font-size: 0.85rem; outline: none;
+        }
+        .search-box:focus { border-color: #8cf; }
+        .sort-btn {
+            display: flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid #555;
+            border-radius: 10px; background: #2a2a3a; color: #ccc; font-size: 0.85rem; cursor: pointer;
+        }
+        .sort-btn:hover { background: #33334a; }
+        .sort-btn .icon { width: 14px; height: 14px; }
+        .sort-dropdown {
+            display: none; position: absolute; top: 100%; right: 0; margin-top: 4px;
+            background: #2a2a3a; border: 1px solid #555; border-radius: 10px; padding: 6px 0;
+            z-index: 15; min-width: 160px;
+        }
+        .sort-dropdown.open { display: block; }
+        .sort-dropdown button {
+            display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 14px;
+            border: none; background: none; color: #ccc; font-size: 0.85rem; cursor: pointer; text-align: left;
+        }
+        .sort-dropdown button:hover { background: #33334a; }
+        .sort-dropdown button.active { color: #8cf; }
+        .sort-dropdown button .icon { width: 14px; height: 14px; }
+        .list {
+            display: grid; grid-template-columns: repeat(8, 1fr);
+            gap: 10px; width: 100%; padding: 0 10px;
+            overflow-y: auto; overflow-x: hidden; flex: 1; align-content: start; min-width: 0;
+        }
+        .item {
+            background: #2a2a3a; border: 1px solid #555; border-radius: 8px;
+            padding: 10px 4px 30px; display: flex; flex-direction: column;
+            align-items: center; justify-content: flex-start; min-height: 140px;
+            cursor: pointer; overflow: visible; transition: border-color 0.2s;
+            position: relative; gap: 0; min-width: 0;
+        }
+        .item:hover { background: #33334a; z-index: 1; }
+        .item img { width: 70px; height: 70px; margin: 0 0 4px 0; border-radius: 6px; }
+        .item .info { padding: 0 2px; align-items: center; text-align: center; display: flex; flex-direction: column; flex: 1; min-width: 0; }
+        .item h3 {
+            font-size: 0.7rem; font-weight: 600; line-height: 1.15;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            max-width: 100%; color: #eee; margin: 0; padding: 2px 4px; border-radius: 4px;
+        }
+        .item[data-rarity="common"] h3 { background: rgba(255,255,255,0.15); }
+        .item[data-rarity="uncommon"] h3 { background: rgba(76,175,80,0.35); }
+        .item[data-rarity="rare"] h3 { background: rgba(66,165,245,0.35); }
+        .item[data-rarity="legendary"] h3 { background: rgba(244,143,177,0.35); }
+        .item[data-rarity="mythical"] h3 { background: rgba(239,83,80,0.35); }
+        .item p { font-size: 0.6rem; margin-top: 1px; color: #bbb; }
+        .item .eat-icon,
+        .item .fav-icon {
+            position: absolute; bottom: 4px; width: 46%; height: 24px;
+            font-size: 0.7rem; border-radius: 5px;
+        }
+        .item .eat-icon { left: 3%; }
+        .item .fav-icon { right: 3%; }
+        .item .eat-icon {
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.05); color: #888;
+        }
+        .item .eat-icon:hover { background: rgba(255,255,255,0.1); }
+        .item .eat-icon.eaten { background: #2e7d32; color: #4caf50; }
+        .item .eat-icon:not(.eaten) { color: #666; }
+        .item .fav-icon {
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.05); color: #555;
+        }
+        .item .fav-icon:hover { background: rgba(255,255,255,0.1); }
+        .item .fav-icon.faved { background: #e6a800; color: #ffc107; }
+        .item .seasonal {
+            position: absolute; top: 4px; right: 4px; width: 18px; height: 18px;
+            background: #e91e63; color: #fff; border-radius: 50%; font-size: 0.7rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center; cursor: default; z-index: 2;
+        }
+        .item .seasonal .tooltip {
+            display: none; position: absolute; top: 100%; left: 50%;
+            transform: translateX(-50%); background: #1a1a2e;
+            border: 1px solid #e91e63; border-radius: 8px;
+            padding: 8px 12px; color: #fff; font-size: 0.72rem;
+            white-space: nowrap; z-index: 1000; pointer-events: none;
+            font-weight: 400; text-align: center; margin-top: 6px;
+        }
+        .item .seasonal .tooltip.align-left { left: 0; transform: none; }
+        .item .seasonal .tooltip.align-right { left: 100%; transform: translateX(-100%); }
+        .item .seasonal:hover .tooltip { display: block; }
+        .auth-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); z-index: 50; justify-content: center; align-items: center;
+        }
+        .auth-overlay.active { display: flex; }
+        .auth-modal {
+            background: #1e1e2e; border: 1px solid #555; border-radius: 16px;
+            padding: 30px; width: 340px; text-align: center;
+        }
+        .auth-modal h2 { color: #8cf; margin: 0 0 20px; font-size: 1.3rem; }
+        .auth-modal input {
+            width: 100%; padding: 10px 14px; margin-bottom: 12px; border: 1px solid #555;
+            border-radius: 8px; background: #2a2a3a; color: #fff; font-size: 0.9rem; box-sizing: border-box;
+        }
+        .auth-modal input:focus { outline: none; border-color: #8cf; }
+        .auth-modal .auth-submit {
+            width: 100%; padding: 10px; border: none; border-radius: 8px;
+            background: #5c6bc0; color: #fff; font-size: 0.9rem; cursor: pointer; margin-bottom: 10px;
+        }
+        .auth-modal .auth-submit:hover { background: #7986cb; }
+        .auth-modal .google-btn {
+            width: 100%; padding: 10px; border: 1px solid #555; border-radius: 8px;
+            background: #2a2a3a; color: #ccc; font-size: 0.9rem; cursor: pointer; margin-bottom: 12px;
+        }
+        .auth-modal .google-btn:hover { background: #33334a; border-color: #8cf; }
+        .auth-modal .switch-link { color: #8cf; cursor: pointer; font-size: 0.8rem; }
+        .auth-modal .error-msg { color: #c62828; font-size: 0.8rem; margin-bottom: 10px; min-height: 1.2em; }
+    </style>
+</head>
+<body class="gradient-bg">
+    <div class="particles" id="particles"></div>
+    <div class="auth-bar" id="authBar"></div>
+    <div class="sync-indicator" id="syncIndicator">Синхронизация...</div>
+    <a class="back" href="index.html">&larr; Назад</a>
+    <div class="sidebar">
+        <button class="active" data-filter="all">Все</button>
+        <button data-filter="favourite" style="width:100%;">★ Избранное</button>
+        <div class="filter-group" data-group="rarity">
+            <div class="filter-group-header" onclick="CBF.toggleGroup(this)"><span class="arrow">▼</span> Редкость</div>
+            <div class="filter-group-items">
+                <div class="filter-item"><span class="filter-item-label">Обычные</span><div class="ft state-1" data-filter="common" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Необычные</span><div class="ft state-1" data-filter="uncommon" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Редкие</span><div class="ft state-1" data-filter="rare" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Легендарные</span><div class="ft state-1" data-filter="legendary" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Мифические</span><div class="ft state-1" data-filter="mythical" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Неизвестные</span><div class="ft state-1" data-filter="unknown" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+            </div>
+        </div>
+        <div class="filter-group" data-group="seasonal">
+            <div class="filter-group-header" onclick="CBF.toggleGroup(this)"><span class="arrow">▼</span> Прочее</div>
+            <div class="filter-group-items">
+                <div class="filter-item"><span class="filter-item-label">Сезонные</span><div class="ft state-1" data-filter="seasonal" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+            </div>
+        </div>
+        <div class="filter-group" data-group="owned">
+            <div class="filter-group-header" onclick="CBF.toggleGroup(this)"><span class="arrow">▼</span> Наличие</div>
+            <div class="filter-group-items">
+                <div class="filter-item"><span class="filter-item-label">Есть</span><div class="ft state-1" data-filter="owned" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+            </div>
+        </div>
+    </div>
+    <div class="main">
+        <h1>Рыбы</h1>
+        <div class="toolbar">
+            <input class="search-box" id="searchInput" placeholder="Поиск..." oninput="filterBySearch()">
+            <div class="sort-wrap">
+                <button class="sort-btn" id="sortBtn" onclick="toggleSortDropdown()">
+                    <svg class="icon" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span id="sortLabel">По ID</span>
+                </button>
+                <div class="sort-dropdown" id="sortDropdown">
+                    <button data-sort="default" class="active" onclick="setSort('default', this)">
+                        <svg class="icon" viewBox="0 0 16 16" fill="none">
+                            <rect x="1" y="2" width="14" height="3" rx="1" fill="currentColor" opacity="0.3"/>
+                            <rect x="1" y="6.5" width="14" height="3" rx="1" fill="currentColor" opacity="0.3"/>
+                            <rect x="1" y="11" width="14" height="3" rx="1" fill="currentColor" opacity="0.3"/>
+                        </svg>
+                        По ID
+                    </button>
+                    <button data-sort="rarity" onclick="setSort('rarity', this)">
+                        <svg class="icon" viewBox="0 0 16 16" fill="none">
+                            <rect x="1" y="10" width="3" height="5" rx="0.5" fill="currentColor" opacity="0.4"/>
+                            <rect x="5.5" y="6" width="3" height="9" rx="0.5" fill="currentColor" opacity="0.6"/>
+                            <rect x="10" y="2" width="3" height="13" rx="0.5" fill="currentColor"/>
+                        </svg>
+                        По редкости
+                    </button>
+                    <button data-sort="name" onclick="setSort('name', this)">
+                        <svg class="icon" viewBox="0 0 16 16" fill="none">
+                            <text x="1" y="12" font-size="11" font-weight="700" fill="currentColor">A</text>
+                            <text x="8" y="12" font-size="11" font-weight="700" fill="currentColor">Z</text>
+                        </svg>
+                        По алфавиту
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="list">
+            <div class="item" data-id="fish_1" data-name="Рыба-конфета" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Candyfish.webp" alt="">
+                <div class="info"><h3>Рыба-конфета</h3><p>#1</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_2" data-name="Сом" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Catfish.webp" alt="">
+                <div class="info"><h3>Сом</h3><p>#2</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_3" data-name="Рыба-ангел" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Angelfish.webp" alt="">
+                <div class="info"><h3>Рыба-ангел</h3><p>#3</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_4" data-name="Карп" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Carp.webp" alt="">
+                <div class="info"><h3>Карп</h3><p>#4</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_5" data-name="Камбала" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Flatfish.webp" alt="">
+                <div class="info"><h3>Камбала</h3><p>#5</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_6" data-name="Краснопёрка" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Redfin.webp" alt="">
+                <div class="info"><h3>Краснопёрка</h3><p>#6</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_7" data-name="Приливник" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Tidegill.webp" alt="">
+                <div class="info"><h3>Приливник</h3><p>#7</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_8" data-name="Морской Лосось" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Saltwater_Salmon.webp" alt="">
+                <div class="info"><h3>Морской Лосось</h3><p>#8</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_9" data-name="Золотая Рыбка" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Goldfish.webp" alt="">
+                <div class="info"><h3>Золотая Рыбка</h3><p>#9</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_10" data-name="Рыба-призрак" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Ghostfish.webp" alt="">
+                <div class="info"><h3>Рыба-призрак</h3><p>#10</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_11" data-name="Морской Осётр" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Sea_Sturgeon.webp" alt="">
+                <div class="info"><h3>Морской Осётр</h3><p>#11</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_12" data-name="Групер" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Grouper.webp" alt="">
+                <div class="info"><h3>Групер</h3><p>#12</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_13" data-name="Рыба-клоун" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Clownfish.webp" alt="">
+                <div class="info"><h3>Рыба-клоун</h3><p>#13</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_14" data-name="Мохноспин" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Mossback.webp" alt="">
+                <div class="info"><h3>Мохноспин</h3><p>#14</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_15" data-name="Янтарная Форель" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Amber_Trout.webp" alt="">
+                <div class="info"><h3>Янтарная Форель</h3><p>#15</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_16" data-name="Ледочелюст" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Frostjaw.webp" alt="">
+                <div class="info"><h3>Ледочелюст</h3><p>#16</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_17" data-name="Гравиеголовая Акула" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Gravelhead_Shark.webp" alt="">
+                <div class="info"><h3>Гравиеголовая Акула</h3><p>#17</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_18" data-name="Рыба-бык" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Bullfish.webp" alt="">
+                <div class="info"><h3>Рыба-бык</h3><p>#18</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_19" data-name="Рыба-попугай" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Parrotfish.webp" alt="">
+                <div class="info"><h3>Рыба-попугай</h3><p>#19</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_20" data-name="Лиственная Форель" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Leafy_Trout.webp" alt="">
+                <div class="info"><h3>Лиственная Форель</h3><p>#20</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_21" data-name="Лазурный Марлин" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Azure_Marlin.webp" alt="">
+                <div class="info"><h3>Лазурный Марлин</h3><p>#21</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_22" data-name="Рыба Ужаса" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Terrorfish.webp" alt="">
+                <div class="info"><h3>Рыба Ужаса</h3><p>#22</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_23" data-name="Глубокосветный Ремнитель" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Deepglow_Oarfish.webp" alt="">
+                <div class="info"><h3>Глубокосветный Ремнитель</h3><p>#23</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_24" data-name="Песчаный Окунь" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Sand_Bass.webp" alt="">
+                <div class="info"><h3>Песчаный Окунь</h3><p>#24</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_25" data-name="Удильщик" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Angler.webp" alt="">
+                <div class="info"><h3>Удильщик</h3><p>#25</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_26" data-name="Расплавленная Форель" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Molten_Trout.webp" alt="">
+                <div class="info"><h3>Расплавленная Форель</h3><p>#26</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_27" data-name="Летучая Рыба" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Gliderfish.webp" alt="">
+                <div class="info"><h3>Летучая Рыба</h3><p>#27</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_28" data-name="Скальный Житель" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Rock_Dweller.webp" alt="">
+                <div class="info"><h3>Скальный Житель</h3><p>#28</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_29" data-name="Леви" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Levi.webp" alt="">
+                <div class="info"><h3>Леви</h3><p>#29</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_30" data-name="Рыба Фугу" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Pufferfish.webp" alt="">
+                <div class="info"><h3>Рыба Фугу</h3><p>#30</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_31" data-name="Барракуда" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Barracuda.webp" alt="">
+                <div class="info"><h3>Барракуда</h3><p>#31</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_32" data-name="Морской Окунь" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Kelp_Bass.webp" alt="">
+                <div class="info"><h3>Морской Окунь</h3><p>#32</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_33" data-name="Тунец" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Tuna.webp" alt="">
+                <div class="info"><h3>Тунец</h3><p>#33</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_34" data-name="Краб" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Crab.webp" alt="">
+                <div class="info"><h3>Краб</h3><p>#34</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_35" data-name="Морской Конёк" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Seahorse.webp" alt="">
+                <div class="info"><h3>Морской Конёк</h3><p>#35</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_36" data-name="Колоссальная Креветка" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Colossal_Shrimp.webp" alt="">
+                <div class="info"><h3>Колоссальная Креветка</h3><p>#36</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_37" data-name="Драконий Кои" data-rarity="" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Dragon_Koi.webp" alt="">
+                <div class="info"><h3>Драконий Кои</h3><p>#37</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_38" data-name="Золотой Карп" data-rarity="common" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/fishes/Golden_Carp.webp" alt="">
+                <div class="info"><h3>Золотой Карп</h3><p>#38</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_39" data-name="Морская Звезда (Жёлтая)" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Starfish_29yellow.webp" alt="">
+                <div class="info"><h3>Морская Звезда (Жёлтая)</h3><p>#39</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_40" data-name="Болотный Обитатель" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Swamp_Lurker.webp" alt="">
+                <div class="info"><h3>Болотный Обитатель</h3><p>#40</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_41" data-name="Рак-отшельник" data-rarity="" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/HermitCrab.webp" alt="">
+                <div class="info"><h3>Рак-отшельник</h3><p>#41</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_42" data-name="Морская Звезда (Фиолетовая)" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Starfish_29purple.webp" alt="">
+                <div class="info"><h3>Морская Звезда (Фиолетовая)</h3><p>#42</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_43" data-name="Медуза" data-rarity="" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/JellyFish.webp" alt="">
+                <div class="info"><h3>Медуза</h3><p>#43</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_44" data-name="Черепаха" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Turtle.webp" alt="">
+                <div class="info"><h3>Черепаха</h3><p>#44</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_45" data-name="Глубоководный Кальмар" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Deepsea_Squid.webp" alt="">
+                <div class="info"><h3>Глубоководный Кальмар</h3><p>#45</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_46" data-name="Морская Звезда (Синяя)" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Starfish_29blue.webp" alt="">
+                <div class="info"><h3>Морская Звезда (Синяя)</h3><p>#46</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_47" data-name="Морская Звезда (Зелёная)" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Starfish_29green.webp" alt="">
+                <div class="info"><h3>Морская Звезда (Зелёная)</h3><p>#47</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_48" data-name="Морская Звезда (Розовая)" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Starfish_29pink.webp" alt="">
+                <div class="info"><h3>Морская Звезда (Розовая)</h3><p>#48</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_49" data-name="Морская Звезда (Красная)" data-rarity="common" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Starfish_29red.webp" alt="">
+                <div class="info"><h3>Морская Звезда (Красная)</h3><p>#49</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_50" data-name="Светящийся Кит" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Lumo_Whale.webp" alt="">
+                <div class="info"><h3>Светящийся Кит</h3><p>#50</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_51" data-name="Глубоководный Осьминог" data-rarity="rare" data-eaten="false" data-fav="false">
+                <img src="assets/fishes/Deepsea_Octopus.webp" alt="">
+                <div class="info"><h3>Глубоководный Осьминог</h3><p>#51</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_52" data-name="Рыба Джека" data-rarity="rare" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/fishes/Jack-O-Fish.webp" alt="">
+                <div class="info"><h3>Рыба Джека</h3><p>#52</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_53" data-name="Джестер Рыба-клоун" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/fishes/Jester_Clownfish.webp" alt="">
+                <div class="info"><h3>Джестер Рыба-клоун</h3><p>#53</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_54" data-name="Зомби-окунь" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/fishes/Zombie_Bass.webp" alt="">
+                <div class="info"><h3>Зомби-окунь</h3><p>#54</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_55" data-name="Кости Ужаса" data-rarity="mythical" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/fishes/Terrorbones.webp" alt="">
+                <div class="info"><h3>Кости Ужаса</h3><p>#55</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_56" data-name="Кальмар-вампир" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/fishes/Vampire_Squid.webp" alt="">
+                <div class="info"><h3>Кальмар-вампир</h3><p>#56</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_57" data-name="???" data-rarity="" data-eaten="false" data-fav="false">
+                <img src="assets/ItemPlaceHolder.webp" alt="">
+                <div class="info"><h3>???</h3><p>#57</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_58" data-name="Reindeer Bullfish" data-rarity="uncommon" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/fishes/Reindeer_Bullfish.webp" alt="">
+                <div class="info"><h3>Reindeer Bullfish</h3><p>#58</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_59" data-name="Снеговик Марлин" data-rarity="legendary" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/fishes/Snowman_Marlin.webp" alt="">
+                <div class="info"><h3>Снеговик Марлин</h3><p>#59</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_60" data-name="Имбирный Осётр" data-rarity="common" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/fishes/Gingerbread_Sturgeon.webp" alt="">
+                <div class="info"><h3>Имбирный Осётр</h3><p>#60</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+            <div class="item" data-id="fish_61" data-name="Мятная Рыба" data-rarity="rare" data-eaten="false" data-fav="false">
+                <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
+                <img src="assets/fishes/Peppermint_Fish.webp" alt="">
+                <div class="info"><h3>Мятная Рыба</h3><p>#61</p></div>
+                <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+            </div>
+        </div>
+    </div>
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-modal">
+            <h2 id="authTitle">Вход</h2>
+            <div class="error-msg" id="authError"></div>
+            <input type="email" id="authEmail" placeholder="Email" autocomplete="off">
+            <input type="password" id="authPass" placeholder="Пароль" autocomplete="new-password">
+            <button class="auth-submit" id="authSubmit" onclick="handleAuth()">Войти</button>
+            <button class="google-btn" onclick="handleGoogleAuth()">Войти через Google</button>
+            <span class="switch-link" id="authSwitch" onclick="toggleAuthMode()">Нет аккаунта? Регистрация</span>
+            <br><br>
+            <span class="switch-link" onclick="closeAuthModal()">Позже</span>
+        </div>
+    </div>
+    <script>
+        var currentSort = 'default';
+        var rarityOrder = {};
+        var originalOrder = {};
+        document.querySelectorAll('.item').forEach(function(item, i) {
+            originalOrder[item.dataset.id] = i;
+        });
+
+        function toggleEaten(e, el) {
+            e.stopPropagation();
+            var item = el.closest('.item');
+            if (item.dataset.eaten === 'true') {
+                item.dataset.eaten = 'false';
+                el.textContent = '⊘';
+                el.classList.remove('eaten');
+            } else {
+                item.dataset.eaten = 'true';
+                el.textContent = '✓';
+                el.classList.add('eaten');
+            }
+            saveData();
+        }
+
+        function toggleFav(e, el) {
+            e.stopPropagation();
+            var item = el.closest('.item');
+            if (item.dataset.fav === 'true') {
+                item.dataset.fav = 'false';
+                el.textContent = '☆';
+                el.classList.remove('faved');
+            } else {
+                item.dataset.fav = 'true';
+                el.textContent = '★';
+                el.classList.add('faved');
+            }
+            saveData();
+        }
+
+        function saveData() {
+            var data = {};
+            document.querySelectorAll('.item').forEach(function(item) {
+                data[item.dataset.id] = { eaten: item.dataset.eaten, fav: item.dataset.fav };
+            });
+            localStorage.setItem('checkbf_fishes', JSON.stringify(data));
+            var u = (window.checkbfAuth && window.checkbfAuth.user) || firebase.auth().currentUser;
+            if (u) {
+                TB.showSync();
+                window.checkbfAuth.saveToDB('fishes', data).then(TB.hideSync);
+            }
+        }
+
+        function loadData() {
+            var raw = localStorage.getItem('checkbf_fishes');
+            if (!raw) return;
+            var data = JSON.parse(raw);
+            document.querySelectorAll('.item').forEach(function(item) {
+                var saved = data[item.dataset.id];
+                if (saved) {
+                    if (saved.eaten === 'true') {
+                        item.dataset.eaten = 'true';
+                        var eatEl = item.querySelector('.eat-icon');
+                        if (eatEl) { eatEl.textContent = '✓'; eatEl.classList.add('eaten'); }
+                    } else {
+                        item.dataset.eaten = 'false';
+                    }
+                    if (saved.fav === 'true') {
+                        item.dataset.fav = 'true';
+                        var favEl = item.querySelector('.fav-icon');
+                        if (favEl) { favEl.textContent = '★'; favEl.classList.add('faved'); }
+                    } else {
+                        item.dataset.fav = 'false';
+                    }
+                }
+            });
+        }
+
+        loadData();
+
+        function filterBySearch() {
+            var q = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.item').forEach(function(item) {
+                var name = item.dataset.name.toLowerCase();
+                item.style.display = name.indexOf(q) !== -1 ? '' : 'none';
+            });
+        }
+
+        function toggleSortDropdown() {
+            document.getElementById('sortDropdown').classList.toggle('open');
+        }
+
+        function setSort(type, btn) {
+            currentSort = type;
+            document.querySelectorAll('#sortDropdown button').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            document.getElementById('sortDropdown').classList.remove('open');
+            var labels = { default: 'По ID', rarity: 'По редкости', name: 'По алфавиту' };
+            document.getElementById('sortLabel').textContent = labels[type] || 'По ID';
+            applySort();
+            localStorage.setItem('checkbf_fishes_sort', type);
+        }
+
+        var rarityOrder = { '': 0, common: 1, uncommon: 2, rare: 3, legendary: 4, mythical: 5 };
+
+        function applySort() {
+            var list = document.querySelector('.list');
+            var items = Array.from(list.querySelectorAll('.item'));
+            if (currentSort === 'name') {
+                items.sort(function(a, b) { return a.dataset.name.localeCompare(b.dataset.name); });
+            } else if (currentSort === 'rarity') {
+                items.sort(function(a, b) {
+                    var ra = rarityOrder[a.dataset.rarity] || 0;
+                    var rb = rarityOrder[b.dataset.rarity] || 0;
+                    if (ra !== rb) return ra - rb;
+                    return (originalOrder[a.dataset.id] || 0) - (originalOrder[b.dataset.id] || 0);
+                });
+            } else {
+                items.sort(function(a, b) { return (originalOrder[a.dataset.id] || 0) - (originalOrder[b.dataset.id] || 0); });
+            }
+            items.forEach(function(item) { list.appendChild(item); });
+        }
+
+        function resetToDefaults() {
+            localStorage.removeItem('checkbf_fishes');
+            document.querySelectorAll('.item').forEach(function(item) {
+                item.dataset.eaten = 'false';
+                item.dataset.fav = 'false';
+                var eatEl = item.querySelector('.eat-icon');
+                if (eatEl) { eatEl.textContent = '⊘'; eatEl.classList.remove('eaten'); }
+                var favEl = item.querySelector('.fav-icon');
+                if (favEl) { favEl.textContent = '☆'; favEl.classList.remove('faved'); }
+            });
+        }
+
+        async function syncFromDB() {
+            if (!window.checkbfAuth || !window.checkbfAuth.user) return;
+            var dbData = await window.checkbfAuth.loadFromDB('fishes');
+            var localData = null;
+            var raw = localStorage.getItem('checkbf_fishes');
+            if (raw) { try { localData = JSON.parse(raw); } catch(e) {} }
+            if (dbData && Object.keys(dbData).length > 0) {
+                localStorage.setItem('checkbf_fishes', JSON.stringify(dbData));
+                loadData();
+                TB.showSync();
+            } else if (localData && Object.keys(localData).length > 0) {
+                await window.checkbfAuth.saveToDB('fishes', localData);
+                TB.showSync();
+            }
+        }
+
+        TB.init();
+
+        function applyAllVisibility() {
+            var sidebarFilter = CBF.getSidebarFilter();
+            var rarityFilters = ['common','uncommon','rare','legendary','mythical','unknown'];
+            var activeRarities = rarityFilters.filter(function(f) { return CBF.getFilterState(f) === 1; });
+            var excludedRarities = rarityFilters.filter(function(f) { return CBF.getFilterState(f) === -1; });
+            var seasonalState = CBF.getFilterState('seasonal');
+            var ownedState = CBF.getFilterState('owned');
+            document.querySelectorAll('.list .item').forEach(function(item) {
+                var showSidebar = false;
+                if (sidebarFilter === 'all') showSidebar = true;
+                else if (sidebarFilter === 'favourite') showSidebar = item.dataset.fav === 'true';
+                var showFilter = true;
+                if (activeRarities.length > 0) {
+                    var r = item.dataset.rarity || '';
+                    if (r === '') r = 'unknown';
+                    if (activeRarities.indexOf(r) === -1) showFilter = false;
+                }
+                var itemRarity = item.dataset.rarity || 'unknown';
+                if (excludedRarities.indexOf(itemRarity) !== -1) showFilter = false;
+                var isSeasonal = !!item.querySelector('.seasonal');
+                if (seasonalState === 1 && !isSeasonal) showFilter = false;
+                if (seasonalState === -1 && isSeasonal) showFilter = false;
+                if (ownedState === 1 && item.dataset.eaten !== 'true') showFilter = false;
+                if (ownedState === -1 && item.dataset.eaten === 'true') showFilter = false;
+                item.style.display = (showSidebar && showFilter) ? '' : 'none';
+            });
+        }
+    </script>
+    <script>CBF.init('checkbf_fishes_filters');</script>
+    <script>
+        (function() {
+            var saved = localStorage.getItem('checkbf_fishes_sort');
+            if (saved) {
+                var btn = document.querySelector('#sortDropdown button[data-sort="' + saved + '"]');
+                if (btn) setSort(saved, btn);
+            }
+        })();
+    </script>
+    <script>
+        document.querySelectorAll('.item .seasonal').forEach(function(el) {
+            var tip = el.querySelector('.tooltip');
+            if (!tip) return;
+            el.addEventListener('mouseenter', function() {
+                var item = el.closest('.item');
+                var grid = item ? item.parentElement : null;
+                tip.classList.remove('align-left', 'align-right');
+                if (grid) {
+                    var top = item.offsetTop;
+                    var siblings = grid.querySelectorAll('.item');
+                    var minLeft = Infinity, maxLeft = -Infinity;
+                    siblings.forEach(function(s) {
+                        if (Math.abs(s.offsetTop - top) < 5) {
+                            if (s.offsetLeft < minLeft) minLeft = s.offsetLeft;
+                            if (s.offsetLeft > maxLeft) maxLeft = s.offsetLeft;
+                        }
+                    });
+                    if (item.offsetLeft <= minLeft) tip.classList.add('align-left');
+                    else if (item.offsetLeft >= maxLeft) tip.classList.add('align-right');
+                }
+            });
+        });
+    </script>
+    <script>
+        function createParticles() {
+            var container = document.getElementById('particles');
+            container.innerHTML = '';
+            for (var i = 0; i < 60; i++) {
+                var p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.animationDuration = (Math.random() * 4 + 3) + 's';
+                p.style.animationDelay = (Math.random() * 3) + 's';
+                var size = Math.random() * 3 + 1;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                container.appendChild(p);
+            }
+        }
+        createParticles();
+    </script>
+</body>
+</html>

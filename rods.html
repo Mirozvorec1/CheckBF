@@ -22,6 +22,7 @@
         });
     </script>
     <script src="js/auth.js"></script>
+    <script src="js/materials-sync.js"></script>
     <style>
         html, body {
             margin: 0;
@@ -537,7 +538,7 @@
             el.textContent = val === 'true' ? '✓' : '⊘';
             el.classList.toggle('eaten', val === 'true');
             saveData();
-            updateMaterialsUsage();
+            MS.updateMaterialsUsage();
         }
         function toggleFav(e, el) {
             e.stopPropagation();
@@ -549,20 +550,6 @@
             el.classList.toggle('faved', val === 'true');
             saveData();
         }
-        function updateMaterialsUsage() {
-            var usage = {};
-            document.querySelectorAll('.item[data-recipe]').forEach(function(item) {
-                if (item.dataset.eaten !== 'true') return;
-                try {
-                    var recipe = JSON.parse(item.dataset.recipe);
-                    for (var mat in recipe) {
-                        usage[mat] = (usage[mat] || 0) + recipe[mat];
-                    }
-                } catch(e) {}
-            });
-            localStorage.setItem('checkbf_materials_usage', JSON.stringify(usage));
-        }
-
         function saveData() {
             var data = {};
             document.querySelectorAll('.item').forEach(function(item) {
@@ -593,20 +580,34 @@
                     item.dataset.mastery = saved.mastery;
                     var mParts = item.dataset.mastery.split('/');
                     if (mParts[0] === '0') item.dataset.mastery = '1/' + mParts[1];
-                    if (saved.eaten) {
-                        item.dataset.eaten = saved.eaten;
+                    if (saved.eaten === 'true') {
+                        item.dataset.eaten = 'true';
                         var eatEl = item.querySelector('.eat-icon');
                         if (eatEl) {
-                            eatEl.textContent = saved.eaten === 'true' ? '✓' : '⊘';
-                            eatEl.classList.toggle('eaten', saved.eaten === 'true');
+                            eatEl.textContent = '✓';
+                            eatEl.classList.add('eaten');
+                        }
+                    } else {
+                        item.dataset.eaten = 'false';
+                        var eatEl = item.querySelector('.eat-icon');
+                        if (eatEl) {
+                            eatEl.textContent = '⊘';
+                            eatEl.classList.remove('eaten');
                         }
                     }
-                    if (saved.fav) {
-                        item.dataset.fav = saved.fav;
+                    if (saved.fav === 'true') {
+                        item.dataset.fav = 'true';
                         var favEl = item.querySelector('.fav-icon');
                         if (favEl) {
-                            favEl.textContent = saved.fav === 'true' ? '★' : '☆';
-                            favEl.classList.toggle('faved', saved.fav === 'true');
+                            favEl.textContent = '★';
+                            favEl.classList.add('faved');
+                        }
+                    } else {
+                        item.dataset.fav = 'false';
+                        var favEl = item.querySelector('.fav-icon');
+                        if (favEl) {
+                            favEl.textContent = '☆';
+                            favEl.classList.remove('faved');
                         }
                     }
                     updateItemText(item);
@@ -615,7 +616,7 @@
         }
 
         loadData();
-        updateMaterialsUsage();
+        MS.updateMaterialsUsage();
 
         function filterBySearch() {
             var q = document.getElementById('searchInput').value.toLowerCase();
@@ -826,7 +827,7 @@
                 for (var n in dbData) { if (dbData[n] && dbData[n].mastery) { var mp = dbData[n].mastery.split('/'); if (mp[0] === '0') dbData[n].mastery = '1/' + mp[1]; } }
                 localStorage.setItem('checkbf_rods', JSON.stringify(dbData));
         loadData();
-        updateMaterialsUsage();
+        MS.updateMaterialsUsage();
         CBF.loadFilters();
                 TB.showSync();
             } else if (localData && Object.keys(localData).length > 0) {
