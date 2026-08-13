@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Стили боя — CheckBF</title>
+    <title>Боевые Стили — CheckBF</title>
     <link rel="stylesheet" href="css/filter.css">
     <link rel="stylesheet" href="css/toolbar.css">
+    <link rel="stylesheet" href="css/cards.css">
     <script src="lib/firebase-app-compat.js"></script>
     <script src="lib/firebase-auth-compat.js"></script>
     <script src="lib/firebase-firestore-compat.js"></script>
@@ -96,138 +97,6 @@
             color: #fff;
             -webkit-text-stroke: 1px #000;
             text-align: center;
-        }
-        .trees {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px 30px;
-            flex: 1;
-            overflow: hidden;
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 0 10px;
-        }
-        .tree {
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-            align-items: center;
-        }
-        .tree-title {
-            font-size: 0.7rem;
-            color: #aaa;
-            padding: 3px 10px;
-            border: 1px solid #555;
-            border-radius: 6px;
-            background: rgba(42,42,58,0.9);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            width: fit-content;
-            flex-shrink: 0;
-        }
-        .tree-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0;
-        }
-        .tree-node {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 110px;
-            min-height: 110px;
-            background: #2a2a3a;
-            border: 1px solid #555;
-            border-radius: 10px;
-            padding: 6px 4px;
-            cursor: pointer;
-            flex-shrink: 0;
-            transition: border-color 0.2s;
-        }
-        .tree-node.max-mastery {
-            border-color: #ffc107;
-            box-shadow: 0 0 8px rgba(255,193,7,0.3);
-        }
-        .tree-node .eat-icon {
-            font-size: 0.8rem;
-            cursor: pointer;
-            user-select: none;
-            width: 100%;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.05);
-            color: #666;
-            margin-top: 4px;
-            transition: all 0.2s;
-        }
-        .tree-node .eat-icon:hover {
-            background: rgba(255,255,255,0.1);
-        }
-        .tree-node .eat-icon.owned {
-            background: #2e7d32;
-            color: #fff;
-        }
-        .tree-node:hover {
-            background: #33334a;
-        }
-        .tree-node img {
-            width: 44px;
-            height: 44px;
-            border-radius: 6px;
-            margin-bottom: 3px;
-        }
-        .tree-node h3 {
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: #fff;
-            margin: 0 0 2px;
-            text-align: center;
-            line-height: 1.1;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: rgba(255,255,255,0.1);
-        }
-
-        .tree-node .mastery-val {
-            font-size: 0.55rem;
-            color: #8cf;
-            font-weight: 600;
-        }
-        .progress-bar {
-            display: flex;
-            gap: 1px;
-            margin-top: 2px;
-            padding: 1px;
-            border: 1px solid #555;
-            border-radius: 3px;
-            background: #1a1a1a;
-            width: fit-content;
-        }
-        .progress-bar .seg {
-            width: 10px;
-            height: 5px;
-            border-radius: 1px;
-            background: #c62828;
-        }
-        .progress-bar .seg.filled {
-            background: #43a047;
-        }
-        .tree-arrow {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            flex-shrink: 0;
-            color: #555;
-        }
-        .tree-arrow svg {
-            width: 14px;
-            height: 14px;
         }
         .popup-overlay {
             display: none;
@@ -390,7 +259,7 @@
     <div class="auth-bar" id="authBar"></div>
     <div class="sync-indicator" id="syncIndicator">Синхронизация...</div>
     <a class="back" href="index.html">&larr; Назад</a>
-    <h1>Стили боя</h1>
+    <h1>Боевые Стили</h1>
 
     <div class="trees">
         <div class="tree">

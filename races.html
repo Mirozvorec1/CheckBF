@@ -21,6 +21,7 @@
     </script>
     <script src="js/auth.js"></script>
     <link rel="stylesheet" href="css/toolbar.css">
+    <link rel="stylesheet" href="css/cards.css">
     <style>
         html, body {
             margin: 0;
@@ -95,129 +96,6 @@
             color: #fff;
             -webkit-text-stroke: 1px #000;
             text-align: center;
-        }
-        .races-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 14px;
-            flex: 1;
-            overflow-y: auto;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 0 10px 20px;
-            align-content: start;
-        }
-        .race-card {
-            background: #2a2a3a;
-            border: 1px solid #555;
-            border-radius: 10px;
-            padding: 12px 8px 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            cursor: pointer;
-            transition: border-color 0.2s, background 0.2s;
-        }
-        .race-card:hover {
-            background: #33334a;
-        }
-        .race-card.owned {
-            border-color: #4caf50;
-            box-shadow: 0 0 8px rgba(76,175,80,0.3);
-        }
-        .race-card img {
-            width: 60px;
-            height: 60px;
-            border-radius: 8px;
-            margin-bottom: 6px;
-        }
-        .race-card h3 {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #fff;
-            margin: 0 0 8px;
-            padding: 2px 8px;
-            border-radius: 4px;
-            background: rgba(255,255,255,0.1);
-            line-height: 1.2;
-        }
-        .race-card[data-owned="true"] h3 {
-            background: rgba(76,175,80,0.35);
-        }
-        .version-btns {
-            display: flex;
-            gap: 3px;
-            margin-bottom: 6px;
-        }
-        .ver {
-            width: 30px;
-            height: 22px;
-            border: 1px solid #555;
-            background: #1a1a1a;
-            color: #888;
-            border-radius: 4px;
-            font-size: 0.6rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .ver:hover {
-            background: #2a2a3a;
-        }
-        .ver.active {
-            background: #4caf50;
-            color: #fff;
-            border-color: #4caf50;
-        }
-        .awakening-bar {
-            display: flex;
-            align-items: center;
-            gap: 0;
-            margin-bottom: 6px;
-        }
-        .awakening-bar .seg {
-            width: 12px;
-            height: 8px;
-            background: #c62828;
-            border-radius: 1px;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-        .awakening-bar .seg.filled {
-            background: #43a047;
-        }
-        .awakening-bar .seg:hover {
-            opacity: 0.8;
-        }
-        .awakening-bar .divider {
-            width: 1px;
-            height: 12px;
-            background: #555;
-            margin: 0 1px;
-        }
-        .eat-icon {
-            font-size: 0.8rem;
-            cursor: pointer;
-            user-select: none;
-            width: 100%;
-            height: 26px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.05);
-            color: #666;
-            transition: all 0.2s;
-        }
-        .eat-icon:hover {
-            background: rgba(255,255,255,0.1);
-        }
-        .eat-icon.owned {
-            background: #2e7d32;
-            color: #fff;
         }
         .popup-overlay {
             display: none;
@@ -367,7 +245,7 @@
     <h1>Расы</h1>
 
     <div class="races-grid">
-        <div class="race-card" data-race="Человек" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
+        <div class="item icons-1 race-card" data-race="Человек" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
             <img src="assets/races/HumanIcon.webp" alt="Человек">
             <h3>Человек</h3>
             <div class="version-btns">
@@ -379,7 +257,7 @@
             <div class="awakening-bar" style="display:none"></div>
         </div>
 
-        <div class="race-card" data-race="Акула" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
+        <div class="item icons-1 race-card" data-race="Акула" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
             <img src="assets/races/SharkIcon.webp" alt="Акула">
             <h3>Акула</h3>
             <div class="version-btns">
@@ -391,7 +269,7 @@
             <div class="awakening-bar" style="display:none"></div>
         </div>
 
-        <div class="race-card" data-race="Кролик" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
+        <div class="item icons-1 race-card" data-race="Кролик" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
             <img src="assets/races/RabbitIcon.webp" alt="Кролик">
             <h3>Кролик</h3>
             <div class="version-btns">
@@ -403,7 +281,7 @@
             <div class="awakening-bar" style="display:none"></div>
         </div>
 
-        <div class="race-card" data-race="Ангел" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
+        <div class="item icons-1 race-card" data-race="Ангел" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
             <img src="assets/races/AngelIcon.webp" alt="Ангел">
             <h3>Ангел</h3>
             <div class="version-btns">
@@ -415,7 +293,7 @@
             <div class="awakening-bar" style="display:none"></div>
         </div>
 
-        <div class="race-card" data-race="Киборг" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
+        <div class="item icons-1 race-card" data-race="Киборг" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
             <img src="assets/races/CyborgIcon.webp" alt="Киборг">
             <h3>Киборг</h3>
             <div class="version-btns">
@@ -428,7 +306,7 @@
             <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
         </div>
 
-        <div class="race-card" data-race="Гуль" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
+        <div class="item icons-1 race-card" data-race="Гуль" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
             <img src="assets/races/GhoulIcon.webp" alt="Гуль">
             <h3>Гуль</h3>
             <div class="version-btns">
@@ -441,7 +319,7 @@
             <span class="eat-icon" onclick="toggleOwned(event, this)">⊘</span>
         </div>
 
-        <div class="race-card" data-race="Драко" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
+        <div class="item icons-1 race-card" data-race="Драко" data-owned="false" data-version="v1" data-awakening="0/10" onclick="openRacePopup(this)">
             <img src="assets/races/DracoIcon.webp" alt="Драко">
             <h3>Драко</h3>
             <div class="version-btns">
@@ -577,7 +455,7 @@
             var val = card.dataset.owned === 'true' ? 'false' : 'true';
             card.dataset.owned = val;
             el.textContent = val === 'true' ? '✓' : '⊘';
-            el.classList.toggle('owned', val === 'true');
+            el.classList.toggle('eaten', val === 'true');
             card.classList.toggle('owned', val === 'true');
             saveData();
         }
@@ -657,7 +535,7 @@
             var eatEl = currentNode.querySelector('.eat-icon');
             if (eatEl) {
                 eatEl.textContent = val === 'true' ? '✓' : '⊘';
-                eatEl.classList.toggle('owned', val === 'true');
+                eatEl.classList.toggle('eaten', val === 'true');
             }
             currentNode.classList.toggle('owned', val === 'true');
             saveData();
@@ -692,7 +570,7 @@
                     var eatEl = card.querySelector('.eat-icon');
                     if (eatEl) {
                         eatEl.textContent = saved.owned === 'true' ? '✓' : '⊘';
-                        eatEl.classList.toggle('owned', saved.owned === 'true');
+                        eatEl.classList.toggle('eaten', saved.owned === 'true');
                     }
                     card.classList.toggle('owned', saved.owned === 'true');
                     renderVersionBtns(card);
@@ -715,7 +593,7 @@
                 card.dataset.awakening = '0/10';
                 card.classList.remove('owned');
                 var eatEl = card.querySelector('.eat-icon');
-                if (eatEl) { eatEl.textContent = '⊘'; eatEl.classList.remove('owned'); }
+                if (eatEl) { eatEl.textContent = '⊘'; eatEl.classList.remove('eaten'); }
                 renderVersionBtns(card);
             });
             renderAllAwakeningBars();

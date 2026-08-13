@@ -22,6 +22,8 @@
     <script src="js/auth.js"></script>
     <link rel="stylesheet" href="css/filter.css">
     <link rel="stylesheet" href="css/toolbar.css">
+    <link rel="stylesheet" href="css/cards.css">
+    <script src="js/cards.js"></script>
     <style>
         html, body {
             margin: 0;
@@ -95,54 +97,9 @@
             text-align: center;
         }
 
-        .categories {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 12px;
-            padding: 0 40px 40px 40px;
-        }
-        .cat-card {
-            background: #2a2a3a;
-            border: 1px solid #555;
-            border-radius: 12px;
-            padding: 20px 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-        .cat-card:hover {
-            background: #33334a;
-            transform: translateY(-3px);
-            border-color: #8cf;
-        }
-        .cat-card.completed {
-            border-color: #ffc107;
-            box-shadow: 0 0 8px rgba(255,193,7,0.3);
-        }
-        .cat-card .icon {
-            width: 64px;
-            height: 64px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            object-fit: cover;
-        }
-        .cat-card h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            margin: 0;
-            color: #fff;
-        }
-        .cat-card .count {
-            font-size: 0.75rem;
-            color: #888;
-            margin-top: 4px;
-        }
         .subcategories {
             display: none;
-            padding: 0 40px 40px 40px;
+            padding: 0 0 40px 0;
         }
         .subcategories.active {
             display: block;
@@ -173,7 +130,7 @@
         }
         .search-results {
             display: none;
-            padding: 0 40px 40px 40px;
+            padding: 0 0 40px 0;
         }
         .search-results.active {
             display: block;
@@ -199,162 +156,6 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .sub-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 12px;
-        }
-        .skin-item {
-            background: #2a2a3a;
-            border: 1px solid #555;
-            border-radius: 10px;
-            padding: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-        .skin-item:hover {
-            background: #33334a;
-            transform: translateY(-2px);
-            z-index: 1;
-        }
-        .skin-item.owned {
-            border-color: #4caf50;
-            box-shadow: 0 0 8px rgba(76,175,80,0.3);
-        }
-        .skin-item img {
-            width: 70px;
-            height: 70px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            object-fit: cover;
-        }
-        .skin-item h3 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin: 0 0 6px 0;
-            color: #fff;
-        }
-        .skin-item {
-            position: relative;
-        }
-        .skin-item .seasonal {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            width: 18px;
-            height: 18px;
-            background: #e91e63;
-            color: #fff;
-            border-radius: 50%;
-            font-size: 0.7rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: default;
-            z-index: 2;
-        }
-        .skin-item .seasonal .tooltip {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1a1a2e;
-            border: 1px solid #e91e63;
-            border-radius: 8px;
-            padding: 8px 12px;
-            color: #fff;
-            font-size: 0.72rem;
-            white-space: nowrap;
-            z-index: 1000;
-            pointer-events: none;
-            font-weight: 400;
-            text-align: center;
-            margin-top: 6px;
-        }
-        .skin-item .seasonal .tooltip.align-left {
-            left: 0;
-            transform: none;
-        }
-        .skin-item .seasonal .tooltip.align-right {
-            left: 100%;
-            transform: translateX(-100%);
-        }
-        .skin-item .seasonal:hover .tooltip {
-            display: block;
-        }
-        .own-btn {
-            width: 100%;
-            padding: 6px 0;
-            border: 1px solid #555;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.05);
-            color: #888;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .own-btn:hover {
-            background: rgba(255,255,255,0.1);
-        }
-        .own-btn.owned {
-            background: #2e7d32;
-            border-color: #4caf50;
-            color: #fff;
-        }
-        .btn-row {
-            display: flex;
-            gap: 4px;
-            width: 100%;
-        }
-        .btn-row .own-btn {
-            flex: 1;
-        }
-        .btn-row .recipe-btn {
-            flex: 1;
-        }
-        .recipe-btn {
-            padding: 6px 0;
-            border: 1px solid #555;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.05);
-            color: #888;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .recipe-btn:hover {
-            background: rgba(255,255,255,0.1);
-        }
-        .recipe-btn.has-recipe {
-            background: #1565c0;
-            border-color: #42a5f5;
-            color: #fff;
-        }
-        .own-btn.disabled {
-            background: #333;
-            border-color: #444;
-            color: #666;
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
-        .double-img {
-            display: flex;
-            gap: 4px;
-            margin-bottom: 8px;
-        }
-        .double-img img {
-            width: 48px;
-            height: 48px;
-            border-radius: 6px;
-            object-fit: cover;
-        }
-
         .auth-overlay {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.7); z-index: 50; justify-content: center; align-items: center;
@@ -381,8 +182,7 @@
         .auth-modal .error-msg { color: #c62828; font-size: 0.8rem; margin-bottom: 10px; min-height: 1.2em; }
         .main {
             flex: 1;
-            margin-left: 200px;
-            padding: 20px;
+            padding: 20px 40px;
         }
     </style>
 </head>
@@ -488,7 +288,9 @@
                 { name: "Белый", img: "assets/ItemPlaceHolder.webp" }
             ]},
             portal: { name: "Портал", skins: [
-                { name: "Божественный", img: "assets/skins/PortalDivineB.webp" }
+                { name: "Божественный", img: "assets/skins/PortalDivineB.webp" },
+                { name: "Розовый", img: "assets/ItemPlaceHolder.webp" },
+                { name: "Оранжевый", img: "assets/ItemPlaceHolder.webp" }
             ]},
             diamond: { name: "Алмаз", skins: [
                 { name: "Изумруд", img: "assets/skins/Emerald_Diamond_Fruit.webp" },
@@ -568,8 +370,8 @@
             });
             keys.forEach(function(key) {
                 var cat = categories[key];
-                var total = cat.skins.filter(function(s) { return disabledSkins.indexOf(s.name) === -1; }).length;
-                var ownedCount = cat.skins.filter(function(s) { return disabledSkins.indexOf(s.name) === -1 && owned[key + ':' + s.name]; }).length;
+                var total = cat.skins.filter(function(s) { return disabledSkins.indexOf(key + ':' + s.name) === -1; }).length;
+                var ownedCount = cat.skins.filter(function(s) { return disabledSkins.indexOf(key + ':' + s.name) === -1 && owned[key + ':' + s.name]; }).length;
                 var isComplete = total > 0 && ownedCount === total;
                 var div = document.createElement('div');
                 div.className = 'cat-card' + (isComplete ? ' completed' : '');
@@ -667,9 +469,9 @@
                     var isSeasonal = skin.seasonal === true;
                     if (seasonalState === 1 && !isSeasonal) return;
                     if (seasonalState === -1 && isSeasonal) return;
-                    var isDisabled = disabledSkins.indexOf(skin.name) !== -1;
+                    var isDisabled = disabledSkins.indexOf(key + ':' + skin.name) !== -1;
                     var div = document.createElement('div');
-                    div.className = 'skin-item' + (isOwned ? ' owned' : '');
+                    div.className = 'item skin-item' + (isOwned ? ' owned' : '');
                     div.dataset.name = skin.name;
                     div.dataset.owned = isOwned ? 'true' : 'false';
                     div.dataset.recipe = hasRecipe ? 'true' : 'false';
@@ -711,7 +513,7 @@
             bomb: [],
             darkblade: []
         };
-        var disabledSkins = ["Хакер", "Белый", "Лиловая Ночь", "Небесный Феникс", "Кровавая Луна"];
+        var disabledSkins = ["aura:Хакер", "lightning:Белый", "dragon:Лиловая Ночь", "dragon:Небесный Феникс", "dragon:Кровавая Луна", "portal:Розовый", "portal:Оранжевый"];
 
         function renderSubSkins() {
             var list = document.getElementById('subList');
@@ -723,12 +525,12 @@
                 var isOwned = owned[owKey] === true;
                 var hasRecipe = (hasRecipeSkins[currentCat] || []).indexOf(skin.name) !== -1;
                 var recipeOwned = owned[owKey + '_recipe'] === true;
-                var isDisabled = disabledSkins.indexOf(skin.name) !== -1;
+                var isDisabled = disabledSkins.indexOf(currentCat + ':' + skin.name) !== -1;
                 var ownedState = CBF.getFilterState('owned');
                 if (ownedState === 1 && !isOwned) return;
                 if (ownedState === -1 && isOwned) return;
                 var div = document.createElement('div');
-                div.className = 'skin-item' + (isOwned ? ' owned' : '');
+                div.className = 'item skin-item' + (isOwned ? ' owned' : '');
                 div.dataset.name = skin.name;
                 div.dataset.owned = isOwned ? 'true' : 'false';
                 div.dataset.recipe = hasRecipe ? 'true' : 'false';
@@ -824,9 +626,9 @@
                     var isOwned = owned[owKey] === true;
                     var hasRecipe = (hasRecipeSkins[key] || []).indexOf(skin.name) !== -1;
                     var recipeOwned = owned[owKey + '_recipe'] === true;
-                    var isDisabled = disabledSkins.indexOf(skin.name) !== -1;
+                    var isDisabled = disabledSkins.indexOf(key + ':' + skin.name) !== -1;
                     var div = document.createElement('div');
-                    div.className = 'skin-item' + (isOwned ? ' owned' : '');
+                    div.className = 'item skin-item' + (isOwned ? ' owned' : '');
                     div.dataset.name = skin.name;
                     div.dataset.owned = isOwned ? 'true' : 'false';
                     div.dataset.recipe = hasRecipe ? 'true' : 'false';
@@ -985,28 +787,7 @@
         function closeAuthModal() { document.getElementById('authOverlay').classList.remove('active'); document.getElementById('authError').textContent = ''; }
 
         function initSeasonalTooltips() {
-            document.querySelectorAll('.skin-item .seasonal').forEach(function(el) {
-                var tip = el.querySelector('.tooltip');
-                if (!tip) return;
-                el.addEventListener('mouseenter', function() {
-                    var item = el.closest('.skin-item');
-                    var grid = item ? item.parentElement : null;
-                    tip.classList.remove('align-left', 'align-right');
-                    if (grid) {
-                        var top = item.offsetTop;
-                        var siblings = grid.querySelectorAll('.skin-item');
-                        var minLeft = Infinity, maxLeft = -Infinity;
-                        siblings.forEach(function(s) {
-                            if (Math.abs(s.offsetTop - top) < 5) {
-                                if (s.offsetLeft < minLeft) minLeft = s.offsetLeft;
-                                if (s.offsetLeft > maxLeft) maxLeft = s.offsetLeft;
-                            }
-                        });
-                        if (item.offsetLeft <= minLeft) tip.classList.add('align-left');
-                        else if (item.offsetLeft >= maxLeft) tip.classList.add('align-right');
-                    }
-                });
-            });
+            Cards.initTooltips();
         }
         initSeasonalTooltips();
     </script>

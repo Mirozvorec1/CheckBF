@@ -9,6 +9,7 @@
     <script src="lib/firebase-firestore-compat.js"></script>
     <script src="js/toolbar.js"></script>
     <script src="js/filter.js"></script>
+    <script src="js/cards.js"></script>
     <script>
         firebase.initializeApp({
             apiKey: "AIzaSyC10fTA0O6vpghuEanI52Yiyrtlkpmd8Nc",
@@ -100,141 +101,6 @@
             -webkit-text-stroke: 1px #000;
             text-align: center;
         }
-        .list {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 10px;
-            width: 100%;
-            padding: 0 10px;
-            overflow-y: auto;
-            flex: 1;
-            align-content: start;
-        }
-        .item {
-            background: #2a2a3a;
-            border: 1px solid #555;
-            border-radius: 8px;
-            padding: 10px 4px 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 120px;
-            cursor: pointer;
-            overflow: visible;
-            transition: border-color 0.2s;
-            position: relative;
-            gap: 0;
-        }
-        .item:hover {
-            background: #33334a;
-            z-index: 1;
-        }
-        .item img {
-            width: 70px;
-            height: 70px;
-            margin: 0 0 4px 0;
-            border-radius: 6px;
-        }
-        .item .info {
-            padding: 0 2px;
-            align-items: center;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            min-width: 0;
-        }
-        .item h3 {
-            font-size: 0.7rem;
-            font-weight: 600;
-            line-height: 1.15;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 100%;
-            color: #eee;
-            margin: 0;
-            padding: 2px 4px;
-            border-radius: 4px;
-        }
-        .item[data-rarity="common"] h3 { background: rgba(255,255,255,0.15); }
-        .item[data-rarity="uncommon"] h3 { background: rgba(76,175,80,0.35); }
-        .item[data-rarity="rare"] h3 { background: rgba(66,165,245,0.35); }
-        .item[data-rarity="legendary"] h3 { background: rgba(244,143,177,0.35); }
-        .item[data-rarity="mythical"] h3 { background: rgba(239,83,80,0.35); }
-        .item .counter {
-            font-size: 0.6rem;
-            color: #888;
-            margin-top: 2px;
-        }
-        .item .counter .filled {
-            color: #4caf50;
-        }
-        .item .fav-icon {
-            position: absolute;
-            bottom: 4px;
-            left: 4px;
-            right: 4px;
-            height: 24px;
-            font-size: 0.7rem;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.05);
-            color: #555;
-        }
-        .item .fav-icon:hover { background: rgba(255,255,255,0.1); }
-        .item .fav-icon.faved { background: #e6a800; color: #ffc107; }
-        .item .seasonal {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            width: 18px;
-            height: 18px;
-            background: #e91e63;
-            color: #fff;
-            border-radius: 50%;
-            font-size: 0.7rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: default;
-            z-index: 2;
-        }
-        .item .seasonal .tooltip {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1a1a2e;
-            border: 1px solid #e91e63;
-            border-radius: 8px;
-            padding: 8px 12px;
-            color: #fff;
-            font-size: 0.72rem;
-            white-space: nowrap;
-            z-index: 1000;
-            pointer-events: none;
-            font-weight: 400;
-            text-align: center;
-            margin-top: 6px;
-        }
-        .item .seasonal .tooltip.align-left {
-            left: 0;
-            transform: none;
-        }
-        .item .seasonal .tooltip.align-right {
-            left: 100%;
-            transform: translateX(-100%);
-        }
-        .item .seasonal:hover .tooltip {
-            display: block;
-        }
         .auth-overlay {
             display: none;
             position: fixed;
@@ -307,6 +173,7 @@
     </style>
     <link rel="stylesheet" href="css/filter.css">
     <link rel="stylesheet" href="css/toolbar.css">
+    <link rel="stylesheet" href="css/cards.css">
 </head>
 <body class="gradient-bg">
     <div class="particles" id="particles"></div>
@@ -364,7 +231,7 @@
                 </div>
             </div>
         </div>
-        <div class="list">
+        <div class="list icons-1">
             <div class="item" data-name="Ягода Красная Вишня" data-rarity="common" data-fav="false">
                 <img src="assets/materials/RedCherryBerryA.webp" alt="">
                 <div class="info"><h3>Ягода Красная Вишня</h3></div>
@@ -982,29 +849,6 @@
             }
         })();
     </script>
-    <script>
-        document.querySelectorAll('.item .seasonal').forEach(function(el) {
-            var tip = el.querySelector('.tooltip');
-            if (!tip) return;
-            el.addEventListener('mouseenter', function() {
-                var item = el.closest('.item');
-                var grid = item ? item.parentElement : null;
-                tip.classList.remove('align-left', 'align-right');
-                if (grid) {
-                    var top = item.offsetTop;
-                    var siblings = grid.querySelectorAll('.item');
-                    var minLeft = Infinity, maxLeft = -Infinity;
-                    siblings.forEach(function(s) {
-                        if (Math.abs(s.offsetTop - top) < 5) {
-                            if (s.offsetLeft < minLeft) minLeft = s.offsetLeft;
-                            if (s.offsetLeft > maxLeft) maxLeft = s.offsetLeft;
-                        }
-                    });
-                    if (item.offsetLeft <= minLeft) tip.classList.add('align-left');
-                    else if (item.offsetLeft >= maxLeft) tip.classList.add('align-right');
-                }
-            });
-        });
-    </script>
+    <script>Cards.initTooltips();</script>
 </body>
 </html>

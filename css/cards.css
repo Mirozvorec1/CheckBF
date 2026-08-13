@@ -1,0 +1,499 @@
+/* ============================================================
+   CheckBF Cards — общий стиль сетки и карточек
+   Подключение: <link rel="stylesheet" href="css/cards.css">
+   Основа: страница мечей (swords.html)
+   Варианты карточек:
+     - .item — базовая карточка (сетка .list)
+     - .list.icons-2 / .item.icons-2 — 2 кнопки внизу (eat / fav)
+     - .list.icons-1 / .item.icons-1 — 1 кнопка на всю ширину
+     - .tree-node — узел дерева боевых стилей
+     - .races-grid / .item.icons-1.race-card — расы (сетка по центру)
+     - .item.skin-item — скины (кнопки «Есть»/«Рецепт»)
+     - .cat-card — карточка категории (скины)
+   Без data-rarity — нейтральный фон названия.
+   ============================================================ */
+
+/* === Сетка === */
+.list {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 10px;
+    width: 100%;
+    padding: 0 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    align-content: start;
+    min-width: 0;
+    scrollbar-gutter: stable;
+}
+
+/* === Базовая карточка === */
+.item,
+.tree-node,
+.cat-card {
+    background: #2a2a3a;
+    border: 1px solid #555;
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+.item {
+    border-radius: 8px;
+    padding: 10px 4px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 140px;
+    overflow: visible;
+    gap: 0;
+    min-width: 0;
+}
+.item:hover,
+.tree-node:hover,
+.cat-card:hover { background: #33334a; }
+.item:hover,
+.tree-node:hover {
+    transform: translateY(-2px);
+    z-index: 1;
+}
+.cat-card:hover {
+    transform: translateY(-2px);
+    border-color: #8cf;
+    z-index: 1;
+}
+/* Состояние «собрано полностью» (золотая рамка) */
+.item.max-mastery,
+.tree-node.max-mastery,
+.cat-card.completed {
+    border-color: #ffc107;
+    box-shadow: 0 0 8px rgba(255,193,7,0.3);
+}
+.item img,
+.tree-node img,
+.double-img img { border-radius: 6px; }
+.item img {
+    width: 70px;
+    height: 70px;
+    margin: 0 0 4px 0;
+}
+.tree-node img {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 4px;
+}
+.item .info {
+    padding: 0 2px;
+    align-items: center;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+.item h3,
+.tree-node h3 {
+    font-weight: 600;
+    color: #eee;
+    text-align: center;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.1);
+}
+.item h3 {
+    font-size: 0.7rem;
+    line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    margin: 0 0 6px;
+}
+.tree-node h3 {
+    font-size: 0.65rem;
+    line-height: 1.1;
+    margin: 0 0 2px;
+}
+.item[data-rarity="common"] h3 { background: rgba(255,255,255,0.15); }
+.item[data-rarity="uncommon"] h3 { background: rgba(76,175,80,0.35); }
+.item[data-rarity="rare"] h3 { background: rgba(66,165,245,0.35); }
+.item[data-rarity="legendary"] h3 { background: rgba(244,143,177,0.35); }
+.item[data-rarity="mythical"] h3 { background: rgba(239,83,80,0.35); }
+.item p {
+    font-size: 0.6rem;
+    margin-top: 1px;
+    color: #bbb;
+}
+.item .mastery-val,
+.tree-node .mastery-val {
+    font-size: 0.55rem;
+    color: #8cf;
+    font-weight: 600;
+}
+.item .counter {
+    font-size: 0.6rem;
+    color: #888;
+    margin-top: 2px;
+}
+.item .counter .filled {
+    color: #4caf50;
+}
+
+/* === Кнопки действий на карточке ===
+   По умолчанию 3 кнопки (eat / fav / perm) по 30%.
+   icons-2 — 2 кнопки (eat / fav) по 46%.
+   icons-1 — 1 кнопка на всю ширину. */
+.item .eat-icon,
+.item .fav-icon,
+.item .perm-icon,
+.tree-node .eat-icon,
+.recipe-btn,
+.own-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: rgba(255,255,255,0.05);
+    border-radius: 5px;
+    font-size: 0.7rem;
+    color: #666;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.item .eat-icon:hover,
+.item .fav-icon:hover,
+.item .perm-icon:hover,
+.tree-node .eat-icon:hover,
+.recipe-btn:hover,
+.own-btn:hover { background: rgba(255,255,255,0.1); }
+/* Состояние «есть» (зелёная кнопка) */
+.item .eat-icon.eaten,
+.item .eat-icon.owned,
+.tree-node .eat-icon.eaten,
+.tree-node .eat-icon.owned {
+    background: #2e7d32;
+    color: #fff;
+}
+
+/* Расположение на карточке .item (абсолютно, внизу) */
+.item .eat-icon,
+.item .fav-icon,
+.item .perm-icon {
+    position: absolute;
+    bottom: 4px;
+    width: 30%;
+    height: 24px;
+}
+.item .eat-icon { left: 3%; }
+.item .fav-icon { left: 35%; color: #555; }
+.item .perm-icon { right: 3%; color: #888; font-weight: bold; }
+.item .fav-icon.faved { background: #e6a800; color: #fff; }
+.item .perm-icon.permed { background: #7b1fa2; color: #fff; }
+
+/* Кнопка в узле дерева (в потоке, на всю ширину) */
+.tree-node .eat-icon {
+    width: 100%;
+    height: 24px;
+    margin-top: 4px;
+    user-select: none;
+}
+
+/* 2 кнопки: eat слева, fav справа, по 46% */
+.list.icons-2 .item .eat-icon,
+.item.icons-2 .eat-icon { left: 3%; width: 46%; }
+.list.icons-2 .item .fav-icon,
+.item.icons-2 .fav-icon { left: auto; right: 3%; width: 46%; }
+
+/* 1 кнопка: на всю ширину (eat или fav) */
+.list.icons-1 .item .eat-icon,
+.list.icons-1 .item .fav-icon,
+.item.icons-1 .eat-icon,
+.item.icons-1 .fav-icon { left: 3%; width: 94%; }
+
+/* === Кнопки «Есть» / «Рецепт» (скины) === */
+.recipe-btn,
+.own-btn {
+    height: 24px;
+    padding: 0;
+}
+.recipe-btn.has-recipe { background: #1565c0; color: #fff; }
+.own-btn.owned { background: #2e7d32; color: #fff; }
+.own-btn.disabled { background: #333; cursor: not-allowed; opacity: 0.5; }
+.btn-row {
+    display: flex;
+    gap: 4px;
+}
+.btn-row .own-btn,
+.btn-row .recipe-btn { flex: 1; }
+
+/* === Сезонный бейдж и тултип === */
+.item .seasonal,
+.tree-node .seasonal {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 18px;
+    height: 18px;
+    background: #e91e63;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    z-index: 2;
+}
+.item .seasonal .tooltip,
+.tree-node .seasonal .tooltip {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a2e;
+    border: 1px solid #e91e63;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #fff;
+    font-size: 0.72rem;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    font-weight: 400;
+    text-align: center;
+    margin-top: 6px;
+}
+.item .seasonal .tooltip.align-left,
+.tree-node .seasonal .tooltip.align-left { left: 0; transform: none; }
+.item .seasonal .tooltip.align-right,
+.tree-node .seasonal .tooltip.align-right { left: 100%; transform: translateX(-100%); }
+.item .seasonal:hover .tooltip,
+.tree-node .seasonal:hover .tooltip { display: block; }
+
+/* === Прогресс-бар мастерства / прокачки === */
+.progress-bar {
+    display: flex;
+    gap: 1px;
+    margin-top: 3px;
+    margin-bottom: 4px;
+    padding: 1px;
+    border: 1px solid #555;
+    border-radius: 3px;
+    background: #1a1a1a;
+    width: fit-content;
+}
+.progress-bar .seg,
+.awakening-bar .seg {
+    background: #c62828;
+    border-radius: 1px;
+}
+.progress-bar .seg.filled,
+.awakening-bar .seg.filled { background: #43a047; }
+.progress-bar .seg {
+    width: 8px;
+    height: 5px;
+}
+
+/* === Вариант: дерево боевых стилей (fightingstyles.html) ===
+   Дерево: 2 колонки по центру; узлы — .tree-node. */
+.trees {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 30px;
+    flex: 1;
+    overflow: hidden;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 0 10px;
+}
+.tree {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: center;
+}
+.tree-title {
+    font-size: 0.7rem;
+    color: #aaa;
+    padding: 3px 10px;
+    border: 1px solid #555;
+    border-radius: 6px;
+    background: rgba(42,42,58,0.9);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: fit-content;
+    flex-shrink: 0;
+}
+.tree-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+}
+.tree-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    flex-shrink: 0;
+    color: #555;
+}
+.tree-arrow svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* === Узел дерева (боевые стили) === */
+.tree-node {
+    border-radius: 10px;
+    padding: 6px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 110px;
+    min-height: 110px;
+    flex-shrink: 0;
+}
+
+/* === Вариант: расы (races.html) ===
+   Карточка — .item.icons-1.race-card (общие стили).
+   Исключения: сетка по центру (4 в ряду), кнопки версий,
+   полоса пробуждения и состояние owned. */
+.races-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    flex: 1;
+    overflow-y: auto;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 10px 20px;
+    align-content: start;
+}
+/* Состояние «есть» (расы, скины) */
+.item.owned {
+    border-color: #4caf50;
+    box-shadow: 0 0 8px rgba(76,175,80,0.3);
+}
+.item.owned h3 { background: rgba(76,175,80,0.35); }
+.version-btns {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 6px;
+}
+.ver {
+    width: 30px;
+    height: 22px;
+    border: 1px solid #555;
+    background: #1a1a1a;
+    color: #888;
+    border-radius: 4px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.ver:hover {
+    background: #2a2a3a;
+}
+.ver.active {
+    background: #4caf50;
+    color: #fff;
+    border-color: #4caf50;
+}
+.awakening-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 6px;
+}
+.awakening-bar .seg {
+    width: 12px;
+    height: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.awakening-bar .seg:hover {
+    opacity: 0.8;
+}
+.awakening-bar .divider {
+    width: 1px;
+    height: 12px;
+    background: #555;
+    margin: 0 1px;
+}
+
+/* === Вариант: скины (skins.html) ===
+   Карточка скина — .item.skin-item + seasonal (общие стили),
+   категории — .cat-card, кнопки «Есть»/«Рецепт» в ряду. */
+.categories {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    padding: 0 0 40px 0;
+}
+.cat-card {
+    border-radius: 12px;
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: all 0.2s;
+}
+.cat-card .icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+.cat-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: #fff;
+}
+.cat-card .count {
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 4px;
+}
+.sub-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+}
+.double-img {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+.double-img img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+}
+
+/* Кнопки на карточке скина — внизу, как у обычных карточек */
+.item.skin-item {
+    justify-content: center;
+}
+.skin-item .btn-row,
+.skin-item > .own-btn {
+    position: absolute;
+    bottom: 4px;
+    left: 3%;
+    right: 3%;
+}
+
+/* === Адаптивность (без горизонтального ползунка) === */
+@media (max-width: 1500px) { .list { grid-template-columns: repeat(6, 1fr); } }
+@media (max-width: 1150px) { .list { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 800px)  { .list { grid-template-columns: repeat(2, 1fr); } }
