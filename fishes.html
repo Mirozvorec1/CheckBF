@@ -642,7 +642,8 @@
             var q = document.getElementById('searchInput').value.toLowerCase();
             document.querySelectorAll('.item').forEach(function(item) {
                 var name = item.dataset.name.toLowerCase();
-                item.style.display = name.indexOf(q) !== -1 ? '' : 'none';
+                var idNum = (item.dataset.id.match(/\d+$/) || [''])[0];
+                item.style.display = (name.indexOf(q) !== -1 || idNum.indexOf(q) !== -1) ? '' : 'none';
             });
         }
 
