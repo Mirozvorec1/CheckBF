@@ -19,7 +19,7 @@
     grid-template-columns: repeat(8, 1fr);
     gap: 10px;
     width: 100%;
-    padding: 0 10px;
+    padding: 4px 10px;
     overflow-y: auto;
     overflow-x: hidden;
     flex: 1;
@@ -197,6 +197,15 @@
     margin: 0;
 }
 .perm-icon.permed img { filter: none; }
+.fav-icon img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    filter: grayscale(100%);
+    pointer-events: none;
+    margin: 0;
+}
+.fav-icon.faved img { filter: none; }
 .item .fav-icon.faved { background: #e6a800; color: #fff; }
 .item .perm-icon.permed { background: #7b1fa2; color: #fff; }
 
@@ -380,7 +389,7 @@
     overflow-y: auto;
     max-width: 800px;
     margin: 0 auto;
-    padding: 0 10px 20px;
+    padding: 4px 10px 20px;
     align-content: start;
 }
 /* Состояние «есть» (расы, скины) */

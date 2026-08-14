@@ -312,45 +312,45 @@
                 <img src="assets/rods/FishingRodQ.webp" alt="FishingRod">
                 <div class="info"><h3>Рыбацкая Удочка</h3><p>1/100</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
-                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)"><img src="assets/Favorite.png" alt=""></span>
             </div>
             <div class="item" data-name="Золотая Удочка" data-mastery="1/100" data-rarity="uncommon" data-eaten="false" data-fav="false" data-recipe='{"Металлолом":3,"Деревянная Доска":4}'>
                 <img src="assets/rods/GoldRodQ.webp" alt="GoldRod">
                 <div class="info"><h3>Золотая Удочка</h3><p>1/100</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
-                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)"><img src="assets/Favorite.png" alt=""></span>
             </div>
             <div class="item" data-name="Акулья Удочка" data-mastery="1/100" data-rarity="uncommon" data-eaten="false" data-fav="false">
                 <img src="assets/rods/SharkRodQ.webp" alt="SharkRod">
                 <div class="info"><h3>Акулья Удочка</h3><p>1/100</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
-                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)"><img src="assets/Favorite.png" alt=""></span>
             </div>
             <div class="item" data-name="Ракушечная Удочка" data-mastery="1/100" data-rarity="rare" data-eaten="false" data-fav="false">
                 <img src="assets/rods/ShellRodQ.webp" alt="ShellRod">
                 <div class="info"><h3>Ракушечная Удочка</h3><p>1/100</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
-                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)"><img src="assets/Favorite.png" alt=""></span>
             </div>
             <div class="item" data-name="Сокровищная Удочка" data-mastery="1/100" data-rarity="legendary" data-eaten="false" data-fav="false">
                 <img src="assets/rods/TreasureRodQ.webp" alt="TreasureRod">
                 <div class="info"><h3>Сокровищная Удочка</h3><p>1/100</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
-                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)"><img src="assets/Favorite.png" alt=""></span>
             </div>
             <div class="item" data-name="Осквернённая Акулья Удочка" data-mastery="1/100" data-rarity="legendary" data-eaten="false" data-fav="false">
                 <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
                 <img src="assets/rods/CorruptedSharkRodQ.webp" alt="CorruptedSharkRod">
                 <div class="info"><h3>Осквернённая Акулья Удочка</h3><p>1/100</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
-                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)"><img src="assets/Favorite.png" alt=""></span>
             </div>
             <div class="item" data-name="Небесная Ракушечная Удочка" data-mastery="1/100" data-rarity="legendary" data-eaten="false" data-fav="false">
                 <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
                 <img src="assets/rods/CelestialShellRodQ.webp" alt="CelestialShellRod">
                 <div class="info"><h3>Небесная Ракушечная Удочка</h3><p>1/100</p></div>
                 <span class="eat-icon" onclick="toggleEaten(event, this)">⊘</span>
-                <span class="fav-icon" onclick="toggleFav(event, this)">☆</span>
+                <span class="fav-icon" onclick="toggleFav(event, this)"><img src="assets/Favorite.png" alt=""></span>
             </div>
         </div>
     </div>
@@ -398,7 +398,6 @@
             var item = el.closest('.item');
             var val = item.dataset.fav === 'true' ? 'false' : 'true';
             item.dataset.fav = val;
-            el.textContent = val === 'true' ? '★' : '☆';
             el.classList.toggle('faved', val === 'true');
             saveData();
         }
@@ -451,14 +450,12 @@
                         item.dataset.fav = 'true';
                         var favEl = item.querySelector('.fav-icon');
                         if (favEl) {
-                            favEl.textContent = '★';
                             favEl.classList.add('faved');
                         }
                     } else {
                         item.dataset.fav = 'false';
                         var favEl = item.querySelector('.fav-icon');
                         if (favEl) {
-                            favEl.textContent = '☆';
                             favEl.classList.remove('faved');
                         }
                     }
@@ -664,7 +661,7 @@
                 var eatEl = item.querySelector('.eat-icon');
                 if (eatEl) { eatEl.textContent = '⊘'; eatEl.classList.remove('eaten'); }
                 var favEl = item.querySelector('.fav-icon');
-                if (favEl) { favEl.textContent = '☆'; favEl.classList.remove('faved'); }
+                if (favEl) { favEl.classList.remove('faved'); }
                 updateItemText(item);
             });
         }
