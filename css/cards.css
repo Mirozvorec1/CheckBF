@@ -188,6 +188,15 @@
 .item .eat-icon { left: 3%; }
 .item .fav-icon { left: 35%; color: #555; }
 .item .perm-icon { right: 3%; color: #888; font-weight: bold; }
+.perm-icon img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    filter: grayscale(100%);
+    pointer-events: none;
+    margin: 0;
+}
+.perm-icon.permed img { filter: none; }
 .item .fav-icon.faved { background: #e6a800; color: #fff; }
 .item .perm-icon.permed { background: #7b1fa2; color: #fff; }
 
