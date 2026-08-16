@@ -31,7 +31,7 @@
             box-sizing: border-box;
         }
         body {
-            min-height: 100vh;
+            height: 100vh;
             background-color: #1a1a1a;
             color: #c900c9;
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -99,16 +99,19 @@
 
         .subcategories {
             display: none;
-            padding: 0 0 40px 0;
+            flex: 1;
+            min-height: 0;
         }
         .subcategories.active {
-            display: block;
+            display: flex;
+            flex-direction: column;
         }
         .sub-header {
             display: flex;
             align-items: center;
             gap: 12px;
             margin-bottom: 16px;
+            flex-shrink: 0;
         }
         .sub-back {
             color: #fff;
@@ -130,15 +133,12 @@
         }
         .search-results {
             display: none;
-            padding: 0 0 40px 0;
+            flex: 1;
+            min-height: 0;
         }
         .search-results.active {
-            display: block;
-        }
-        .search-results h2 {
-            font-size: 1.3rem;
-            color: #fff;
-            margin: 0 0 12px 0;
+            display: flex;
+            flex-direction: column;
         }
         .search-results .cat-label {
             font-size: 0.75rem;
@@ -182,7 +182,11 @@
         .auth-modal .error-msg { color: #c62828; font-size: 0.8rem; margin-bottom: 10px; min-height: 1.2em; }
         .main {
             flex: 1;
+            display: flex;
+            flex-direction: column;
             padding: 20px 40px;
+            overflow: hidden;
+            min-width: 0;
         }
     </style>
 </head>
@@ -204,6 +208,7 @@
             <div class="filter-group-header" onclick="CBF.toggleGroup(this)"><span class="arrow">▼</span> Прочее</div>
             <div class="filter-group-items">
                 <div class="filter-item"><span class="filter-item-label">Сезонный</span><div class="ft state-1" data-filter="seasonal" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Недоступный</span><div class="ft state-1" data-filter="disabled" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
             </div>
         </div>
     </div>
@@ -225,7 +230,6 @@
     </div>
 
     <div class="search-results" id="searchResults">
-        <h2>Результаты поиска</h2>
         <div class="sub-list" id="searchList"></div>
     </div>
     </div>
@@ -317,6 +321,9 @@
             ]},
             darkblade: { name: "Тёмный Клинок", skins: [
                 { name: "Убийца Богов", img: "assets/skins/Title_Slayer_of_God.webp" }
+            ]},
+            dogblade: { name: "Собачий Клинок", skins: [
+                { name: "Бешеный", img: "assets/skins/Rabid_Skin.webp" }
             ]}
         };
 
@@ -358,7 +365,8 @@
             diamond: "assets/fruits/DiamondB.webp",
             eagle: "assets/fruits/EagleB.webp",
             bomb: "assets/fruits/BombB.webp",
-            darkblade: "assets/swords/Dark_Blade.webp"
+            darkblade: "assets/swords/Dark_Blade.webp",
+            dogblade: "assets/swords/DogBladeIcon.webp"
         };
 
         function renderCategories() {
@@ -412,7 +420,7 @@
         }
 
         function hasActiveFilter() {
-            return CBF.getFilterState('owned') !== 0 || CBF.getFilterState('recipe') !== 0 || CBF.getFilterState('seasonal') !== 0;
+            return CBF.getFilterState('owned') !== 0 || CBF.getFilterState('recipe') !== 0 || CBF.getFilterState('seasonal') !== 0 || CBF.getFilterState('disabled') !== 0;
         }
         function applySkinFilter() {
             var ownedState = CBF.getFilterState('owned');
@@ -453,6 +461,7 @@
             var ownedState = CBF.getFilterState('owned');
             var recipeState = CBF.getFilterState('recipe');
             var seasonalState = CBF.getFilterState('seasonal');
+            var disabledState = CBF.getFilterState('disabled');
             var searchList = document.getElementById('searchList');
             Object.keys(categories).forEach(function(key) {
                 var cat = categories[key];
@@ -470,12 +479,15 @@
                     if (seasonalState === 1 && !isSeasonal) return;
                     if (seasonalState === -1 && isSeasonal) return;
                     var isDisabled = disabledSkins.indexOf(key + ':' + skin.name) !== -1;
+                    if (disabledState === 1 && !isDisabled) return;
+                    if (disabledState === -1 && isDisabled) return;
                     var div = document.createElement('div');
                     div.className = 'item skin-item' + (isOwned ? ' owned' : '');
                     div.dataset.name = skin.name;
                     div.dataset.owned = isOwned ? 'true' : 'false';
                     div.dataset.recipe = hasRecipe ? 'true' : 'false';
                     div.dataset.seasonal = skin.seasonal ? 'true' : 'false';
+                    div.dataset.disabled = isDisabled ? 'true' : 'false';
                     var imgHtml = '';
                     if (isDouble && skin.img1) {
                         imgHtml = '<div class="double-img"><img src="' + skin.img1 + '" alt="' + skin.name + '" onerror="this.style.display=\'none\'"><img src="' + skin.img2 + '" alt="' + skin.name + '" onerror="this.style.display=\'none\'"></div>';
@@ -535,6 +547,7 @@
                 div.dataset.owned = isOwned ? 'true' : 'false';
                 div.dataset.recipe = hasRecipe ? 'true' : 'false';
                 div.dataset.seasonal = skin.seasonal ? 'true' : 'false';
+                div.dataset.disabled = isDisabled ? 'true' : 'false';
                 var imgHtml = '';
                 if (isDouble && skin.img1) {
                     imgHtml = '<div class="double-img"><img src="' + skin.img1 + '" alt="' + skin.name + '" onerror="this.style.display=\'none\'"><img src="' + skin.img2 + '" alt="' + skin.name + '" onerror="this.style.display=\'none\'"></div>';
@@ -633,6 +646,7 @@
                     div.dataset.owned = isOwned ? 'true' : 'false';
                     div.dataset.recipe = hasRecipe ? 'true' : 'false';
                     div.dataset.seasonal = skin.seasonal ? 'true' : 'false';
+                    div.dataset.disabled = isDisabled ? 'true' : 'false';
                     var imgHtml = '';
                     if (isDouble && skin.img1) {
                         imgHtml = '<div class="double-img"><img src="' + skin.img1 + '" alt="' + skin.name + '" onerror="this.style.display=\'none\'"><img src="' + skin.img2 + '" alt="' + skin.name + '" onerror="this.style.display=\'none\'"></div>';
@@ -718,6 +732,7 @@
             var ownedState = CBF.getFilterState('owned');
             var recipeState = CBF.getFilterState('recipe');
             var seasonalState = CBF.getFilterState('seasonal');
+            var disabledState = CBF.getFilterState('disabled');
             document.querySelectorAll('.skin-item').forEach(function(item) {
                 var showFilter = true;
                 if (ownedState === 1 && item.dataset.owned !== 'true') showFilter = false;
@@ -726,6 +741,8 @@
                 if (recipeState === -1 && item.dataset.recipe === 'true') showFilter = false;
                 if (seasonalState === 1 && item.dataset.seasonal !== 'true') showFilter = false;
                 if (seasonalState === -1 && item.dataset.seasonal === 'true') showFilter = false;
+                if (disabledState === 1 && item.dataset.disabled !== 'true') showFilter = false;
+                if (disabledState === -1 && item.dataset.disabled === 'true') showFilter = false;
                 item.style.display = showFilter ? '' : 'none';
             });
         }

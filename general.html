@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Общее — CheckBF</title>
+    <script src="lib/firebase-app-compat.js"></script>
+    <script src="lib/firebase-auth-compat.js"></script>
+    <script src="lib/firebase-firestore-compat.js"></script>
+    <script src="js/toolbar.js"></script>
+    <script src="js/filter.js"></script>
+    <script>
+        firebase.initializeApp({
+            apiKey: "AIzaSyC10fTA0O6vpghuEanI52Yiyrtlkpmd8Nc",
+            authDomain: "checkbf-d1a2d.firebaseapp.com",
+            projectId: "checkbf-d1a2d",
+            storageBucket: "checkbf-d1a2d.firebasestorage.app",
+            messagingSenderId: "79682535947",
+            appId: "1:79682535947:web:714e3f81408d7a0d0dbd0e"
+        });
+    </script>
+    <script src="js/auth.js"></script>
+    <link rel="stylesheet" href="css/filter.css">
+    <link rel="stylesheet" href="css/toolbar.css">
+    <link rel="stylesheet" href="css/cards.css">
+    <script src="js/cards.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            height: 100vh;
+            background-color: #1a1a1a;
+            color: #c900c9;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            isolation: isolate;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+        }
+        body.gradient-bg::before {
+            background: linear-gradient(135deg, #0a0a0a 0%, #2d1b4e 30%, #1a0a2e 60%, #0a0a0a 100%);
+            filter: none;
+        }
+        body.gradient-bg {
+            background-color: transparent;
+        }
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle ease-in-out infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.1; transform: translateY(0); }
+            50% { opacity: 0.8; transform: translateY(-20px); }
+        }
+        .back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 1rem;
+            border: 1px solid #555;
+            border-radius: 16px;
+            padding: 6px 16px;
+            background: #2a2a3a;
+            z-index: 20;
+        }
+        .back:hover {
+            background: #33334a;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin: 0 0 12px 0;
+            color: #fff;
+            -webkit-text-stroke: 1px #000;
+            text-align: center;
+        }
+        .subcategories {
+            display: none;
+            flex: 1;
+            min-height: 0;
+        }
+        .subcategories.active {
+            display: flex;
+            flex-direction: column;
+        }
+        .sub-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+        .sub-back {
+            color: #fff;
+            cursor: pointer;
+            font-size: 1rem;
+            background: #2a2a3a;
+            border: 1px solid #555;
+            border-radius: 10px;
+            padding: 8px 16px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .sub-back:hover {
+            background: #33334a;
+            border-color: #8cf;
+        }
+        .sub-header h2 {
+            font-size: 1.5rem;
+            margin: 0;
+            color: #fff;
+            -webkit-text-stroke: 1px #000;
+        }
+        .search-results {
+            display: none;
+            flex: 1;
+            min-height: 0;
+        }
+        .search-results.active {
+            display: flex;
+            flex-direction: column;
+        }
+        .sub-list .cat-label,
+        .search-results .cat-label {
+            font-size: 0.75rem;
+            color: #8cf;
+            margin-bottom: 4px;
+        }
+        .auth-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7); z-index: 50; justify-content: center; align-items: center;
+        }
+        .auth-overlay.active { display: flex; }
+        .auth-modal {
+            background: #1e1e2e; border: 1px solid #555; border-radius: 16px; padding: 30px; width: 340px; text-align: center;
+        }
+        .auth-modal h2 { color: #8cf; margin: 0 0 20px; font-size: 1.3rem; }
+        .auth-modal input {
+            width: 100%; padding: 10px 14px; margin-bottom: 12px; border: 1px solid #555; border-radius: 8px;
+            background: #2a2a3a; color: #fff; font-size: 0.9rem; box-sizing: border-box;
+        }
+        .auth-modal input:focus { outline: none; border-color: #8cf; }
+        .auth-modal .auth-submit {
+            width: 100%; padding: 10px; border: none; border-radius: 8px; background: #5c6bc0; color: #fff; font-size: 0.9rem; cursor: pointer; margin-bottom: 10px;
+        }
+        .auth-modal .auth-submit:hover { background: #7986cb; }
+        .auth-modal .google-btn {
+            width: 100%; padding: 10px; border: 1px solid #555; border-radius: 8px; background: #2a2a3a; color: #ccc; font-size: 0.9rem; cursor: pointer; margin-bottom: 12px;
+        }
+        .auth-modal .google-btn:hover { background: #33334a; border-color: #8cf; }
+        .auth-modal .switch-link { color: #8cf; cursor: pointer; font-size: 0.8rem; }
+        .auth-modal .error-msg { color: #c62828; font-size: 0.8rem; margin-bottom: 10px; min-height: 1.2em; }
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 40px;
+            overflow: hidden;
+            min-width: 0;
+        }
+    </style>
+</head>
+<body class="gradient-bg">
+    <div class="particles" id="particles"></div>
+    <div class="auth-bar" id="authBar"></div>
+    <div class="sync-indicator" id="syncIndicator">Синхронизация...</div>
+    <a class="back" href="index.html">&larr; Назад</a>
+    <div class="sidebar">
+        <button class="active" data-filter="all">Все</button>
+        <div class="filter-group" data-group="other">
+            <div class="filter-group-header" onclick="CBF.toggleGroup(this)"><span class="arrow">▼</span> Прочее</div>
+            <div class="filter-group-items">
+                <div class="filter-item"><span class="filter-item-label">Сезонный</span><div class="ft state-1" data-filter="seasonal" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+                <div class="filter-item"><span class="filter-item-label">Недоступный</span><div class="ft state-1" data-filter="disabled" data-state="1" title="Не важно"><span class="ft-knob"><span class="ft-knob-icon">—</span></span></div></div>
+            </div>
+        </div>
+    </div>
+    <button onclick="CBF.resetAllFilters()" style="position:fixed;bottom:20px;left:20px;z-index:20;background:#2a2a3a;border:1px solid #555;color:#999;font-size:0.75rem;padding:6px 14px;cursor:pointer;border-radius:10px;">Сбросить фильтры</button>
+    <div class="main">
+    <h1>Общее</h1>
+    <div class="toolbar">
+        <input class="search" id="searchInput" type="text" placeholder="Поиск..." oninput="filterBySearch()" autocomplete="off">
+    </div>
+
+    <div class="categories" id="categoriesView"></div>
+
+    <div class="subcategories" id="subView">
+        <div class="sub-header">
+            <button class="sub-back" onclick="backToCategories()">&larr; К категориям</button>
+            <h2 id="subTitle"></h2>
+        </div>
+        <div class="sub-list" id="subList"></div>
+    </div>
+
+    <div class="search-results" id="searchResults">
+        <div class="sub-list" id="searchList"></div>
+    </div>
+    </div>
+
+    <script>
+        var categories = {
+            profile_backgrounds: { name: "Фоны Профиля", icon: "assets/general/profile/Full_Moon_Profile_Background.webp", items: [
+                { name: "Полная Луна", img: "assets/general/profile/Full_Moon_Profile_Background.webp", seasonal: true },
+                { name: "Хэллоуинский Гобелен", img: "assets/general/profile/Halloween_Tapestry_Profile_Background.webp", seasonal: true },
+                { name: "Полярное Небо", img: "assets/general/profile/Aurora_Sky_Profile_Background.webp", seasonal: true },
+                { name: "Перегрузка Контроля", img: "assets/general/profile/Control_Override_Profile_Background.webp", seasonal: true },
+                { name: "Любовник", img: "assets/general/profile/Lover_Profile_Background.webp", seasonal: true },
+                { name: "Горе", img: "assets/general/profile/Heartbreak_Profile_Background.webp", seasonal: true },
+                { name: "Пасхальный Гобелен", img: "assets/general/profile/Easter_Tapestry_Profile_Background.webp", seasonal: true },
+                { name: "Собачья Будка", img: "assets/general/profile/Doghouse_Profile_Background.webp", seasonal: true },
+                { name: "???", img: "assets/general/profile/MatrixProfileBackground.webp", id: "matrix" },
+                { name: "???", img: "assets/general/profile/CelestialProfileBackground.webp", id: "celestial" },
+                { name: "???", img: "assets/general/profile/OniProfileBackground.webp", id: "oni" }
+            ]},
+            profile_shells: { name: "Оболочки Профиля", icon: "assets/general/profile/DoghouseFrameBreak.webp", items: [
+                { name: "Собачья Будка (Разрыв Кадра)", img: "assets/general/profile/DoghouseFrameBreak.webp", seasonal: true }
+            ]}
+        };
+
+        var disabledItems = ["profile_backgrounds:matrix", "profile_backgrounds:celestial", "profile_backgrounds:oni"];
+
+        function itemKey(catKey, item) {
+            return catKey + ':' + (item.id || item.name);
+        }
+
+        function requireAuth() {
+            if (window.checkbfAuth && window.checkbfAuth.requireAuth) return window.checkbfAuth.requireAuth();
+            return false;
+        }
+
+        var owned = {};
+        var currentCat = '';
+
+        function loadData() {
+            var raw = localStorage.getItem('checkbf_general');
+            if (raw) {
+                var parsed = JSON.parse(raw);
+                if (parsed && Object.keys(parsed).length > 0 && Object.keys(parsed)[0].indexOf(':') === -1) {
+                    localStorage.removeItem('checkbf_general');
+                } else {
+                    owned = parsed;
+                }
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('checkbf_general', JSON.stringify(owned));
+            if (window.checkbfAuth && window.checkbfAuth.user) {
+                TB.showSync();
+                window.checkbfAuth.saveToDB('general', owned).then(TB.hideSync);
+            }
+        }
+
+        function renderCategories() {
+            var container = document.getElementById('categoriesView');
+            container.innerHTML = '';
+            var keys = Object.keys(categories);
+            keys.sort(function(a, b) {
+                return categories[b].items.length - categories[a].items.length;
+            });
+            keys.forEach(function(key) {
+                var cat = categories[key];
+                var total = cat.items.filter(function(s) { return disabledItems.indexOf(itemKey(key, s)) === -1; }).length;
+                var ownedCount = cat.items.filter(function(s) { return disabledItems.indexOf(itemKey(key, s)) === -1 && owned[itemKey(key, s)]; }).length;
+                var isComplete = total > 0 && ownedCount === total;
+                var div = document.createElement('div');
+                div.className = 'cat-card' + (isComplete ? ' completed' : '');
+                div.onclick = function() { openCategory(key); };
+                div.innerHTML = '<img class="icon" src="' + cat.icon + '" alt="' + cat.name + '">' +
+                    '<h3>' + cat.name + '</h3>' +
+                    '<span class="count">' + ownedCount + '/' + total + '</span>';
+                container.appendChild(div);
+            });
+        }
+
+        function openCategory(key) {
+            currentCat = key;
+            document.getElementById('categoriesView').style.display = 'none';
+            document.getElementById('subView').classList.add('active');
+            document.getElementById('subTitle').textContent = categories[key].name;
+            renderSubItems();
+        }
+
+        function backToCategories() {
+            currentCat = '';
+            document.getElementById('subView').classList.remove('active');
+            document.getElementById('searchResults').classList.remove('active');
+            document.getElementById('searchInput').value = '';
+            if (hasActiveFilter()) {
+                document.getElementById('categoriesView').style.display = 'none';
+                document.getElementById('searchResults').classList.add('active');
+                renderGlobalFilterResults();
+            } else {
+                document.getElementById('categoriesView').style.display = '';
+                renderCategories();
+            }
+        }
+
+        function hasActiveFilter() {
+            return CBF.getFilterState('seasonal') !== 0 || CBF.getFilterState('disabled') !== 0;
+        }
+
+        function applyGeneralFilter() {
+            var categoriesView = document.getElementById('categoriesView');
+            var subView = document.getElementById('subView');
+            var searchResults = document.getElementById('searchResults');
+            var searchList = document.getElementById('searchList');
+
+            if (!hasActiveFilter()) {
+                searchResults.classList.remove('active');
+                if (currentCat) {
+                    subView.classList.add('active');
+                    categoriesView.style.display = 'none';
+                    renderSubItems();
+                } else {
+                    categoriesView.style.display = '';
+                    subView.classList.remove('active');
+                    renderCategories();
+                }
+                return;
+            }
+
+            if (currentCat) {
+                subView.classList.add('active');
+                categoriesView.style.display = 'none';
+                searchResults.classList.remove('active');
+                renderSubItems();
+            } else {
+                categoriesView.style.display = 'none';
+                subView.classList.remove('active');
+                searchResults.classList.add('active');
+                searchList.innerHTML = '';
+                renderGlobalFilterResults();
+            }
+        }
+
+        function renderGlobalFilterResults() {
+            var seasonalState = CBF.getFilterState('seasonal');
+            var disabledState = CBF.getFilterState('disabled');
+            var searchList = document.getElementById('searchList');
+            Object.keys(categories).forEach(function(key) {
+                var cat = categories[key];
+                cat.items.forEach(function(item) {
+                    var owKey = itemKey(key, item);
+                    var isOwned = owned[owKey] === true;
+                    var isSeasonal = item.seasonal === true;
+                    if (seasonalState === 1 && !isSeasonal) return;
+                    if (seasonalState === -1 && isSeasonal) return;
+                    var isDisabled = disabledItems.indexOf(owKey) !== -1;
+                    if (disabledState === 1 && !isDisabled) return;
+                    if (disabledState === -1 && isDisabled) return;
+                    var div = document.createElement('div');
+                    div.className = 'item skin-item' + (isOwned ? ' owned' : '');
+                    div.dataset.name = item.name;
+                    div.dataset.owned = isOwned ? 'true' : 'false';
+                    div.dataset.seasonal = isSeasonal ? 'true' : 'false';
+                    div.dataset.disabled = isDisabled ? 'true' : 'false';
+                    var btns = '';
+                    if (isDisabled) {
+                        btns = '<button class="own-btn disabled" disabled>Недоступен</button>';
+                    } else {
+                        btns = '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + owKey + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
+                    }
+                    var seasonalHtml = isSeasonal ? '<span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>' : '';
+                    div.innerHTML = seasonalHtml + '<span class="cat-label">' + cat.name + '</span>' + '<img src="' + item.img + '" alt="' + item.name + '" onerror="this.style.display=\'none\'">' + '<h3>' + item.name + '</h3>' + btns;
+                    searchList.appendChild(div);
+                });
+            });
+            initSeasonalTooltips();
+        }
+
+        function renderSubItems() {
+            var list = document.getElementById('subList');
+            list.innerHTML = '';
+            var items = categories[currentCat].items;
+            items.forEach(function(item) {
+                var owKey = itemKey(currentCat, item);
+                var isOwned = owned[owKey] === true;
+                var isDisabled = disabledItems.indexOf(owKey) !== -1;
+                var div = document.createElement('div');
+                div.className = 'item skin-item' + (isOwned ? ' owned' : '');
+                div.dataset.name = item.name;
+                div.dataset.owned = isOwned ? 'true' : 'false';
+                div.dataset.seasonal = item.seasonal ? 'true' : 'false';
+                div.dataset.disabled = isDisabled ? 'true' : 'false';
+                var btns = '';
+                if (isDisabled) {
+                    btns = '<button class="own-btn disabled" disabled>Недоступен</button>';
+                } else {
+                    btns = '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + owKey + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
+                }
+                var seasonalHtml = item.seasonal ? '<span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>' : '';
+                div.innerHTML = seasonalHtml + '<img src="' + item.img + '" alt="' + item.name + '" onerror="this.style.display=\'none\'">' + '<h3>' + item.name + '</h3>' + btns;
+                list.appendChild(div);
+            });
+            initSeasonalTooltips();
+        }
+
+        function toggleOwn(e, name) {
+            e.stopPropagation();
+            if (!requireAuth()) return;
+            owned[name] = !owned[name];
+            saveData();
+            if (hasActiveFilter()) {
+                applyGeneralFilter();
+            } else if (currentCat) {
+                renderSubItems();
+            }
+        }
+
+        function filterBySearch() {
+            var q = document.getElementById('searchInput').value.toLowerCase();
+            var searchResults = document.getElementById('searchResults');
+            var searchList = document.getElementById('searchList');
+            var categoriesView = document.getElementById('categoriesView');
+            var subView = document.getElementById('subView');
+
+            if (!q) {
+                searchResults.classList.remove('active');
+                if (currentCat) {
+                    subView.classList.add('active');
+                    categoriesView.style.display = 'none';
+                } else {
+                    categoriesView.style.display = '';
+                }
+                return;
+            }
+
+            categoriesView.style.display = 'none';
+            subView.classList.remove('active');
+            searchResults.classList.add('active');
+            searchList.innerHTML = '';
+
+            Object.keys(categories).forEach(function(key) {
+                var cat = categories[key];
+                cat.items.forEach(function(item) {
+                    var name = item.name.toLowerCase();
+                    if (name.indexOf(q) !== -1) {
+                        var owKey = itemKey(key, item);
+                        var isOwned = owned[owKey] === true;
+                        var isDisabled = disabledItems.indexOf(owKey) !== -1;
+                        var div = document.createElement('div');
+                        div.className = 'item skin-item' + (isOwned ? ' owned' : '');
+                        div.dataset.name = item.name;
+                        div.dataset.owned = isOwned ? 'true' : 'false';
+                        div.dataset.seasonal = item.seasonal ? 'true' : 'false';
+                        div.dataset.disabled = isDisabled ? 'true' : 'false';
+                        var btns = '';
+                        if (isDisabled) {
+                            btns = '<button class="own-btn disabled" disabled>Недоступен</button>';
+                        } else {
+                            btns = '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + owKey + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
+                        }
+                        var seasonalHtml = item.seasonal ? '<span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>' : '';
+                        div.innerHTML = seasonalHtml + '<span class="cat-label">' + cat.name + '</span>' + '<img src="' + item.img + '" alt="' + item.name + '" onerror="this.style.display=\'none\'">' + '<h3>' + item.name + '</h3>' + btns;
+                        searchList.appendChild(div);
+                    }
+                });
+            });
+            initSeasonalTooltips();
+        }
+
+        function createParticles() {
+            var container = document.getElementById('particles');
+            container.innerHTML = '';
+            for (var i = 0; i < 60; i++) {
+                var p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.animationDuration = (Math.random() * 4 + 3) + 's';
+                p.style.animationDelay = (Math.random() * 3) + 's';
+                var size = Math.random() * 3 + 1;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                container.appendChild(p);
+            }
+        }
+        createParticles();
+
+        function applyAllVisibility() {
+            applyGeneralFilter();
+            var seasonalState = CBF.getFilterState('seasonal');
+            var disabledState = CBF.getFilterState('disabled');
+            document.querySelectorAll('.skin-item').forEach(function(item) {
+                var showFilter = true;
+                if (seasonalState === 1 && item.dataset.seasonal !== 'true') showFilter = false;
+                if (seasonalState === -1 && item.dataset.seasonal === 'true') showFilter = false;
+                if (disabledState === 1 && item.dataset.disabled !== 'true') showFilter = false;
+                if (disabledState === -1 && item.dataset.disabled === 'true') showFilter = false;
+                item.style.display = showFilter ? '' : 'none';
+            });
+        }
+
+        async function syncFromDB() {
+            if (!window.checkbfAuth || !window.checkbfAuth.user) return;
+            var dbData = await window.checkbfAuth.loadFromDB('general');
+            var localData = null;
+            var raw = localStorage.getItem('checkbf_general');
+            if (raw) {
+                try { localData = JSON.parse(raw); } catch(e) {}
+            }
+            if (dbData && Object.keys(dbData).length > 0) {
+                localStorage.setItem('checkbf_general', JSON.stringify(dbData));
+                owned = dbData;
+                renderCategories();
+                if (currentCat) renderSubItems();
+                TB.showSync();
+            } else if (localData && Object.keys(localData).length > 0) {
+                await window.checkbfAuth.saveToDB('general', localData);
+                owned = localData;
+                TB.showSync();
+            }
+        }
+
+        TB.init();
+        loadData();
+        renderCategories();
+
+        function initSeasonalTooltips() {
+            Cards.initTooltips();
+        }
+        initSeasonalTooltips();
+    </script>
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-modal">
+            <h2 id="authTitle">Вход</h2>
+            <div class="error-msg" id="authError"></div>
+            <input type="email" id="authEmail" placeholder="Email" autocomplete="off">
+            <input type="password" id="authPass" placeholder="Пароль" autocomplete="new-password">
+            <button class="auth-submit" id="authSubmit" onclick="handleAuth()">Войти</button>
+            <button class="google-btn" onclick="handleGoogleAuth()">Войти через Google</button>
+            <span class="switch-link" id="authSwitch" onclick="toggleAuthMode()">Нет аккаунта? Регистрация</span>
+            <br><br>
+            <span class="switch-link" onclick="closeAuthModal()">Позже</span>
+        </div>
+    </div>
+    <script>
+        var isRegisterMode = false;
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('authTitle').textContent = isRegisterMode ? 'Регистрация' : 'Вход';
+            document.getElementById('authSubmit').textContent = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
+            document.getElementById('authSwitch').textContent = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
+            document.getElementById('authError').textContent = '';
+        }
+        function handleAuth() {
+            var email = document.getElementById('authEmail').value.trim();
+            var pass = document.getElementById('authPass').value;
+            var errEl = document.getElementById('authError');
+            errEl.textContent = '';
+            if (!email || !pass) { errEl.textContent = 'Заполните все поля'; return; }
+            if (email === 'test' && pass === 'test') {
+                window.checkbfAuth.enterTestMode();
+                closeAuthModal();
+                return;
+            }
+            var a = firebase.auth();
+            var method = isRegisterMode
+                ? a.createUserWithEmailAndPassword(email, pass)
+                : a.signInWithEmailAndPassword(email, pass);
+            method.then(function() { closeAuthModal(); }).catch(function(e) {
+                var msg = e.code === 'auth/email-already-in-use' ? 'Email уже зарегистрирован' :
+                          e.code === 'auth/wrong-password' ? 'Неверный пароль' :
+                          e.code === 'auth/user-not-found' ? 'Пользователь не найден' :
+                          e.code === 'auth/weak-password' ? 'Пароль минимум 6 символов' :
+                          e.code === 'auth/invalid-email' ? 'Некорректный email' :
+                          'Ошибка: ' + e.message;
+                errEl.textContent = msg;
+            });
+        }
+        function handleGoogleAuth() {
+            var a = firebase.auth();
+            var p = new firebase.auth.GoogleAuthProvider();
+            a.signInWithPopup(p).then(function() { closeAuthModal(); }).catch(function(e) {
+                document.getElementById('authError').textContent = 'Ошибка Google: ' + e.message;
+            });
+        }
+        function closeAuthModal() { document.getElementById('authOverlay').classList.remove('active'); document.getElementById('authError').textContent = ''; }
+    </script>
+    <script>CBF.init('checkbf_general_filters');</script>
+</body>
+</html>

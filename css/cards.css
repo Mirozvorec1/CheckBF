@@ -14,7 +14,8 @@
    ============================================================ */
 
 /* === Сетка === */
-.list {
+.list,
+.sub-list {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
     gap: 10px;
@@ -454,7 +455,11 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 12px;
-    padding: 0 0 40px 0;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    align-content: start;
+    padding: 4px 0 40px 0;
 }
 .cat-card {
     border-radius: 12px;
@@ -484,9 +489,7 @@
     margin-top: 4px;
 }
 .sub-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 12px;
+    padding-bottom: 20px;
 }
 .double-img {
     display: flex;
@@ -500,9 +503,6 @@
 }
 
 /* Кнопки на карточке скина — внизу, как у обычных карточек */
-.item.skin-item {
-    justify-content: center;
-}
 .skin-item .btn-row,
 .skin-item > .own-btn {
     position: absolute;
@@ -512,6 +512,6 @@
 }
 
 /* === Адаптивность (без горизонтального ползунка) === */
-@media (max-width: 1500px) { .list { grid-template-columns: repeat(6, 1fr); } }
-@media (max-width: 1150px) { .list { grid-template-columns: repeat(4, 1fr); } }
-@media (max-width: 800px)  { .list { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 1500px) { .list, .sub-list { grid-template-columns: repeat(6, 1fr); } }
+@media (max-width: 1150px) { .list, .sub-list { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 800px)  { .list, .sub-list { grid-template-columns: repeat(2, 1fr); } }
