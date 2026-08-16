@@ -239,6 +239,13 @@
             ]},
             profile_shells: { name: "Оболочки Профиля", icon: "assets/general/profile/DoghouseFrameBreak.webp", items: [
                 { name: "Собачья Будка (Разрыв Кадра)", img: "assets/general/profile/DoghouseFrameBreak.webp", seasonal: true }
+            ]},
+            shipwright: { name: "Кораблестроитель", icon: "assets/general/ValorIcon.webp", items: [
+                { name: "Починка", img: "assets/general/ValorIcon.webp" },
+                { name: "Сборщик Досок", img: "assets/general/ValorIcon.webp", levels: 3 },
+                { name: "Специалист По Чертежам", img: "assets/general/ValorIcon.webp", levels: 3 },
+                { name: "Бортмеханик", img: "assets/general/ValorIcon.webp", levels: 3 },
+                { name: "Тяжёлый Молот", img: "assets/general/ValorIcon.webp" }
             ]}
         };
 
@@ -286,7 +293,11 @@
             keys.forEach(function(key) {
                 var cat = categories[key];
                 var total = cat.items.filter(function(s) { return disabledItems.indexOf(itemKey(key, s)) === -1; }).length;
-                var ownedCount = cat.items.filter(function(s) { return disabledItems.indexOf(itemKey(key, s)) === -1 && owned[itemKey(key, s)]; }).length;
+                var ownedCount = cat.items.filter(function(s) {
+                    if (disabledItems.indexOf(itemKey(key, s)) !== -1) return false;
+                    if (owned[itemKey(key, s)]) return true;
+                    return (parseInt(owned[itemKey(key, s) + ':lvl']) || 0) > 0;
+                }).length;
                 var isComplete = total > 0 && ownedCount === total;
                 var div = document.createElement('div');
                 div.className = 'cat-card' + (isComplete ? ' completed' : '');
@@ -359,6 +370,51 @@
             }
         }
 
+        function buildItemDiv(catKey, item, withLabel) {
+            var owKey = itemKey(catKey, item);
+            var isOwned = owned[owKey] === true;
+            var isDisabled = disabledItems.indexOf(owKey) !== -1;
+            var level = parseInt(owned[owKey + ':lvl']) || 0;
+            var div = document.createElement('div');
+            div.className = 'item skin-item' + (isOwned ? ' owned' : '');
+            div.dataset.name = item.name;
+            div.dataset.owned = isOwned ? 'true' : 'false';
+            div.dataset.seasonal = item.seasonal ? 'true' : 'false';
+            div.dataset.disabled = isDisabled ? 'true' : 'false';
+            if (item.levels) div.dataset.level = level + '/' + item.levels;
+            var html = '';
+            if (item.seasonal) html += '<span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>';
+            if (withLabel) html += '<span class="cat-label">' + categories[catKey].name + '</span>';
+            html += '<img src="' + item.img + '" alt="' + item.name + '" onerror="this.style.display=\'none\'">' + '<h3>' + item.name + '</h3>';
+            if (isDisabled) {
+                html += '<button class="own-btn disabled" disabled>Недоступен</button>';
+            } else if (item.levels) {
+                var bar = '<div class="progress-bar" data-bar="' + owKey + '">';
+                for (var i = 0; i < item.levels; i++) {
+                    bar += '<span class="seg' + (i < level ? ' filled' : '') + '" onclick="setLevel(event, \'' + owKey + '\',' + (i + 1) + ')"></span>';
+                }
+                bar += '</div>';
+                html += bar;
+            } else {
+                html += '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + owKey + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
+            }
+            div.innerHTML = html;
+            return div;
+        }
+
+        function setLevel(e, name, n) {
+            e.stopPropagation();
+            if (!requireAuth()) return;
+            var cur = parseInt(owned[name + ':lvl']) || 0;
+            owned[name + ':lvl'] = cur === n ? 0 : n;
+            saveData();
+            if (hasActiveFilter()) {
+                applyGeneralFilter();
+            } else if (currentCat) {
+                renderSubItems();
+            }
+        }
+
         function renderGlobalFilterResults() {
             var seasonalState = CBF.getFilterState('seasonal');
             var disabledState = CBF.getFilterState('disabled');
@@ -367,28 +423,13 @@
                 var cat = categories[key];
                 cat.items.forEach(function(item) {
                     var owKey = itemKey(key, item);
-                    var isOwned = owned[owKey] === true;
                     var isSeasonal = item.seasonal === true;
                     if (seasonalState === 1 && !isSeasonal) return;
                     if (seasonalState === -1 && isSeasonal) return;
                     var isDisabled = disabledItems.indexOf(owKey) !== -1;
                     if (disabledState === 1 && !isDisabled) return;
                     if (disabledState === -1 && isDisabled) return;
-                    var div = document.createElement('div');
-                    div.className = 'item skin-item' + (isOwned ? ' owned' : '');
-                    div.dataset.name = item.name;
-                    div.dataset.owned = isOwned ? 'true' : 'false';
-                    div.dataset.seasonal = isSeasonal ? 'true' : 'false';
-                    div.dataset.disabled = isDisabled ? 'true' : 'false';
-                    var btns = '';
-                    if (isDisabled) {
-                        btns = '<button class="own-btn disabled" disabled>Недоступен</button>';
-                    } else {
-                        btns = '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + owKey + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
-                    }
-                    var seasonalHtml = isSeasonal ? '<span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>' : '';
-                    div.innerHTML = seasonalHtml + '<span class="cat-label">' + cat.name + '</span>' + '<img src="' + item.img + '" alt="' + item.name + '" onerror="this.style.display=\'none\'">' + '<h3>' + item.name + '</h3>' + btns;
-                    searchList.appendChild(div);
+                    searchList.appendChild(buildItemDiv(key, item, true));
                 });
             });
             initSeasonalTooltips();
@@ -399,24 +440,7 @@
             list.innerHTML = '';
             var items = categories[currentCat].items;
             items.forEach(function(item) {
-                var owKey = itemKey(currentCat, item);
-                var isOwned = owned[owKey] === true;
-                var isDisabled = disabledItems.indexOf(owKey) !== -1;
-                var div = document.createElement('div');
-                div.className = 'item skin-item' + (isOwned ? ' owned' : '');
-                div.dataset.name = item.name;
-                div.dataset.owned = isOwned ? 'true' : 'false';
-                div.dataset.seasonal = item.seasonal ? 'true' : 'false';
-                div.dataset.disabled = isDisabled ? 'true' : 'false';
-                var btns = '';
-                if (isDisabled) {
-                    btns = '<button class="own-btn disabled" disabled>Недоступен</button>';
-                } else {
-                    btns = '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + owKey + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
-                }
-                var seasonalHtml = item.seasonal ? '<span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>' : '';
-                div.innerHTML = seasonalHtml + '<img src="' + item.img + '" alt="' + item.name + '" onerror="this.style.display=\'none\'">' + '<h3>' + item.name + '</h3>' + btns;
-                list.appendChild(div);
+                list.appendChild(buildItemDiv(currentCat, item, false));
             });
             initSeasonalTooltips();
         }
@@ -461,24 +485,7 @@
                 cat.items.forEach(function(item) {
                     var name = item.name.toLowerCase();
                     if (name.indexOf(q) !== -1) {
-                        var owKey = itemKey(key, item);
-                        var isOwned = owned[owKey] === true;
-                        var isDisabled = disabledItems.indexOf(owKey) !== -1;
-                        var div = document.createElement('div');
-                        div.className = 'item skin-item' + (isOwned ? ' owned' : '');
-                        div.dataset.name = item.name;
-                        div.dataset.owned = isOwned ? 'true' : 'false';
-                        div.dataset.seasonal = item.seasonal ? 'true' : 'false';
-                        div.dataset.disabled = isDisabled ? 'true' : 'false';
-                        var btns = '';
-                        if (isDisabled) {
-                            btns = '<button class="own-btn disabled" disabled>Недоступен</button>';
-                        } else {
-                            btns = '<button class="own-btn' + (isOwned ? ' owned' : '') + '" onclick="toggleOwn(event, \'' + owKey + '\')">' + (isOwned ? '✓ Есть' : 'Есть?') + '</button>';
-                        }
-                        var seasonalHtml = item.seasonal ? '<span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>' : '';
-                        div.innerHTML = seasonalHtml + '<span class="cat-label">' + cat.name + '</span>' + '<img src="' + item.img + '" alt="' + item.name + '" onerror="this.style.display=\'none\'">' + '<h3>' + item.name + '</h3>' + btns;
-                        searchList.appendChild(div);
+                        searchList.appendChild(buildItemDiv(key, item, true));
                     }
                 });
             });
