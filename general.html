@@ -258,7 +258,7 @@
                 { name: "Бортмеханик", img: "assets/general/ValorIcon.webp", levels: 3 },
                 { name: "Тяжёлый Молот", img: "assets/general/ValorIcon.webp" }
             ]},
-            statistics: { name: "Статистика", icon: "assets/general/ValorIcon.webp", stat: true, cards: [
+            statistics: { name: "Статистика", icon: "assets/materials/SimulationDataA.webp", stat: true, cards: [
                 { title: "Мечи", icon: "assets/swords/Dark_Blade.webp", storage: "checkbf_swords", ownedField: "eaten", unavailable: ["Тройной Тёмный Клинок"], items: [
                     "Абордажная Сабля", "Катана", "Двойная Катана", "Железная Булава", "Акулья Пила", "Тройная Катана", "Парные Крюки", "Рыболовный Трофей", "Труба", "Двуглавый Клинок", "Трость Души", "Трезубец", "Меч Тюремщика", "Длинный Меч", "Клинок Гравитации", "Цеп", "Драконий Трезубец", "Бисэнто", "Шест (Первая Форма)", "Сабля", "Коко", "Полуночный Клинок", "Ренгоку", "Саиши", "Ороши", "Шизу", "Шест (Вторая Форма)", "Канвандэр", "Приятель", "Колючий Трезубец", "Акулий Якорь", "Лисья Лампа", "Драконье Сердце", "Яма", "Тушита", "Тёмный Кинжал", "Настоящая Тройная Катана", "Священная Коса", "Проклятая Двойная Катана", "Тёмный Клинок", "Собачий Клинок"
                 ]},
@@ -424,7 +424,7 @@
                     ownedCount = cat.items.filter(function(s) {
                         if (disabledItems.indexOf(itemKey(key, s)) !== -1) return false;
                         if (owned[itemKey(key, s)]) return true;
-                        return (parseInt(owned[itemKey(key, s) + ':lvl']) || 0) > 0;
+                        return (parseInt(owned[itemKey(key, s) + ':lvl']) || 0) >= s.levels;
                     }).length;
                 }
                 var isComplete = total > 0 && ownedCount === total;
