@@ -151,6 +151,17 @@
             color: #8cf;
             margin-bottom: 4px;
         }
+        .stat-count {
+            font-size: 1rem;
+            color: #fff;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+        .stat-pct {
+            font-size: 0.7rem;
+            color: #8cf;
+            margin-bottom: 4px;
+        }
         .auth-overlay {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.7); z-index: 50; justify-content: center; align-items: center;
@@ -246,6 +257,62 @@
                 { name: "Специалист По Чертежам", img: "assets/general/ValorIcon.webp", levels: 3 },
                 { name: "Бортмеханик", img: "assets/general/ValorIcon.webp", levels: 3 },
                 { name: "Тяжёлый Молот", img: "assets/general/ValorIcon.webp" }
+            ]},
+            statistics: { name: "Статистика", icon: "assets/general/ValorIcon.webp", stat: true, cards: [
+                { title: "Мечи", icon: "assets/swords/Dark_Blade.webp", storage: "checkbf_swords", ownedField: "eaten", unavailable: ["Тройной Тёмный Клинок"], items: [
+                    "Абордажная Сабля", "Катана", "Двойная Катана", "Железная Булава", "Акулья Пила", "Тройная Катана", "Парные Крюки", "Рыболовный Трофей", "Труба", "Двуглавый Клинок", "Трость Души", "Трезубец", "Меч Тюремщика", "Длинный Меч", "Клинок Гравитации", "Цеп", "Драконий Трезубец", "Бисэнто", "Шест (Первая Форма)", "Сабля", "Коко", "Полуночный Клинок", "Ренгоку", "Саиши", "Ороши", "Шизу", "Шест (Вторая Форма)", "Канвандэр", "Приятель", "Колючий Трезубец", "Акулий Якорь", "Лисья Лампа", "Драконье Сердце", "Яма", "Тушита", "Тёмный Кинжал", "Настоящая Тройная Катана", "Священная Коса", "Проклятая Двойная Катана", "Тёмный Клинок", "Собачий Клинок"
+                ]},
+                { title: "Сезонные Мечи", icon: "assets/swords/DogBladeIcon.webp", storage: "checkbf_swords", ownedField: "eaten", items: [
+                    "Рыболовный Трофей", "Собачий Клинок"
+                ]},
+                { title: "Боевые Стили", icon: "assets/fighting/GodhumanA.webp", storage: "checkbf_styles", ownedField: "owned", items: [
+                    "Тёмный Шаг (Dark Step)", "Шаг Смерти (Death Step)", "Электричество (Electric)", "Электрический Коготь (Electric Claw)", "Водное Кунг-Фу (Water Kung Fu)", "Каратэ Акуло-Человека (Sharkman Karate)", "Дыхание Дракона (Dragon Breath)", "Коготь Дракона (Dragon Talon)", "Борьба (Basic)", "Суперчеловек (Superhuman)", "Богочеловек (Godhuman)", "Искусство Крови (Sanguine Art)"
+                ]},
+                { title: "Оружия", icon: "assets/guns/FlintlockQ.webp", storage: "checkbf_guns", ownedField: "eaten", items: [
+                    "Рогатка", "Мушкет", "Кремневое Ружье", "Изысканная Рогатка", "Двойное Кремневое Ружье", "Пушка", "Магматический Бластер", "Кислотная Винтовка", "Чудной Револьвер", "Базука", "Кабуча", "Ядовитый Лук", "Драконий Шторм", "Гитара Череп"
+                ]},
+                { title: "Аксессуары", icon: "assets/accessories/SwanGlassesQ.webp", storage: "checkbf_accessories", ownedField: "eaten", unavailable: ["Пальто D.S.", "Драконья Мантия", "Шлем Виверны", "Плащ Uzoth'a"], items: [
+                    "Головная Повязка (Белая)", "Головная Повязка (Жёлтая)", "Головная Повязка (Оранжевая)", "Головная Повязка (Зелёная)", "Головная Повязка (Синяя)", "Головная Повязка (Фиолетовая)", "Головная Повязка (Красная)", "Головная Повязка (Чёрная)", "Розовое Пальто", "Пояс Додзё (Белый)", "Пояс Додзё (Жёлтый)", "Пояс Додзё (Оранжевый)", "Пояс Додзё (Зелёный)", "Пояс Додзё (Синий)", "Пояс Додзё (Фиолетовый)", "Пояс Додзё (Красный)", "Шляпа Мечника", "Чёрный Плащ", "Пальто", "Кольцо Томоэ", "Крутые Очки", "Кепка Дозорного", "Шляпа Усоапа", "Чёрное Колючее Пальто", "Шлем Воина", "Маска Гуля", "Синее Колючее Пальто", "Красное Колючее Пальто", "Цилиндр", "Чоппа", "Шлем Пилота", "Леи", "Золотая Шляпа от Солнца", "Медвежьи Уши", "Плащ Охотника (Чёрный)", "Плащ Охотника (Зелёный)", "Плащ Охотника (Красный)", "Бандана (Чёрная)", "Бандана (Зелёная)", "Бандана (Красная)", "Симпатичный Шлем", "Челюстной Щит", "Ожерелье из Зубов Акулы", "Пояс Додзё (Чёрный)", "Череп Т-Рекса", "Шляпа Эльфа", "Шляпа Санты", "Очки Свана", "Кепка-Зебра", "Мушкетёрская Шляпа", "Святая Корона", "Бледный Шарф", "Пернатый Лик", "Шлем Валькирии", "Челюсть Ужаса", "Корона Левиафана", "Риббон Кицунэ", "Маска Кицунэ", "Капюшон Дино", "Пальто Купидона", "Сердечные Очки", "Пальто D.S.", "Драконья Мантия", "Шлем Виверны", "Тёмное Пальто", "Щит Левиафана", "Пальто Крови", "Шлем Они", "Божественное Пальто", "Небесный Шлем", "Ковенская Шляпа Ведьмы", "Тыквенная Маска", "Праздничный Плащ", "Праздничная Шляпа", "Праздничная Шляпа 50B", "Морозный Шлем", "Шлем из Перечной Мяты", "Красный Бант", "Романтический Букет", "Цилиндр Купидона", "Шлем из Расколотого Яйца", "Плащ Пасхального Кролика", "Плащ Uzoth'a"
+                ]},
+                { title: "Сезонные Аксессуары", icon: "assets/accessories/SantaHatQ.webp", storage: "checkbf_accessories", ownedField: "eaten", items: [
+                    "Шляпа Эльфа", "Шляпа Санты", "Пальто Купидона", "Сердечные Очки", "Пальто Крови", "Шлем Они", "Божественное Пальто", "Небесный Шлем", "Ковенская Шляпа Ведьмы", "Тыквенная Маска", "Праздничный Плащ", "Праздничная Шляпа", "Праздничная Шляпа 50B", "Морозный Шлем", "Шлем из Перечной Мяты", "Красный Бант", "Романтический Букет", "Цилиндр Купидона", "Шлем из Расколотого Яйца", "Плащ Пасхального Кролика"
+                ]},
+                { title: "Перм Фрукты", icon: "assets/Perm.png", storage: "checkbf_fruits", ownedField: "perm", items: [
+                    "Ракета (Rocket)", "Спин (Spin)", "Клинок (Blade)", "Пружина (Spring)", "Бомба (Bomb)", "Дым (Smoke)", "Шип (Spike)", "Пламя (Flame)", "Лёд (Ice)", "Песок (Sand)", "Темнота (Dark)", "Орёл (Eagle)", "Алмаз (Diamond)", "Свет (Light)", "Резина (Rubber)", "Призрак (Ghost)", "Магма (Magma)", "Дрожь (Quake)", "Будда (Buddha)", "Любовь (Love)", "Создание (Creation)", "Паук (Spider)", "Звук (Sound)", "Феникс (Phoenix)", "Портал (Portal)", "Молния (Lightning)", "Боль (Pain)", "Метель (Blizzard)", "Гравитация (Gravity)", "Мамонт (Mammoth)", "Ти-Рекс (T-Rex)", "Тесто (Dough)", "Тень (Shadow)", "Яд (Venom)", "Контроль (Control)", "Газ (Gas)", "Дух (Spirit)", "Тигр (Tiger)", "Йети (Yeti)", "Кицунэ (Kitsune)", "Восточный Дракон (Dragon East)", "Западный Дракон (Dragon West)"
+                ]},
+                { title: "Идеальные Фрукты", icon: "assets/fruits/KitsuneB.webp", storage: "checkbf_fruits", ownedField: "mastery", items: [
+                    "Ракета (Rocket)", "Спин (Spin)", "Клинок (Blade)", "Пружина (Spring)", "Бомба (Bomb)", "Дым (Smoke)", "Шип (Spike)", "Пламя (Flame)", "Лёд (Ice)", "Песок (Sand)", "Темнота (Dark)", "Орёл (Eagle)", "Алмаз (Diamond)", "Свет (Light)", "Резина (Rubber)", "Призрак (Ghost)", "Магма (Magma)", "Дрожь (Quake)", "Будда (Buddha)", "Любовь (Love)", "Создание (Creation)", "Паук (Spider)", "Звук (Sound)", "Феникс (Phoenix)", "Портал (Portal)", "Молния (Lightning)", "Боль (Pain)", "Метель (Blizzard)", "Гравитация (Gravity)", "Мамонт (Mammoth)", "Ти-Рекс (T-Rex)", "Тесто (Dough)", "Тень (Shadow)", "Яд (Venom)", "Контроль (Control)", "Газ (Gas)", "Дух (Spirit)", "Тигр (Tiger)", "Йети (Yeti)", "Кицунэ (Kitsune)", "Восточный Дракон (Dragon East)", "Западный Дракон (Dragon West)"
+                ]},
+                { title: "Пробужденные Фрукты", icon: "assets/fruits/LightB.webp", storage: "checkbf_fruits", ownedField: "awakening", items: [
+                    "Пламя (Flame)", "Лёд (Ice)", "Песок (Sand)", "Темнота (Dark)", "Свет (Light)", "Магма (Magma)", "Дрожь (Quake)", "Будда (Buddha)", "Паук (Spider)", "Феникс (Phoenix)", "Тесто (Dough)"
+                ]},
+                { title: "Прокачанные Фрукты", icon: "assets/fruits/LightningB.webp", storage: "checkbf_fruits", ownedField: "mastery", items: [
+                    "Орёл (Eagle)", "Молния (Lightning)", "Боль (Pain)", "Гравитация (Gravity)", "Контроль (Control)"
+                ]},
+                { title: "Идеальные Мутации", icon: "assets/mutations/Werewolf_Fruit.webp", storage: "checkbf_mutations", ownedField: "mastery", items: [
+                    "Эмпирей (Багрянный)", "Бес", "Оборотень"
+                ]},
+                { title: "Созданные Скины", icon: "assets/skins/Aura_Snow_White_Icon.webp", storage: "checkbf_skins", ownedField: "own", items: [
+                    "aura:Апельсиновая Сода", "aura:Яркий Жёлтый", "aura:Солнечный Жёлтый", "aura:Слаймовый Зелёный", "aura:Зелёная Ящерица", "aura:Синие Джинсы", "aura:Пухлый Фиолетовый", "aura:Огненная Роза", "aura:Волна Тепла", "aura:Абсолютный Ноль", "aura:Снежный Белый", "aura:Чистый Красный", "aura:Зимнее Небо", "aura:Дракон", "dragon:Оранжевый", "dragon:Жёлтый", "dragon:Синий", "dragon:Красный", "dragon:Фиолетовый", "dragon:Чёрный", "dragon:Замороженный", "dragon:Изумрудный", "eagle:Бархат", "eagle:Сокол", "eagle:Золотой Мох", "eagle:Синее Небо", "eagle:Оранжевый Крем"
+                ]},
+                { title: "Скины", icon: "assets/skins/PortalDivineB.webp", storage: "checkbf_skins", ownedField: "own", unavailable: ["aura:Хакер", "lightning:Белый", "dragon:Лиловая Ночь", "dragon:Небесный Феникс", "dragon:Кровавая Луна", "portal:Розовый", "portal:Оранжевый"], items: [
+                    "aura:Апельсиновая Сода", "aura:Яркий Жёлтый", "aura:Солнечный Жёлтый", "aura:Слаймовый Зелёный", "aura:Зелёная Ящерица", "aura:Синие Джинсы", "aura:Пухлый Фиолетовый", "aura:Огненная Роза", "aura:Волна Тепла", "aura:Абсолютный Ноль", "aura:Снежный Белый", "aura:Чистый Красный", "aura:Зимнее Небо", "aura:Радужный Спаситель", "aura:Кицунэ", "aura:Дракон", "aura:Хакер", "dragon:Оранжевый", "dragon:Жёлтый", "dragon:Синий", "dragon:Красный", "dragon:Фиолетовый", "dragon:Чёрный", "dragon:Замороженный", "dragon:Изумрудный", "dragon:Затмение", "dragon:Тление", "dragon:Лиловая Ночь", "dragon:Небесный Феникс", "dragon:Кровавая Луна", "kitsune:Галактический (Эмпирей)", "pain:Мучение", "pain:Разочарование", "pain:Печаль", "pain:Небесный", "pain:Супер Дух", "lightning:Зелёный", "lightning:Жёлтый", "lightning:Фиолетовый", "lightning:Красный", "lightning:Белый", "portal:Божественный", "portal:Розовый", "portal:Оранжевый", "diamond:Изумруд", "diamond:Розовый Кварц", "diamond:Топаз", "diamond:Рубин", "eagle:Бархат", "eagle:Сокол", "eagle:Золотой Мох", "eagle:Синее Небо", "eagle:Оранжевый Крем", "eagle:Ледник", "eagle:Реквием", "eagle:Матрица", "eagle:Попугай", "bomb:Ядерная", "bomb:Термитная", "bomb:Лазурная", "bomb:Праздничная", "darkblade:Убийца Богов", "dogblade:Бешеный"
+                ]},
+                { title: "Сезонные Скины", icon: "assets/skins/Aura_Oni_Icon.webp", storage: "checkbf_skins", ownedField: "own", items: [
+                    "aura:Аквамариновый", "aura:Лёгкий Розовый", "aura:Они", "aura:Небесный"
+                ]},
+                { title: "Идеальные Удочки", icon: "assets/rods/GoldRodQ.webp", storage: "checkbf_rods", ownedField: "mastery", items: [
+                    "Рыбацкая Удочка", "Золотая Удочка", "Акулья Удочка", "Ракушечная Удочка", "Сокровищная Удочка", "Осквернённая Акулья Удочка", "Небесная Ракушечная Удочка"
+                ]},
+                { title: "Рыбы", icon: "assets/fishes/Terrorfish.webp", storage: "checkbf_fishes", ownedField: "eaten", items: [
+                    "fish_1", "fish_2", "fish_3", "fish_4", "fish_5", "fish_6", "fish_7", "fish_8", "fish_9", "fish_10", "fish_11", "fish_12", "fish_13", "fish_14", "fish_15", "fish_16", "fish_17", "fish_18", "fish_19", "fish_20", "fish_21", "fish_22", "fish_23", "fish_24", "fish_25", "fish_26", "fish_27", "fish_28", "fish_29", "fish_30", "fish_31", "fish_32", "fish_33", "fish_34", "fish_35", "fish_36", "fish_37", "fish_39", "fish_40", "fish_41", "fish_42", "fish_43", "fish_44", "fish_45", "fish_46", "fish_47", "fish_48", "fish_49", "fish_50", "fish_51", "fish_57"
+                ]},
+                { title: "Сезонные Рыбы", icon: "assets/fishes/Terrorbones.webp", storage: "checkbf_fishes", ownedField: "eaten", items: [
+                    "fish_38", "fish_52", "fish_53", "fish_54", "fish_55", "fish_56", "fish_58", "fish_59", "fish_60", "fish_61"
+                ]},
+                { title: "Фулл Расы", icon: "assets/races/HumanIcon.webp", storage: "checkbf_races", ownedField: "race", items: [
+                    "Человек", "Акула", "Кролик", "Ангел", "Киборг", "Гуль", "Драко"
+                ]}
             ]}
         };
 
@@ -283,21 +350,83 @@
             }
         }
 
+        function computeStat(card) {
+            var ownedCount = 0, total = 0;
+            var data = {};
+            var raw = localStorage.getItem(card.storage);
+            if (raw) {
+                try { data = JSON.parse(raw); } catch(e) {}
+            }
+            card.items.forEach(function(name) {
+                if (card.unavailable && card.unavailable.indexOf(name) !== -1) return;
+                total++;
+                var entry = data[name];
+                var isOwned = false;
+                if (card.ownedField === 'eaten') isOwned = entry && entry.eaten === 'true';
+                else if (card.ownedField === 'owned') isOwned = entry && entry.owned === 'true';
+                else if (card.ownedField === 'perm') isOwned = entry && entry.perm === 'true';
+                else if (card.ownedField === 'mastery') isOwned = entry && entry.mastery && (parseInt(entry.mastery.split('/')[0]) || 0) >= (parseInt(entry.mastery.split('/')[1]) || 600);
+                else if (card.ownedField === 'awakening') isOwned = entry && entry.awakening && (parseInt(entry.awakening.split('/')[0]) || 0) >= (parseInt(entry.awakening.split('/')[1]) || 5);
+                else if (card.ownedField === 'race') isOwned = entry && entry.version === 'v4' && (parseInt(entry.awakening.split('/')[0]) || 0) >= 10;
+                else isOwned = entry === true;
+                if (isOwned) ownedCount++;
+            });
+            return { owned: ownedCount, total: total };
+        }
+
+        function renderStatCards() {
+            var list = document.getElementById('subList');
+            list.innerHTML = '';
+            categories[currentCat].cards.forEach(function(card) {
+                var s = computeStat(card);
+                var pct = s.total > 0 ? Math.round(s.owned / s.total * 100) : 0;
+                var segs = 10;
+                var filled = Math.round(pct / 10);
+                var bar = '<div class="progress-bar">';
+                for (var i = 0; i < segs; i++) {
+                    bar += '<span class="seg' + (i < filled ? ' filled' : '') + '"></span>';
+                }
+                bar += '</div>';
+                var div = document.createElement('div');
+                div.className = 'item skin-item' + (s.owned === s.total ? ' completed' : '');
+                div.dataset.name = card.title;
+                div.dataset.owned = s.owned === s.total ? 'true' : 'false';
+                div.dataset.seasonal = 'false';
+                div.dataset.disabled = 'false';
+                div.innerHTML = '<img src="' + card.icon + '" alt="' + card.title + '">' +
+                    '<h3>' + card.title + '</h3>' +
+                    '<span class="stat-count">' + s.owned + '/' + s.total + '</span>' +
+                    '<span class="stat-pct">' + pct + '%</span>' + bar;
+                list.appendChild(div);
+            });
+        }
+
         function renderCategories() {
             var container = document.getElementById('categoriesView');
             container.innerHTML = '';
             var keys = Object.keys(categories);
             keys.sort(function(a, b) {
-                return categories[b].items.length - categories[a].items.length;
+                var la = categories[a].stat ? categories[a].cards.length : categories[a].items.length;
+                var lb = categories[b].stat ? categories[b].cards.length : categories[b].items.length;
+                return lb - la;
             });
             keys.forEach(function(key) {
                 var cat = categories[key];
-                var total = cat.items.filter(function(s) { return disabledItems.indexOf(itemKey(key, s)) === -1; }).length;
-                var ownedCount = cat.items.filter(function(s) {
-                    if (disabledItems.indexOf(itemKey(key, s)) !== -1) return false;
-                    if (owned[itemKey(key, s)]) return true;
-                    return (parseInt(owned[itemKey(key, s) + ':lvl']) || 0) > 0;
-                }).length;
+                var total, ownedCount;
+                if (cat.stat) {
+                    total = cat.cards.length;
+                    ownedCount = cat.cards.filter(function(c) {
+                        var s = computeStat(c);
+                        return s.total > 0 && s.owned === s.total;
+                    }).length;
+                } else {
+                    total = cat.items.filter(function(s) { return disabledItems.indexOf(itemKey(key, s)) === -1; }).length;
+                    ownedCount = cat.items.filter(function(s) {
+                        if (disabledItems.indexOf(itemKey(key, s)) !== -1) return false;
+                        if (owned[itemKey(key, s)]) return true;
+                        return (parseInt(owned[itemKey(key, s) + ':lvl']) || 0) > 0;
+                    }).length;
+                }
                 var isComplete = total > 0 && ownedCount === total;
                 var div = document.createElement('div');
                 div.className = 'cat-card' + (isComplete ? ' completed' : '');
@@ -421,6 +550,7 @@
             var searchList = document.getElementById('searchList');
             Object.keys(categories).forEach(function(key) {
                 var cat = categories[key];
+                if (cat.stat) return;
                 cat.items.forEach(function(item) {
                     var owKey = itemKey(key, item);
                     var isSeasonal = item.seasonal === true;
@@ -436,6 +566,10 @@
         }
 
         function renderSubItems() {
+            if (categories[currentCat].stat) {
+                renderStatCards();
+                return;
+            }
             var list = document.getElementById('subList');
             list.innerHTML = '';
             var items = categories[currentCat].items;
@@ -482,6 +616,7 @@
 
             Object.keys(categories).forEach(function(key) {
                 var cat = categories[key];
+                if (cat.stat) return;
                 cat.items.forEach(function(item) {
                     var name = item.name.toLowerCase();
                     if (name.indexOf(q) !== -1) {
