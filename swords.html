@@ -381,7 +381,7 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)"><img src="assets/Favorite.png" alt=""></span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">⚒</span>
             </div>
-            <div class="item" data-name="Рыболовный Трофей" data-mastery="1/600" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Рыболовный Трофей" data-mastery="1/600" data-rarity="uncommon" data-eaten="false" data-fav="false" data-perm="false" data-no-upgrade="true">
                 <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
                 <img src="assets/swords/FishingTrophyQ.webp" alt="Fishing Trophy">
                 <div class="info"><h3>Рыболовный Трофей</h3><p>1/600</p></div>
@@ -613,7 +613,7 @@
                 <span class="fav-icon" onclick="toggleFav(event, this)"><img src="assets/Favorite.png" alt=""></span>
                 <span class="perm-icon" onclick="togglePerm(event, this)">⚒</span>
             </div>
-            <div class="item" data-name="Собачий Клинок" data-mastery="1/600" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false">
+            <div class="item" data-name="Собачий Клинок" data-mastery="1/600" data-rarity="mythical" data-eaten="false" data-fav="false" data-perm="false" data-no-upgrade="true">
                 <span class="seasonal">?<span class="tooltip">Это сезонный предмет, который невозможно получить в обычное время</span></span>
                 <img src="assets/swords/DogBladeIcon.webp" alt="Dog Blade">
                 <div class="info"><h3>Собачий Клинок</h3><p>1/600</p></div>
@@ -636,7 +636,7 @@
                 <img id="popupIcon" src="" alt="">
                 <h2 id="popupName"></h2>
             </div>
-            <div class="row">
+            <div class="row" id="popupMasteryRow">
                 <span class="label">Мастерство:</span>
                 <div class="controls">
                     <button class="ctrl-btn" onmousedown="startChange('mastery',-10)" onmouseup="stopChange()" onmouseleave="stopChange()">−</button>
@@ -819,6 +819,12 @@
             }
         }
 
+        document.querySelectorAll('.item[data-no-upgrade="true"]').forEach(function(item) {
+            item.classList.add('icons-2');
+            var perm = item.querySelector('.perm-icon');
+            if (perm) perm.style.display = 'none';
+        });
+
         document.querySelectorAll('.item').forEach(function(item) {
             item.addEventListener('click', function() {
                 currentItem = item;
@@ -836,6 +842,7 @@
                 } else {
                     awRow.style.display = 'none';
                 }
+                document.getElementById('popupMasteryRow').style.display = '';
                 document.getElementById('popupOverlay').classList.add('active');
             });
         });
